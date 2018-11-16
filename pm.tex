@@ -1,10 +1,11 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%!TEX encoding = UTF-8 Unicode
 \documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
 
 \usepackage[T1]{fontenc}
-\usepackage{latexsym,color,amsmath,amssymb,amsthm}
+\usepackage{latexsym,amsmath,amssymb,amsthm}
+\usepackage[dvipsnames,usenames]{xcolor}
 \usepackage{floatflt}
-\usepackage{color}
 \usepackage{times}
 \usepackage{euscript}
 \usepackage{epsfig}
@@ -84,10 +85,45 @@
 %\textfloatsep 18pt plus 2pt minus 4pt      % was 20pt plus 2pt minus 4pt
 \makeatother
 
+
+
+% ----------------------------------------------------------------------
+%  Notes to myself.  The margin flags are broken, thanks to an
+%  incompatibility with the geometry package.
+% ----------------------------------------------------------------------
+\def\n@te#1{\textsf{\boldmath \textbf{$\langle\!\langle$#1$\rangle\!\rangle$}}\leavevmode}
+\def\note#1{\textcolor{red}{\n@te{#1}}}
+
+%----------------------------------------------------------------------
+%  TODO sets enclosed text in a gray rectangle with a red border
+%  with small sans-serif text.
+%----------------------------------------------------------------------
+\definecolor{TODOcolor}{cmyk}{0.05,0,0,0}
+\definecolor{TODOtxtcolor}{cmyk}{0,1,1,0}
+
+\newenvironment{TODO}
+   {\fboxrule1.5pt\begin{center}
+     \marginpar{\LARGE\color{Red}$\bigstar\bigstar\bigstar$}
+     \begin{lrbox}{\tempboxa}
+     \begin{minipage}{0.9\columnwidth}
+     \small\sffamily\parindent1.5em\color{TODOtxtcolor}}
+   {\end{minipage}
+    \end{lrbox}
+    \fcolorbox{TODOtxtcolor}{TODOcolor}{\usebox{\tempboxa}}\end{center}}
+
+%----------------------------------------------------------------------
+% 'cramped' list style, stolen from Jeff Vitter.  Doesn't always work.
+%----------------------------------------------------------------------
+\def\cramped
+  {\parskip\@outerparskip\@topsep\parskip\@topsepadd2pt\itemsep0pt
+}
+
+
+%% METAFILE
 \title{ Geometric Partial Matching and Unbalanced Transportation %
 \date{\today} % replace with date?
 \author{
-Pankaj K. Agarwal 
+Pankaj K.\ Agarwal
 \and
 Allen Xiao
 }
@@ -101,45 +137,54 @@ Allen Xiao
 \section{Introduction}
 
 Consider the problem of finding a minimum-cost bichromatic matching between
-a set $A$ of red points and $B$ of blue points lying in the plane,
-where the cost of a matching edge $(a, b)$ is the Euclidean distance 
-$\|a - b\|$ ---
-in other words, the minimum-cost bipartite matching problem on the Euclidean 
+a set of red points $A$ and a set of blue points $B$ lying in the plane,
+where the cost of a matching edge $(a, b)$ is the Euclidean distance
+$\|a - b\|$;
+in other words, the minimum-cost bipartite matching problem on the Euclidean
 complete graph $G = (A \cup B, A \times B)$.
-Let $|A| = r$ and $|B| = n$, and (without loss of generality) $r \leq n$.
-We consider the problem of \emph{partial matching}, where we are tasked with
-finding the minimum-cost matching of size $k \leq r \leq n$.
+Let $r$ be the number of vertices in $A$, and $n$ be the number of vertices in $B$.
+Without loss of generality assume that $r \leq n$.
+We consider the problem of \emph{partial matching}, where the task is to
+find the minimum-cost matching of size $k$ (which by definition is at most $r$).
 When $k = r = n$, we say the matching instance is \emph{balanced}
 and call the problem \emph{perfect matching} or the \emph{assignment problem}.
-When $k = r < n$ ($A$ and $B$ have different sizes, but the matching is 
+When $k = r < n$ ($A$ and $B$ have different sizes, but the matching is
 maximal), we say the matching instance is \emph{unblanced}.
+\note{Don't mix up the definition of \emph{balanced} and \emph{perfect}; the former is between $r$ and $n$, where the latter is between $k$ and $r$.}
 Partial matching generalizes both perfect matching and unbalanced matching.
 We will refer to the geometric problem as \emph{bichromatic partial matching}.
+\text{Maybe bad nameing; there is nothing geometric about this name.}
 
-%TODO previous work
-%	on matching
-% 	on geometric matching
-%	on unbalanced/partial problems (GHKT, the push-relabel one, the tech report)
+\begin{TODO}
+Previous work
+\smallskip
+\begin{itemize}\itemsep=0pt
+	\item on matching
+	\item on geometric matching
+	\item on unbalanced/partial problems (GHKT, the push-relabel one, the tech report)
+\end{itemize}
+\textcolor{blue}{[Hsien: State your TODO list explicitly in the pdf file so that it's easier to read.  Make everything that you are planning to do, and put priorities on them.]}
+\end{TODO}
 
 
 \subsection{Contributions}
 
 In this paper, we present two algorithms for bichromatic partial matching
-that are based on fitting nearest-neighbor (NN) and bichromatic closest pair 
-(BCP) oracles into primal-dual algorithms for non-geometric bipartite matching 
+that are based on fitting nearest-neighbor (NN) and bichromatic closest pair
+(BCP) oracles into primal-dual algorithms for non-geometric bipartite matching
 and minimum-cost flow.
 This pattern is not new, see e.g. %TODO .
-Unlike these previous works, we focus on obtaining running time dependencies on 
+Unlike these previous works, we focus on obtaining running time dependencies on
 $k$ or $r$ instead of $n$, i.e. faster for inputs with small $r$ or $k$.
-We begin in Section~\ref{section:prelim} by introducing notation for matching 
+We begin in Section~\ref{section:prelim} by introducing notation for matching
 and minimum-cost flow.
 
 % O((n + k^2)\polylog n)
 
-In our first algorithm, we show that the Hungarian algorithm~\cite{Kuhn55} 
-combined with a BCP oracle solves bichromatic partial matching exactly in time 
+In our first algorithm, we show that the Hungarian algorithm~\cite{Kuhn55}
+combined with a BCP oracle solves bichromatic partial matching exactly in time
 $O((n + k^2)\polylog(n))$.
-Mainly, we show that we can separate the $O(n\polylog(n))$ preprocessing time 
+Mainly, we show that we can separate the $O(n\polylog(n))$ preprocessing time
 for building the BCP data structure from the augmenting paths' search time,
 and update duals in a lazy fashion such that the number of dual updates per
 augmenting path is $O(k)$.
@@ -147,35 +192,35 @@ This is done in Section~\ref{section:hung}.
 
 \begin{theorem}
 \label{theorem:hung}
-Given point sets $A, B \subset \mathbb{R}^2$ with $|A| = r \leq |B| = n$ and a 
-parameter $k \leq r$, a minimum-cost bichromatic partial matching of size $k$ 
+Given point sets $A, B \subset \mathbb{R}^2$ with $|A| = r \leq |B| = n$ and a
+parameter $k \leq r$, a minimum-cost bichromatic partial matching of size $k$
 can be computed between $A$ and $B$ in $O((n + k^2)\polylog(n))$ time.
 \end{theorem}
 
 % O((n + k\sqrt{k})\polylog(n)\log(n/\eps))
 
-Next, we apply a similar technique to the unit-capacity min-cost circulation 
+Next, we apply a similar technique to the unit-capacity min-cost circulation
 algorithm of Goldberg, Hed, Kaplan, and Tarjan~\cite{GHKT17}.
-The resulting algorithm finds a $(1 + \eps)$-approximation to the optimal 
-bichromatic partial matching in $O((n + k\sqrt{k})\polylog(n)\log(n/\eps))$ 
+The resulting algorithm finds a $(1 + \eps)$-approximation to the optimal
+bichromatic partial matching in $O((n + k\sqrt{k})\polylog(n)\log(n/\eps))$
 time.
 This is presented in Section~\ref{section:goldberg}.
 
 \begin{theorem}
 \label{theorem:gmcm}
-Given point sets $A, B \subset \mathbb{R}^2$ with $|A| = r \leq |B| = n$ and a 
-parameter $k \leq r$, a $(1+\eps)$ bichromatic partial matching of size $k$ 
-can be computed between $A$ and $B$ in 
+Given point sets $A, B \subset \mathbb{R}^2$ with $|A| = r \leq |B| = n$ and a
+parameter $k \leq r$, a $(1+\eps)$ bichromatic partial matching of size $k$
+can be computed between $A$ and $B$ in
 $O((n + k\sqrt{k})\polylog(n)\log(n/\eps))$ time.
 \end{theorem}
 
 % add the ~O(rn^{3/2}) version
 
-Our third algorithm solves the transportation problem, in the unbalanced 
+Our third algorithm solves the transportation problem, in the unbalanced
 setting with $|A| = r$ and $|B| = n$.
 This time, we use the strongly polynomial uncapacitated min-cost flow algorithm
 by Orlin~%TODO cite
-The result is an $O(n^{3/2}r\polylog(n))$ time algorithm for unbalanced 
+The result is an $O(n^{3/2}r\polylog(n))$ time algorithm for unbalanced
 transportation.
 This improves over the $O(n^2 \polylog(n))$ time algorithm of %TODO cite
 when $r = o(\sqrt{n})$.
@@ -183,25 +228,25 @@ when $r = o(\sqrt{n})$.
 \begin{theorem}
 \label{theorem:orlin}
 Given point sets $A, B \subset \mathbb{R}^2$ with $|A| = r \leq |B| = n$ with
-supplies and demands $\tsupply(\cdot)$ such that 
-$\sum_{a \in A} \tsupply(a) = \sum_{b \in B} \tsupply(b)$, an optimal 
+supplies and demands $\tsupply(\cdot)$ such that
+$\sum_{a \in A} \tsupply(a) = \sum_{b \in B} \tsupply(b)$, an optimal
 transportation map can be computed in $O(n^{3/2}r\polylog(n))$ time.
 \end{theorem}
 
 %TODO STILL IN PROGRESS, WE DON'T HAVE A SOLUTION YET. REMOVE IF FAILS.
 
-%Finally, we show that an algorithm by Orlin~\cite{} for uncapacitated min-cost 
-%flow can be modified to give an $O(nr\polylog(n))$ time algorithm for the 
+%Finally, we show that an algorithm by Orlin~\cite{} for uncapacitated min-cost
+%flow can be modified to give an $O(nr\polylog(n))$ time algorithm for the
 %unbalanced transportation problem.
-%Unlike matching, vertices may be ``matched'' (transporting) to more than one 
+%Unlike matching, vertices may be ``matched'' (transporting) to more than one
 %other vertex.
-%As a result, it seems possible that the search procedure reaches vertices which 
-%do not contribute to a new augmenting path or towards finding unreached $B$ 
+%As a result, it seems possible that the search procedure reaches vertices which
+%do not contribute to a new augmenting path or towards finding unreached $B$
 %vertices, forcing the search to backtrack.
 %Avoiding the backtracking is the main challenge for this algorithm.
 %% how?
 
-By nature of the BCP/NN oracles we use, our results generalize from Euclidean 
+By nature of the BCP/NN oracles we use, our results generalize from Euclidean
 distances to any $L_p$ distances.
 
 \section{Preliminaries}
@@ -211,121 +256,121 @@ distances to any $L_p$ distances.
 
 Let $G = (A \cup B, E)$ be a bipartite graph between vertex sets $A$ and $B$,
 with costs $c(v, w)$ for each $e \in E$.
-We use $C = \max_{e \in E} c(e)$, and assume that the problem is scaled such 
+We use $C = \max_{e \in E} c(e)$, and assume that the problem is scaled such
 that $\min_{e \in E} c(e) = 1$.
-A \emph{matching} $M \subseteq E$ is a set of edges where no two share an 
+A \emph{matching} $M \subseteq E$ is a set of edges where no two share an
 endpoint.
 We use $V(M)$ to denote the vertices matched by $M$.
-The size of a matching is the number of edges in the set, and the cost of a 
+The size of a matching is the number of edges in the set, and the cost of a
 matching is the sum of costs of its edges.
-The minimum-cost partial matching problem (MPM) asks to find the size $k$ 
+The minimum-cost partial matching problem (MPM) asks to find the size $k$
 matching $M^*$ of minimum cost.
 
 \subsection{Minimum-cost flow}
 
-For minimum-cost flow, let $G_0 = (V, E_0)$ be a directed graph with 
-nonnegative arc capacities $u(v, w)$ and costs $c(v, w)$ for each arc 
-$(v, w) \in E_0$. 
+For minimum-cost flow, let $G_0 = (V, E_0)$ be a directed graph with
+nonnegative arc capacities $u(v, w)$ and costs $c(v, w)$ for each arc
+$(v, w) \in E_0$.
 We say $G_0$ is \emph{unit-capacity} if all $u(v, w) = 1$.
 Let $\fsupply: V \to \ints_{\geq 0}$ be a supply-demand function on $V$,
 where positive values of $\fsupply(v)$ we refer to as \emph{supply},
-negative values of $\fsupply(v)$ are \emph{demand}, and 
+negative values of $\fsupply(v)$ are \emph{demand}, and
 $\sum_{v \in V} \fsupply(v) = 0$.
-We augment $G_0$ to make it \emph{symmetric} (for every arc $(v, w) \in E_0$ 
-its reverse $(v, w)^R = (w, v)$ is also an arc) and the costs 
-\emph{antisymmetric} ($c(v, w) = -c(w, v)$): for each $(v, w) \in E_0$, create 
+We augment $G_0$ to make it \emph{symmetric} (for every arc $(v, w) \in E_0$
+its reverse $(v, w)^R = (w, v)$ is also an arc) and the costs
+\emph{antisymmetric} ($c(v, w) = -c(w, v)$): for each $(v, w) \in E_0$, create
 an arc $(w, v)$ and define $u(w, v) = 0$ and $c(w, v) = -c(v, w)$.
 Let this set of new \emph{reverse arcs} be $E^R$.
-From here forward, we work with the symmetric multigraph 
+From here forward, we work with the symmetric multigraph
 $G = (V, E = E_0 \cup E^R)$.
-The combination of graph, costs, capacities, and supply-demands is a 
+The combination of graph, costs, capacities, and supply-demands is a
 \emph{network} $(G, c, u, \fsupply)$.
 
-A \emph{pseudoflow} $f$ is an antisymmetric function on arcs 
+A \emph{pseudoflow} $f$ is an antisymmetric function on arcs
 ($f(v, w) = -f(w, v)$) such that for each arc $f(v, w) \leq u(v, w)$.
 We say that $f$ \emph{saturates} an arc $e \in E$ if $f(v, w) = u(v, w)$.
-All our algorithms will handle integer-valued pseudoflows, so in the 
+All our algorithms will handle integer-valued pseudoflows, so in the
 unit-capacity setting an arc has either 0 flow or is saturated.
 Given a pseudoflow $f$, we define the \emph{imbalance} of a vertex to be
 $e_f(v) := \fsupply(v) + \sum_{(w, v) \in E}{f(w, v)} - \sum_{(v, w) \in E}{f(v, w)}$.
 We call positive imbalance \emph{excess} and negative imbalance \emph{deficit},
-vertices with $e_f(v) > 0$ we call \emph{excess vertices} and respectively 
+vertices with $e_f(v) > 0$ we call \emph{excess vertices} and respectively
 those with $e_f(v) < 0$ \emph{deficit vertices}.
 If all vertices have $e_f(v) = 0$, the pseudoflow is a \emph{circulation}.
 The cost of a pseudoflow is $\cost(f) = \sum_{(v, w) \in E} c(v, w) f(v, w)$.
-The minimum-cost flow problem (MCF) asks to find the circulation $f^*$ of 
+The minimum-cost flow problem (MCF) asks to find the circulation $f^*$ of
 minimum cost.
 
-For each arc $(v, w) \in E$, the \emph{residual capacity} with respect to 
+For each arc $(v, w) \in E$, the \emph{residual capacity} with respect to
 pseudoflow $f$ is defined to be $u_f(v, w) := u(v, w) - f(v, w)$.
-The set of \emph{residual edges} is 
+The set of \emph{residual edges} is
 $E_f := \{(v, w) \in E \mid u_f(v, w) > 0\}$.
 The \emph{residual graph} is $G_f = (V, E_f)$.
-A pseudoflow $f'$ in $G_f$ can be ``added'' or ``augmented'' to $f$ to produce 
-a new pseudoflow (i.e. the per-arc addition of $f + f'$ is a valid pseudoflow 
+A pseudoflow $f'$ in $G_f$ can be ``added'' or ``augmented'' to $f$ to produce
+a new pseudoflow (i.e. the per-arc addition of $f + f'$ is a valid pseudoflow
 in $G$).
-A pseudoflow $f'$ in $G_f$ is an \emph{improving flow} if (1) 
+A pseudoflow $f'$ in $G_f$ is an \emph{improving flow} if (1)
 $0 \leq e_{f'}(v) \leq e_f(v)$ for all excess vertices $v \in V$,
 (2) $0 \leq -e_{f'}(v) \leq -e_f(v)$ for all deficit vertices $v \in V$,
-(3) if $e_f(v) = 0$ then $e_{f'}(v) = 0$, and (4) 
+(3) if $e_f(v) = 0$ then $e_{f'}(v) = 0$, and (4)
 $\sum_{v \in V} |e_{f'}(v)| < \sum_{v \in V} |e_f(v)|$.
-If improving flow $f'$ is on a simple path (from an excess vertex to a deficit 
-vertex), we call it an \emph{augmenting path flow} and its edges an 
+If improving flow $f'$ is on a simple path (from an excess vertex to a deficit
+vertex), we call it an \emph{augmenting path flow} and its edges an
 \emph{augmenting path}.
 If $f'$ saturates at least one residual arc of every augmenting path in $G_f$,
 we call it a \emph{blocking flow}.
-In other words, for blocking flow $f'$, there is no augmenting path flow 
+In other words, for blocking flow $f'$, there is no augmenting path flow
 $f'' \in G_f$ for which $f + (f' + f'')$ is a feasible pseudoflow in $G$.
 
 \subsection{Primal-dual augmentation algorithms}
 
-The Hungarian algorithm begins with an empty matching and increases it to size 
+The Hungarian algorithm begins with an empty matching and increases it to size
 $k$ using \emph{alternating augmenting paths}.
 Given a non-maximal matching $M$, an alternating augmenting path $P$ is a path
 between an unmatched $a \in A$ and unmatched $b \in B$.
 Then, $M' = M \oplus P$ is a matching of size 1 greater.
-By restricting alternating augmenting paths to edges which satisfy a certain 
-cost condition (admissibility, defined momentarily), one can prove that each 
+By restricting alternating augmenting paths to edges which satisfy a certain
+cost condition (admissibility, defined momentarily), one can prove that each
 intermediate matching, of size $j \leq k$, is minimum-cost for size $j$.
-There is a similar augmentation procedure for flows, which sends improving 
-flows (e.g. augmenting path flows) to gradually reduce the imbalance in a 
+There is a similar augmentation procedure for flows, which sends improving
+flows (e.g. augmenting path flows) to gradually reduce the imbalance in a
 pseudoflow to 0, making it a circulation.
-By restricting augmentations to residual arcs satisfying a certain cost 
-condition (admissibility), one can prove that the resulting circulation is 
+By restricting augmentations to residual arcs satisfying a certain cost
+condition (admissibility), one can prove that the resulting circulation is
 minimum cost.
 
-Formally, we use the linear programming dual problem to define 
-\emph{potentials} (dual variables) $\pi(v)$ for each $v \in V$. 
-The \emph{reduced cost} of $(v, w) \in E_f$ with respect to $\pi$ is 
+Formally, we use the linear programming dual problem to define
+\emph{potentials} (dual variables) $\pi(v)$ for each $v \in V$.
+The \emph{reduced cost} of $(v, w) \in E_f$ with respect to $\pi$ is
 $c_\pi(v, w) := c(v, w) - \pi(v) + \pi(w)$.
-The \emph{dual feasibility constraint} is that $c_\pi(v, w) \geq 0$ for all 
+The \emph{dual feasibility constraint} is that $c_\pi(v, w) \geq 0$ for all
 residual arcs; potentials which satisfy this are said to be \emph{feasible}.
-The linear programming \emph{optimality conditions} state that, for an optimal 
-circulation $f^*$, there exist feasible potentials $\pi^*$ which satisfy 
+The linear programming \emph{optimality conditions} state that, for an optimal
+circulation $f^*$, there exist feasible potentials $\pi^*$ which satisfy
 $c_\pi(v, w) = 0$ on all arcs with $f^*(v, w) > 0$.
 We can similarly define potentials and reduced cost for matchings, using
 $c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b)$ for $(a, b) \in A \times B$.
 
-Suppose we relax the dual feasibility constraint to allow for a violation of 
+Suppose we relax the dual feasibility constraint to allow for a violation of
 $\eps > 0$.
-We say that a pseudoflow $f$ is \emph{$\eps$-optimal} if 
+We say that a pseudoflow $f$ is \emph{$\eps$-optimal} if
 $c_\pi(v, w) \geq -\eps$ for all $(v, w) \in E_f$ with $u_f(v, w) > 0$.
 Note that 0-optimality coincides with the optimality conditions.
 We say that residual arcs with $c_\pi(v, w) \leq 0$ are \emph{admissible}.
 We say that an improving flow $f'$ is \emph{admissible} if $f'(v, w) > 0$
 only on admissible arcs $(v, w)$.
-For matchings, we say that $M$ is $\eps$-optimal if $c_\pi(a, b) \leq \eps$ for 
+For matchings, we say that $M$ is $\eps$-optimal if $c_\pi(a, b) \leq \eps$ for
 $(a, b) \in M$ and $c_\pi(a, b) \geq -\eps$ $(a, b) \in E \setminus M$.
-Matching edges are admissible if $c_\pi(a, b) \geq 0$ (resp. nonmatching edges, 
+Matching edges are admissible if $c_\pi(a, b) \geq 0$ (resp. nonmatching edges,
 if $c_\pi(a, b) \leq 0$), and an alternating augmenting path is admissible
 if all its edges are.
-For both matching and flows, 0-optimal $f$ implies the admissibility condition 
+For both matching and flows, 0-optimal $f$ implies the admissibility condition
 is with equality, instead ($c_\pi(v, w) = 0$).
 
-Now, we can concretely state how admissible augmentations lead to a correct 
+Now, we can concretely state how admissible augmentations lead to a correct
 algorithm for $\eps > 0$.
 \begin{lemma}
-	Let $f$ be an $\eps$-optimal pseudoflow in $G$ and let $f'$ be an 
+	Let $f$ be an $\eps$-optimal pseudoflow in $G$ and let $f'$ be an
 	admissible improving flow in $G_f$.
 	Then $f + f'$ is also $\eps$-optimal.
 \end{lemma}
@@ -333,7 +378,7 @@ algorithm for $\eps > 0$.
 	Augmentation by $f'$ will not change the potentials, but may introduce
 	new arcs with $u_{f+f'}(v, w) > 0$.
 	We will verify that these arcs satisfy the $\eps$-optimality condition.
-	Such an arc $(v, w)$ must have $u(v, w) = f(v, w) > (f+f')(v, w)$, 
+	Such an arc $(v, w)$ must have $u(v, w) = f(v, w) > (f+f')(v, w)$,
 	meaning $f'(w, v) > 0$.
 	By assumption, $(w, v)$ was an $\eps$-admissible arc, thus
 	$c_\pi(w, v) \leq 0$, meaning $c_\pi(v, w) \geq 0$.
@@ -342,49 +387,49 @@ algorithm for $\eps > 0$.
 \end{proof}
 
 With a similar argument, we could prove the same for matchings.
-Finally, we show that $\eps$-optimality is sufficient to prove when a 
-circulation is an approximate MCF solution, when the underlying graph is 
+Finally, we show that $\eps$-optimality is sufficient to prove when a
+circulation is an approximate MCF solution, when the underlying graph is
 unit-capacity.
 
 \begin{lemma}
 \label{lemma:mcf_cost}
 	Let $G$ be a unit-capacity graph with $|V| = n$ and $|E| = m$,
-	$f$ an $\eps$-optimal circulation in $G$, and $f^*$ an optimal 
+	$f$ an $\eps$-optimal circulation in $G$, and $f^*$ an optimal
 	circulation for $G$.
 	Then, $\cost(f) \leq \cost(f^*) + m\eps$.
 \end{lemma}
 \begin{proof}
-	By the flow decomposition theorem, there exists a residual pseudoflow 
-	$f'$ such that $f + f' = f^*$, and $f'$ can be decomposed into a set of 
+	By the flow decomposition theorem, there exists a residual pseudoflow
+	$f'$ such that $f + f' = f^*$, and $f'$ can be decomposed into a set of
 	unit flows on edge-disjoint cycles.
 	The number of edges used by these cycles is at most $m$.
-	The cost of a residual cycle is equal to its reduced cost, since the 
+	The cost of a residual cycle is equal to its reduced cost, since the
 	potentials of telescope.
-	Thus, $\cost(f') \geq m(-\eps)$, and therefore 
+	Thus, $\cost(f') \geq m(-\eps)$, and therefore
 	$\cost(f) \leq \cost(f^*) + m\eps$.
 \end{proof}
 
-This bound can be improved if we have a better upper bound on the number of 
+This bound can be improved if we have a better upper bound on the number of
 edges used in the cycles of $f'$.
 Indeed, the algorithm in Section~\ref{section:goldberg} uses a graph where the
-bound is $6k$, and converts the statement from an additive approximation to a 
+bound is $6k$, and converts the statement from an additive approximation to a
 relative approximation.
-Since our matching algorithm uses a 0-optimal (exact) solution, we do not 
+Since our matching algorithm uses a 0-optimal (exact) solution, we do not
 include a proof for approximation quality of $\eps$-optimal matchings.
 
 
 \section{Matching with the Hungarian algorithm}
 \label{section:hung}
 
-The Hungarian algorithm maintains a 0-optimal (initially empty) matching $M$, 
-and repeatedly augments by alternating augmenting paths of admissible edges 
+The Hungarian algorithm maintains a 0-optimal (initially empty) matching $M$,
+and repeatedly augments by alternating augmenting paths of admissible edges
 until $|M| = k$.
-To this end, the algorithm maintains a set of feasible potentials $\pi$ and 
+To this end, the algorithm maintains a set of feasible potentials $\pi$ and
 updates them to find augmenting paths of admissible edges.
 It maintains the invariant that matching edges are admissible.
-Since there are $k$ augmentations and each alternating path is length at most 
+Since there are $k$ augmentations and each alternating path is length at most
 $2k-1$, the total time spent on bookkeeping the matching is $O(k^2)$.
-This leaves the analysis of the subroutine which updates the potentials and 
+This leaves the analysis of the subroutine which updates the potentials and
 finds an admissible augmenting path, called the \emph{Hungarian search}.
 
 \begin{algorithm}
@@ -404,9 +449,9 @@ finds an admissible augmenting path, called the \emph{Hungarian search}.
 
 \begin{theorem}[Hungarian algorithm time]
 \label{theorem:hung_orig}
-	Let $G = (A \cup B, A \times B)$ be an instance of bichromatic partial 
+	Let $G = (A \cup B, A \times B)$ be an instance of bichromatic partial
 	matching with $|A| = r \geq |B| = n$, and parameter $k \leq r$.
-	Suppose the Hungarian search finds each augmenting path in $T(n, k)$ 
+	Suppose the Hungarian search finds each augmenting path in $T(n, k)$
 	time after a one-time $P(n, k)$ preprocessing time.
 	Then, the Hungarian algorithm finds the optimal size $k$ matching in
 	time $O(P(n, k) + k T(n, k) + k^2)$.
@@ -414,20 +459,20 @@ finds an admissible augmenting path, called the \emph{Hungarian search}.
 
 \subsection{Hungarian search}
 
-Let $S$ be the set of vertices that can be reached from an unmatched $a \in A$ 
+Let $S$ be the set of vertices that can be reached from an unmatched $a \in A$
 by admissible residual edges, initially the unmatched vertices of $A$.
-The Hungarian search updates potentials in a Dijkstra's algorithm-like manner, 
-expanding $S$ until it includes an unmatched $b \in B$ (and thus an admissible 
+The Hungarian search updates potentials in a Dijkstra's algorithm-like manner,
+expanding $S$ until it includes an unmatched $b \in B$ (and thus an admissible
 alternating augmenting path).
-The ``search frontier'' of the Hungarian search is 
+The ``search frontier'' of the Hungarian search is
 $(S \cap A) \times (B \setminus S)$.
-From the frontier, we \emph{relax} the edge with minimum reduced cost, changing 
-the duals such that the edge becomes admissible, and adding the opposite $B$ 
+From the frontier, we \emph{relax} the edge with minimum reduced cost, changing
+the duals such that the edge becomes admissible, and adding the opposite $B$
 vertex into $S$.
 
 The dual update uniformly decreases the reduced costs of the frontier edges.
-Since $(a', b')$ is the minimum reduced cost frontier edge, the potential 
-update in line~\ref{line:hs_update} does not make any reduced cost negative, 
+Since $(a', b')$ is the minimum reduced cost frontier edge, the potential
+update in line~\ref{line:hs_update} does not make any reduced cost negative,
 and thus preserves the dual feasibility constraint for all edges.
 The algorithm is shown below as Algorithm~\ref{algorithm:hung_hs}.
 
@@ -459,48 +504,48 @@ The algorithm is shown below as Algorithm~\ref{algorithm:hung_hs}.
 \end{algorithmic}
 \end{algorithm}
 
-By tracking the forest of relaxed edges (e.g. back pointers), it is 
-straightforward to recover the alternating augmenting path $\Pi$ once we reach 
+By tracking the forest of relaxed edges (e.g. back pointers), it is
+straightforward to recover the alternating augmenting path $\Pi$ once we reach
 an unmatched $b' \in B$.
 We make the following observation about the Hungarian search:
 
 \begin{lemma}
 \label{lemma:hungsearch_length}
-	There are $\leq k$ edge relaxations before the Hungarian search finds 
+	There are $\leq k$ edge relaxations before the Hungarian search finds
 	an alternating augmenting path.
 \end{lemma}
 \begin{proof}
-	Each edge relaxation either leads to a matched $B$ vertex (of which 
-	there are at most $k-1$), or finds an unmatched vertex and ends the 
+	Each edge relaxation either leads to a matched $B$ vertex (of which
+	there are at most $k-1$), or finds an unmatched vertex and ends the
 	search.
 \end{proof}
 
-In non-geometric graphs, the minimum edge is typically found by pushing all 
+In non-geometric graphs, the minimum edge is typically found by pushing all
 encountered $(S \cap A) \times (B \setminus S)$ edges into a priority queue.
 However, in the bipartite complete graph, this may take $\Theta(rn\polylog(n))$
-time in each Hungarian search --- edges must be pushed into the queue even if 
+time in each Hungarian search --- edges must be pushed into the queue even if
 they are not relaxed.
-We avoid this problem by finding the minimum edge using a \emph{bichromatic 
+We avoid this problem by finding the minimum edge using a \emph{bichromatic
 closest pair} (BCP) query on additively weighted Euclidean distances,
-for which there exist fast (poly-logarithmic query and update) dynamic data 
+for which there exist fast (poly-logarithmic query and update) dynamic data
 structures.
-The BCP problem is to find, between two point sets 
-$P, Q \subseteq \mathbb{R}^2$, the $p \in P$ and $q \in Q$ minimizing 
-$\|p - q\| - \omega(p) + \omega(q)$, for some real-valued vertex weights 
+The BCP problem is to find, between two point sets
+$P, Q \subseteq \mathbb{R}^2$, the $p \in P$ and $q \in Q$ minimizing
+$\|p - q\| - \omega(p) + \omega(q)$, for some real-valued vertex weights
 $\omega(p)$; a perfect fit for reduced cost.
-The state of the art for dynamic BCP data structures --- from Kaplan, Mulzer, 
-Roditty, Seiferth, and Sharir~\cite{KMRSS17} --- inserts and deletes points in 
+The state of the art for dynamic BCP data structures --- from Kaplan, Mulzer,
+Roditty, Seiferth, and Sharir~\cite{KMRSS17} --- inserts and deletes points in
 $O(\polylog(n))$ time, and answers queries in $O(\log^2 n)$ time.
 The following lemma, combined with Theorem~\ref{theorem:hung_orig}, completes
 the proof of Theorem~\ref{theorem:hung}.
 
 \begin{lemma}
 \label{lemma:hs_time}
-	Using a dynamic BCP, we can implement Hungarian search with 
+	Using a dynamic BCP, we can implement Hungarian search with
 	$T(n, k) = O(k\polylog(n))$ and $P(n, k) = O(n\polylog(n))$.
 \end{lemma}
 \begin{proof}
-	We will maintain a BCP between $P = (S \cap A)$ and 
+	We will maintain a BCP between $P = (S \cap A)$ and
 	$Q = (B \setminus S)$.
 	Changes to the BCP sets are entirely driven by changing $S$,
 	i.e. updates to $S$ incur BCP insertions/deletions.
@@ -508,70 +553,70 @@ the proof of Theorem~\ref{theorem:hung}.
 	show how dual updates can be done efficiently.
 
 	\begin{enumerate}
-	\item Let $S^t_0$ denote the initial set $S$ at the beginning of the 
+	\item Let $S^t_0$ denote the initial set $S$ at the beginning of the
 		$t$-th Hungarian search, i.e. the set of unmatched $A$ points
 		after $t$ augmentations.
-		At the very beginning of the Hungarian algorithm, we initialize 
-		$S^0_0 \gets A$ (meaning $P = A$ and $Q = B$), which is a 
+		At the very beginning of the Hungarian algorithm, we initialize
+		$S^0_0 \gets A$ (meaning $P = A$ and $Q = B$), which is a
 		one-time addition of $O(n)$ points into BCP.
-		On each successive Hungarian search, $S^t_0$ shrinks as more 
+		On each successive Hungarian search, $S^t_0$ shrinks as more
 		and more $A$ points are matched.
-		Assume for now that, at the beginning of the $(t+1)$-th 
-		Hungarian search, we are able to construct the $S^t_0$ from the 
+		Assume for now that, at the beginning of the $(t+1)$-th
+		Hungarian search, we are able to construct the $S^t_0$ from the
 		previous iteration.
-		To construct $S^{t+1}_0$, we simply remove the $A$ point that 
+		To construct $S^{t+1}_0$, we simply remove the $A$ point that
 		was matched by the $t$-th augmenting path.
-		Thus, with that assumption, we are able to initialize $S$ in 
+		Thus, with that assumption, we are able to initialize $S$ in
 		one BCP deletion operation per augmentation.
 
-	\item During each Hungarian search, points are added to $P$ ($A$ points 
+	\item During each Hungarian search, points are added to $P$ ($A$ points
 		added to $S$) and removed from $Q$ ($B$ points added to $S$)
 		--- at most one of each per edge relaxation.
-		By Lemma~\ref{lemma:hungsearch_length} the number of relaxed 
-		edges is at most $k$, so the number of these BCP operations is 
+		By Lemma~\ref{lemma:hungsearch_length} the number of relaxed
+		edges is at most $k$, so the number of these BCP operations is
 		also at most $k$.
 
-	\item To obtain the assumption used in (1), we keep a log of the 
-		points added since $S^t_0$ in the last Hungarian search 
+	\item To obtain the assumption used in (1), we keep a log of the
+		points added since $S^t_0$ in the last Hungarian search
 		(i.e. those of (2)).
-		After the augmentation, we use this log to delete the added 
+		After the augmentation, we use this log to delete the added
 		vertices from $S$ and recover $S^t_0$.
-		By the argument in (2) there are $O(k)$ of such points to 
+		By the argument in (2) there are $O(k)$ of such points to
 		delete, so reconstructing $S^t_0$ costs $O(k)$ BCP operations.
 		% TODO instead of reversing a log, is persistence an easier solution to this?
 	\end{enumerate}
 
-	We spend a one-time fee of $P(n, k) = O(n \polylog(n))$ time to build 
+	We spend a one-time fee of $P(n, k) = O(n \polylog(n))$ time to build
 	the initial BCP.
-	The number of BCP operations associated with each Hungarian search is 
+	The number of BCP operations associated with each Hungarian search is
 	$O(k)$, so the time spent on BCP operations in each Hungarian search
 	is $O(k \polylog(n))$.
-	
-	We modify a trick from Vaidya~\cite{Vaidya89} to batch potential 
-	updates such that the dual updates we do perform can be charged to a 
+
+	We modify a trick from Vaidya~\cite{Vaidya89} to batch potential
+	updates such that the dual updates we do perform can be charged to a
 	BCP insertion or deletion.
 	Throughout the course of the Hungarian algorithm, we maintain a value
 	$\delta$ (initially 0) which aggregates dual changes.
-	Vertices that are added to $S$ are saved into $P$ with weight 
+	Vertices that are added to $S$ are saved into $P$ with weight
 	$\omega(p) \gets \pi(p) - \delta$.
 	When the points of $S$ have their duals increased in (2), we instead
 	raise $\delta \gets \delta + c_\pi(\hat{a}, \hat{b})$.
-	Thus, the ``true'' potential for any point in $S$ is 
+	Thus, the ``true'' potential for any point in $S$ is
 	$\omega(p) + \delta$.
-	For points outside $S$ (i.e. $B \setminus S$), we simply use the true 
+	For points outside $S$ (i.e. $B \setminus S$), we simply use the true
 	potential as the BCP weight.
-	Since all $S \cap A$ BCP weights are uniformly offset from their 
+	Since all $S \cap A$ BCP weights are uniformly offset from their
 	potential by $\delta$, this change does not alter the BCP result.
 	Once a point is removed from $S$, we update its true potential
 	as $\pi(p) \gets \omega(p) + \delta$.
 
-	Obviously, the number of updates to $\delta$ is equal to the number of 
+	Obviously, the number of updates to $\delta$ is equal to the number of
 	edge relaxations, which is $O(k)$ per Hungarian search.
 	The number of times we have to save the true potential is bounded by
 	the number times we remove a point from $S$.
-	By the previous argument (2), this is $O(k)$ per Hungarian search as 
+	By the previous argument (2), this is $O(k)$ per Hungarian search as
 	well.
-	The total time for potential updates per Hungarian search is therefore 
+	The total time for potential updates per Hungarian search is therefore
 	$O(k)$.
 	Overall, the time per Hungarian search is $T(n, k) = O(k\polylog(n))$.
 \end{proof}
@@ -580,17 +625,17 @@ the proof of Theorem~\ref{theorem:hung}.
 \section{Matching with the Goldberg~{\etal} algorithm}
 \label{section:goldberg}
 
-The basis of the algorithm in this section is a \emph{cost-scaling} algorithm 
+The basis of the algorithm in this section is a \emph{cost-scaling} algorithm
 for unit-capacity min-cost flow from \cite{GHKT17}.
-Before describing the algorithm, we first give a linear-time reduction from 
-min-cost matching to unit-capacity min-cost flow, which allows us to apply the 
+Before describing the algorithm, we first give a linear-time reduction from
+min-cost matching to unit-capacity min-cost flow, which allows us to apply the
 Goldberg~{\etal} algorithm to partial matching.
 
 \subsection{MPM to unit-capacity MCF reduction}
 \label{subsection:mcm_mcf_reduction}
 
-For a partial matching problem on $G = (A \cup B, E_0)$ with parameter $k$, we 
-direct the bipartite edges of $E_0$ from $(A \to B)$, with costs equal to the 
+For a partial matching problem on $G = (A \cup B, E_0)$ with parameter $k$, we
+direct the bipartite edges of $E_0$ from $(A \to B)$, with costs equal to the
 original cost $c(a, b)$ and capacity 1.
 Next, we add a dummy vertex $s$ with arcs $(s, a)$ to every $a \in A$,
 and respectively a dummy vertex $t$ with arcs $(b, t)$ for each $b \in B$,
@@ -598,7 +643,7 @@ all with arc cost 0 and capacity 1.
 For each of the above arcs $(v, w)$, we also add a reverse arc $(w, v)$ with
 cost $c(w, v) = -c(v, w)$ and capacity 0.
 Let the complete set of arcs be $E$, and $V = A \cup B \cup \{s, t\}$.
-Set $\fsupply(s) = k$, $\fsupply(t) = -k$, and $\fsupply(v) = 0$ for all other 
+Set $\fsupply(s) = k$, $\fsupply(t) = -k$, and $\fsupply(v) = 0$ for all other
 vertices.
 Let the resulting graph be $H = (V, E)$.
 
@@ -607,14 +652,14 @@ Let the resulting graph be $H = (V, E)$.
 	The arcs of $H$ with positive capacity form a directed acyclic graph.
 \end{observation}
 
-In other words, there will be no cycles of positive flow in circulations on 
-$H$. 
-With this, we can show that the number of arcs used by any integer pseudoflow 
+In other words, there will be no cycles of positive flow in circulations on
+$H$.
+With this, we can show that the number of arcs used by any integer pseudoflow
 in $H$ (with $O(k)$ excess) is $O(k)$.
 
 \begin{lemma}
 \label{lemma:reduction_count}
-	Let $f$ be an integer pseudoflow in $H$ with $O(k)$ excess, and let 
+	Let $f$ be an integer pseudoflow in $H$ with $O(k)$ excess, and let
 	$E_{>0}(f) = \{(v, w) \mid f(v, w) > 0\}$.
 	Then, $|E_{>0}(f)| = O(k)$.
 \end{lemma}
@@ -629,12 +674,12 @@ in $H$ (with $O(k)$ excess) is $O(k)$.
 	We conclude that the number of positive flow arcs in $f$ is $O(k)$.
 \end{proof}
 
-It is straightforward to show that any integer circulation on $H$ uses exactly 
-$k$ of the $(A \to B)$ arcs, which correspond to the edges of a size $k$ 
+It is straightforward to show that any integer circulation on $H$ uses exactly
+$k$ of the $(A \to B)$ arcs, which correspond to the edges of a size $k$
 matching.
-For a circulation $f$ in $H$, we use $M_f \subseteq E$ to denote the 
+For a circulation $f$ in $H$, we use $M_f \subseteq E$ to denote the
 corresponding matching.
-Observe that $\cost(f) = \cost(M_f)$, so an $\alpha$-approximation to the MCF 
+Observe that $\cost(f) = \cost(M_f)$, so an $\alpha$-approximation to the MCF
 problem on $H$ is an $\alpha$-approximation to the matching problem on $G$.
 
 For cost approximation, we can improve Lemma~\ref{lemma:mcf_cost} on $H$.
@@ -642,7 +687,7 @@ Note that for integer-valued (e.g. unit) capacities, there is always an
 integer-valued optimal circulation.
 \begin{lemma}
 \label{lemma:goldberg_cost_add}
-	Let $f$ an $\eps$-optimal integer circulation in $H$, and $f^*$ an 
+	Let $f$ an $\eps$-optimal integer circulation in $H$, and $f^*$ an
 	optimal integer circulation for $H$.
 	Then, $\cost(f) \leq \cost(f^*) + 6k\eps$.
 \end{lemma}
@@ -650,15 +695,15 @@ integer-valued optimal circulation.
 	We label the arcs of $H_f$ as follows: \emph{forward arcs} directed
 	from $s \to A$ or $A \to B$ or $B \to t$, and \emph{reverse arcs} in
 	the opposite directions.
-	Observe that a residual cycle $\Gamma$ must have exactly half of its 
+	Observe that a residual cycle $\Gamma$ must have exactly half of its
 	edges be reverse arcs.
 	The reverse arcs may either be (i) on one of the $M_f$ edges or else
 	(ii) between $\{s\} \times A$ or (iii) between $B \times \{t\}$.
 	If it is of type (ii) or (iii), there is an adjacent type (i) reverse
 	arc.
-	Thus, we can charge the reverse arcs of $\Gamma$ to $M_f \cap \Gamma$ 
+	Thus, we can charge the reverse arcs of $\Gamma$ to $M_f \cap \Gamma$
 	edges with at most 3 charge per edge of $M_f \cap \Gamma$.
-	We can then charge all arcs of $f' = (f^* - f) = \sum \Gamma_i$ to 
+	We can then charge all arcs of $f' = (f^* - f) = \sum \Gamma_i$ to
 	$M_f$ with at most 6 charge per $M_f$ edge.
 	As $|M_f| = k$, the number of arcs in $f'$ is at most $6k$.
 	The rest of the argument proceeds as in Lemma~\ref{lemma:mcf_cost}.
@@ -671,7 +716,7 @@ into a relative approximation.
 
 \begin{corollary}
 \label{corollary:flow_approx}
-	Let $f$ an $\eps$-optimal integer circulation in $H$, and $f^*$ an 
+	Let $f$ an $\eps$-optimal integer circulation in $H$, and $f^*$ an
 	optimal integer circulation for $H$.
 	Suppose costs are scaled such that $\min \|a - b\| = 1$.
 	Then, $\cost(f) \leq (1 + 6\eps) \cost(f^*)$.
@@ -679,26 +724,26 @@ into a relative approximation.
 
 \begin{corollary}
 \label{corollary:match_approx}
-	Let $f$ an $(\eps'/6)$-optimal integer circulation in $H$, and $M^*$ an 
+	Let $f$ an $(\eps'/6)$-optimal integer circulation in $H$, and $M^*$ an
 	optimal size $k$ matching of $G$.
 	Suppose costs are scaled such that $\min \|a - b\| = 1$.
 	Then, $\cost(M_f) \leq (1 + \eps') \cost(M^*)$.
 \end{corollary}
 
-In other words, a $(\eps'/6)$-optimal circulation is sufficient for a 
+In other words, a $(\eps'/6)$-optimal circulation is sufficient for a
 $(1 + \eps')$-approximate matching.
 
 \subsection{Algorithm description}
 
-The Goldberg~{\etal}~\cite{GHKT17} algorithm is based on \emph{cost-scaling} or 
-\emph{successive approximation}, originally due to Goldberg and 
+The Goldberg~{\etal}~\cite{GHKT17} algorithm is based on \emph{cost-scaling} or
+\emph{successive approximation}, originally due to Goldberg and
 Tarjan~\cite{GT90}.
-The algorithm finds $\eps$-optimal circulations for geometrically shrinking 
-values of $\eps$. 
+The algorithm finds $\eps$-optimal circulations for geometrically shrinking
+values of $\eps$.
 Each period where $\eps$ holds constant is called a \emph{scale}.
-Once $\eps$ is sufficiently small, the $\eps$-optimal flow is a suitable 
+Once $\eps$ is sufficiently small, the $\eps$-optimal flow is a suitable
 approximation or even optimal when costs are integer~\cite{GT90,GHKT17}.
-We present this algorithm as an approximation is because costs in bichromatic 
+We present this algorithm as an approximation is because costs in bichromatic
 matching (i.e. Euclidean distances) are generally not integer.
 
 \begin{algorithm}
@@ -719,18 +764,18 @@ matching (i.e. Euclidean distances) are generally not integer.
 \end{algorithm}
 
 Note that the 0 flow is trivially $kC$-optimal for $H$.
-At the beginning of each scale, \textsc{Scale-Init} takes the previous 
-circulation (now $2\eps$-optimal) and transforms it into an $\eps$-optimal 
+At the beginning of each scale, \textsc{Scale-Init} takes the previous
+circulation (now $2\eps$-optimal) and transforms it into an $\eps$-optimal
 pseudoflow with $O(k)$ excess.
-The rest of the scale, in \textsc{Refine}, reduces the excess in this 
+The rest of the scale, in \textsc{Refine}, reduces the excess in this
 pseudoflow to 0, making an $\eps$-optimal circulation.
-The bulk of this section will describe and analyze \textsc{Scale-Init} and 
+The bulk of this section will describe and analyze \textsc{Scale-Init} and
 \textsc{Refine}.
 
 For now, we analyze the number of scales (iterations of the outer loop).
 Initially $\eps = kC$, and the algorithm is stopped once $\eps \leq \eps'/6$.
 Thus, the number of scales is $O(\log(kC/\eps'))$.
-For bichromatic matching, there is a simple way to preprocess the point set 
+For bichromatic matching, there is a simple way to preprocess the point set
 such that $C = O(n^2)$, effectively, by Sharathkumar and Agarwal~\cite{SA12}.
 Using this preprocessing gives us $O(\log(n/\eps'))$ scales, instead.
 We briefly describe this preprocessing step at the end of this section.
@@ -763,14 +808,14 @@ We briefly describe this preprocessing step at the end of this section.
 \end{algorithm}
 
 The procedure is described in Algorithm~\ref{algorithm:scale_init}.
-Let the $H_f$ arcs directed from $s \to A$ or $A \to B$ or $B \to t$ be 
-\emph{forward arcs}, and let those in the opposite directions be 
+Let the $H_f$ arcs directed from $s \to A$ or $A \to B$ or $B \to t$ be
+\emph{forward arcs}, and let those in the opposite directions be
 \emph{reverse arcs}.
 The first 4 lines of \textsc{Scale-Init} raise the reduced cost of each
 forward arc by $\eps$, therefore making all forward arcs $\eps$-optimal.
 For example, a forward arc of $A \to B$ now has reduced cost
 \begin{equation*}
-	c(a, b) - (\pi(a) + \eps) + (\pi(b) + 2\eps) 
+	c(a, b) - (\pi(a) + \eps) + (\pi(b) + 2\eps)
 	= c_\pi(a, b) + \eps
 	\geq -2\eps + \eps
 	= -\eps.
@@ -782,32 +827,32 @@ now $\eps$-optimal.
 
 \begin{lemma}
 \label{lemma:scale_init}
-	In $O(n)$ time, \textsc{Scale-Init} turns a $2\eps$-optimal circulation 
+	In $O(n)$ time, \textsc{Scale-Init} turns a $2\eps$-optimal circulation
 	into an $\eps$-optimal pseudoflow with $O(k)$ excess.
 \end{lemma}
 \begin{proof}
 	The potential updates affect every vertex except $s$,
 	so this takes $O(n)$ time.
-	As for the arc de-saturations, every reverse arc is induced by positive 
-	flow on a forward arc, and the number of positive flow edges in $f$ is 
+	As for the arc de-saturations, every reverse arc is induced by positive
+	flow on a forward arc, and the number of positive flow edges in $f$ is
 	$O(k)$.
-	The total number of edges that get examined by the loop is therefore 
+	The total number of edges that get examined by the loop is therefore
 	$O(k)$.
 	In total, the time taken is $O(n)$.
 
 	For the amount of excess, notice that new excess is only created due
 	to the de-saturations of reverse arcs.
-	Because the graph is unit-capacity, each de-saturation creates one unit 
+	Because the graph is unit-capacity, each de-saturation creates one unit
 	of excess.
-	There are $O(k)$ reverse arcs possible, so the total created excess 
+	There are $O(k)$ reverse arcs possible, so the total created excess
 	must be $O(k)$.
 \end{proof}
 
 \subsection{\textsc{Refine}}
 
-\textsc{Refine} is implemented using a primal-dual augmentation algorithm, 
+\textsc{Refine} is implemented using a primal-dual augmentation algorithm,
 which sends improving flows on admissible edges like the Hungarian algorithm.
-Unlike the Hungarian algorithm, it uses blocking flows instead of augmenting 
+Unlike the Hungarian algorithm, it uses blocking flows instead of augmenting
 paths.
 
 \begin{algorithm}
@@ -825,51 +870,51 @@ paths.
 \end{algorithmic}
 \end{algorithm}
 
-Using the properties of blocking flows and the unit-capacity input graph, 
-Goldberg~{\etal} prove that there are $O(\sqrt{k})$ blocking flows before 
+Using the properties of blocking flows and the unit-capacity input graph,
+Goldberg~{\etal} prove that there are $O(\sqrt{k})$ blocking flows before
 excess becomes 0.
 
 \begin{lemma}[Goldberg~{\etal}~\cite{GHKT17} Lemma 3.11 and Section 6]
-	Let $f$ be a pseudoflow in $H$ with $O(k)$ excess. 
+	Let $f$ be a pseudoflow in $H$ with $O(k)$ excess.
 	There are $O(\sqrt{k})$ blocking flows before excess is 0.
 \end{lemma}
 
 We can use this, alongside Lemma~\ref{lemma:reduction_count} to argue that the
-amount of time spent updating the flow within \textsc{Refine} is 
+amount of time spent updating the flow within \textsc{Refine} is
 $O(k\sqrt{k})$.
 
 Each step of \textsc{Refine} finds an admissible blocking flow in two stages.
 \begin{enumerate}
-\item A \emph{Hungarian search}, which updates duals in a Dijkstra-like 
+\item A \emph{Hungarian search}, which updates duals in a Dijkstra-like
 	manner until there exists an excess-deficit path of admissible edges.
-	There are slight differences from the Hungarian algorithm's ``Hungarian 
+	There are slight differences from the Hungarian algorithm's ``Hungarian
 	search,'' but the final running time is identical.
 	We call the procedure \textsc{Hungarian-Search2} to distinguish.
 
-\item A \emph{depth-first search} (\textsc{DFS}) through the set of admissible 
+\item A \emph{depth-first search} (\textsc{DFS}) through the set of admissible
 	edges to construct an admissible blocking flow.
 	It suffices to repeatedly extract admissible augmenting paths until
 	no more admissible excess-deficit paths remain.
 	By definition, the union of such paths is a blocking flow.
 \end{enumerate}
-For \textsc{Hungarian-Search2}, we again use a dynamic BCP data structure to 
+For \textsc{Hungarian-Search2}, we again use a dynamic BCP data structure to
 accelerate the Hungarian search after a once-per-\textsc{Refine} preprocessing.
-To perform \textsc{DFS} quickly, we can use a dynamic \emph{nearest-neighbor} 
-(NN) data structure, to discover admissible edges without handling the set of 
-admissible edges explicitly. 
+To perform \textsc{DFS} quickly, we can use a dynamic \emph{nearest-neighbor}
+(NN) data structure, to discover admissible edges without handling the set of
+admissible edges explicitly.
 This is applied in a similar way as the BCP is for Hungarian search.
 
 \begin{lemma}
-	Suppose \textsc{Hungarian-Search2} can be implemented in $T_1(n, k)$ 
+	Suppose \textsc{Hungarian-Search2} can be implemented in $T_1(n, k)$
 	time after a once-per-\textsc{Refine} $P_1(n, k)$ time preprocessing,
-	and respectively \textsc{DFS} in $T_2(n, k)$ time after $P_2(n, k)$ 
+	and respectively \textsc{DFS} in $T_2(n, k)$ time after $P_2(n, k)$
 	preprocessing.
-	Then, \textsc{Refine} can be implemented in 
-	$O(P_1(n, k) + P_2(n, k) + \sqrt{k}[T_1(n, k) + T_2(n, k)] + k\sqrt{k})$ 
+	Then, \textsc{Refine} can be implemented in
+	$O(P_1(n, k) + P_2(n, k) + \sqrt{k}[T_1(n, k) + T_2(n, k)] + k\sqrt{k})$
 	time.
 \end{lemma}
 
-As we will show shortly (Lemmas~\ref{lemma:goldberg_hs_time}, 
+As we will show shortly (Lemmas~\ref{lemma:goldberg_hs_time},
 \ref{lemma:goldberg_dfs_time}), the total running time for \textsc{Refine}
 is ultimately $O((n + k\sqrt{k})\polylog(n))$.
 Combining with Lemmas~\ref{lemma:goldberg_scales} and \ref{lemma:scale_init}
@@ -901,80 +946,80 @@ completes the proof of Theorem~\ref{theorem:gmcm}.
 \end{algorithmic}
 \end{algorithm}
 
-Compared to \textsc{Hungarian-Search}, this algorithm does not maintain 
-admissibility as an invariant for edges with $f(v, w) > 0$, so these edges are 
+Compared to \textsc{Hungarian-Search}, this algorithm does not maintain
+admissibility as an invariant for edges with $f(v, w) > 0$, so these edges are
 not relaxed in a special case.
-Like the previous case, uniformly raising the potentials of $S$ preserves 
+Like the previous case, uniformly raising the potentials of $S$ preserves
 reduced costs for arcs within $S$ and decreases them for arcs leaving $S$.
 Raising potentials in intervals of $\eps$ will also not decrease a reduced
 cost to less than $-\eps$, so arcs leaving $S$ still satisfy $\eps$-optimality.
 
 %TODO need another category for when both a, b empty
 %TODO so take the min among: empty 2-paths, empty 3-paths, and BCP response
-Vertices of $A \cup B$ with $e_f(v) = 0$ and 0 incoming and outgoing flow 
-cannot be charged to $k$ using the previous analysis, so the algorithm treats 
+Vertices of $A \cup B$ with $e_f(v) = 0$ and 0 incoming and outgoing flow
+cannot be charged to $k$ using the previous analysis, so the algorithm treats
 these \emph{empty vertices} separately. %TODO reference line
-Namely, there is no edge with $f(e) > 0$ adjacent to an empty vertex, 
-reaching an empty vertex does not terminate the search, and there may be 
-$\Omega(n)$ empty vertices at once (consider $H_{f = 0}$, the residual graph 
+Namely, there is no edge with $f(e) > 0$ adjacent to an empty vertex,
+reaching an empty vertex does not terminate the search, and there may be
+$\Omega(n)$ empty vertices at once (consider $H_{f = 0}$, the residual graph
 of the empty flow).
 
-We use $A_\emptyset$ and $B_\emptyset$ to denote the empty vertices of $A$ and 
+We use $A_\emptyset$ and $B_\emptyset$ to denote the empty vertices of $A$ and
 $B$ respectively.
-For an empty vertex $v$, either residual in-degree ($v \in A_\emptyset$) or 
-residual out-degree ($v \in B_\emptyset$) is 1. 
+For an empty vertex $v$, either residual in-degree ($v \in A_\emptyset$) or
+residual out-degree ($v \in B_\emptyset$) is 1.
 Instead of querying an empty vertex during the search, we shortcut it using the
 length 2 paths to/from non-empty vertices, called \emph{empty 2-paths}.
-For example, if $v \in A_\emptyset$ (resp. $v \in B_\emptyset$), then its empty 
-2-paths have the form $(s, v, b)$ (resp. $(a, v, t)$) for each 
+For example, if $v \in A_\emptyset$ (resp. $v \in B_\emptyset$), then its empty
+2-paths have the form $(s, v, b)$ (resp. $(a, v, t)$) for each
 $b \in B \setminus B_\emptyset$ (resp. $a \in A \setminus A_\emptyset$).
 We say that $(s, v, b)$ is an empty 2-path \emph{surrounding} empty vertex $v$.
-Separately, we consider the length 3 $s$-$t$ paths that pass through two empty 
+Separately, we consider the length 3 $s$-$t$ paths that pass through two empty
 vertices, called \emph{empty 3-paths}.
 As with 2-paths, we say an empty 3-path $(s, v_1, v_2, t)$ \emph{surrounds}
 $v_1 \in A_\emptyset$ and $v_2 \in B_\emptyset$.
 Relaxation steps involving an empty 2- or 3-path will relax the entire path
 at once, moving all vertices of the path into $S$.
-Relaxation steps that do not involve an empty 2- or 3-path are called 
+Relaxation steps that do not involve an empty 2- or 3-path are called
 \emph{non-empty}.
 
 Consider an empty 2-path $(s, v, b)$ that surrounds $v$.
-Since $v$ has zero excess/deficit, the search cannot ``make progress'' through 
+Since $v$ has zero excess/deficit, the search cannot ``make progress'' through
 $v$ until it reaches $b$.
-Since reduced costs telescope for residual paths, the reduced cost of 
+Since reduced costs telescope for residual paths, the reduced cost of
 $(s, v, b)$ does not depend on the potential of $v$.
 \begin{equation*}
 	c_\pi((s, v, b)) = c_\pi(s, v) + c_\pi(v, b) = c(v, b) - \pi(s) + \pi(b)
 \end{equation*}
-Thus, we can safely ignore the potential of $v$ until it ceases to be 
-empty, e.g. after an augmentation across one of its empty paths. 
-At that point, we can infer $\pi(v)$ from the potentials of the empty 2-path 
+Thus, we can safely ignore the potential of $v$ until it ceases to be
+empty, e.g. after an augmentation across one of its empty paths.
+At that point, we can infer $\pi(v)$ from the potentials of the empty 2-path
 augmented through (this path must be admissible).
-Before we go into the details of updating the sets of empty vertices and their 
-potentials, we describe the mechanism for querying the minimum-reduced cost 
+Before we go into the details of updating the sets of empty vertices and their
+potentials, we describe the mechanism for querying the minimum-reduced cost
 empty 2- and 3-paths.
 
-When the search has $s \in S$, we can query the minimum-reduced cost empty 
-2-path surrounding $A_\emptyset$ vertices using a data structure 
-$D_\emptyset(A)$ maintaining 
-$BCP(P = A_\emptyset, Q = (B \setminus B_\emptyset) \setminus S)$ with weights 
-$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for all 
+When the search has $s \in S$, we can query the minimum-reduced cost empty
+2-path surrounding $A_\emptyset$ vertices using a data structure
+$D_\emptyset(A)$ maintaining
+$BCP(P = A_\emptyset, Q = (B \setminus B_\emptyset) \setminus S)$ with weights
+$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for all
 $q \in Q$.
 It is simple to verify that if $(p, q)$ is the BCP of $P, Q$ above, then its
 BCP distance is precisely the reduced cost of the 2-path $(s, p, q)$.
-We can build similar query data structures for other empty 2-paths and empty 
+We can build similar query data structures for other empty 2-paths and empty
 3-paths, also reporting a pair whose weighted distance is equal to the reduced
 cost of the corresponding empty 2- or 3-path.
-Empty 2-paths surrounding $B_\emptyset$ vertices can be queried using 
-$D_\emptyset(B)$ which maintains 
-$BCP(P = (A \setminus A_\emptyset) \cap S, Q = B_\emptyset)$ with weights 
-$\omega(p) = \pi(p)$ for all $p \in P$, and $\omega(q) = \pi(t)$ for all 
+Empty 2-paths surrounding $B_\emptyset$ vertices can be queried using
+$D_\emptyset(B)$ which maintains
+$BCP(P = (A \setminus A_\emptyset) \cap S, Q = B_\emptyset)$ with weights
+$\omega(p) = \pi(p)$ for all $p \in P$, and $\omega(q) = \pi(t)$ for all
 $q \in Q$.
 We query $D_\emptyset(B)$ so long as $t \not\in S$.
-Lastly, the minimum-reduced cost empty 3-path can be queried using a data 
-structure $D_\emptyset(A, B)$ maintaining 
-$BCP(P = A_\emptyset \setminus S, Q = B_\emptyset)$ with weights 
-$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(t)$ for all 
+Lastly, the minimum-reduced cost empty 3-path can be queried using a data
+structure $D_\emptyset(A, B)$ maintaining
+$BCP(P = A_\emptyset \setminus S, Q = B_\emptyset)$ with weights
+$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(t)$ for all
 $q \in Q$.
 We query $D_\emptyset(A, B)$ only while $s \in S$ and $t \not\in S$.
 
@@ -1016,21 +1061,21 @@ number of relaxations, each of which take $O(1)$ BCP queries and updates.
 
 \begin{lemma}
 \label{lemma:goldberg_hs_length1}
-	There are $O(k)$ non-empty relaxations in \textsc{Hungarian-Search2} 
+	There are $O(k)$ non-empty relaxations in \textsc{Hungarian-Search2}
 	before a deficit vertex is reached.
 \end{lemma}
 \begin{proof}
 	Let $E_{>0}(f) = \{(v, w) \in E \mid f(v, w) > 0\}$.
 	Each edge relaxation adds a new vertex to $S$.
-	The vertices of $V \setminus S$ fall into several categories: 
-	(i) $s$ or $t$, (ii) $A$ or $B$ vertex with 0 imbalance, and (iii) $A$ 
+	The vertices of $V \setminus S$ fall into several categories:
+	(i) $s$ or $t$, (ii) $A$ or $B$ vertex with 0 imbalance, and (iii) $A$
 	or $B$ vertex with deficit ($S$ contains all excess vertices).
 	The number of vertices in (i) and (iii) is $O(k)$, leaving us to bound
 	the number of (ii) vertices.
 
-	An $A$ or $B$ vertex with 0 imbalance must have an even number of 
+	An $A$ or $B$ vertex with 0 imbalance must have an even number of
 	$E_{>0}(f)$ edges.
-	There is either only one positive-capacity incoming edge (for $A$) or 
+	There is either only one positive-capacity incoming edge (for $A$) or
 	outgoing edge (for $B$), so this quantity is either 0 or 2.
 	By the non-emptiness assumption, it must be 2.
 	We charge 0.5 to each of the two $E_{>0}(f)$ edges;
@@ -1041,23 +1086,23 @@ number of relaxations, each of which take $O(1)$ BCP queries and updates.
 
 \begin{lemma}
 \label{lemma:goldberg_hs_length2}
-	There are $O(k)$ empty 2- and 3-path relaxations in 
+	There are $O(k)$ empty 2- and 3-path relaxations in
 	\textsc{Hungarian-Search2} before a deficit vertex is reached.
 \end{lemma}
 \begin{proof}
-	There is only one empty 3-path relaxation, since $t$ can only be added 
+	There is only one empty 3-path relaxation, since $t$ can only be added
 	to $S$ once.
 	This is also the case for the empty 2-paths surrounding a $B_\emptyset$
 	vertex.
 
-	On the other hand, the relaxation of an empty 2-path surrounding an 
-	$A_\emptyset$ vertex adds some non-empty 
+	On the other hand, the relaxation of an empty 2-path surrounding an
+	$A_\emptyset$ vertex adds some non-empty
 	$b \in B \setminus B_\emptyset$ into $S$.
-	By definition, $b$ must either have deficit or an adjacent edge with 
+	By definition, $b$ must either have deficit or an adjacent edge with
 	$f(e) > 0$.
-	We charge this relaxation to $b$ if it is deficit, or the adjacent 
+	We charge this relaxation to $b$ if it is deficit, or the adjacent
 	$f(e) > 0$ edge otherwise.
-	No $f(e) > 0$ edge is charged more than twice, therefore the total 
+	No $f(e) > 0$ edge is charged more than twice, therefore the total
 	number of empty 2-path relaxations surrounding $A_\emptyset$ vertices
 	is $O(|E_{>0}(f)|)$.
 	%TODO bound size of flow support in k
@@ -1072,31 +1117,31 @@ number of relaxations, each of which take $O(1)$ BCP queries and updates.
 
 \begin{lemma}
 \label{lemma:goldberg_hs_time}
-	Using a dynamic BCP, we can implement \textsc{Hungarian-Search2} with 
+	Using a dynamic BCP, we can implement \textsc{Hungarian-Search2} with
 	$T_1(n, k) = O(k\polylog(n))$ and $P_1(n, k) = O(n\polylog(n))$.
 \end{lemma}
 \begin{proof}
 	Like for matchings, we use a BCP to find the argmin quickly;
-	we maintain $P = (S \cap A)$ and $Q = (B \setminus V)$ using weights 
-	$\omega(v) = \pi(v) - \delta$, and increase $\delta$ in lieu of 
+	we maintain $P = (S \cap A)$ and $Q = (B \setminus V)$ using weights
+	$\omega(v) = \pi(v) - \delta$, and increase $\delta$ in lieu of
 	increasing the potential of all $S$ vertices.
 	Using Lemma~\ref{lemma:hs_time} as a basis, we first analyze the number
 	of BCP operations over the course of \textsc{Hungarian-Search2}.
 	\begin{enumerate}
-	\item Let $S^t_0$ denote the initial set $S$ at the beginning of the 
-		$t$-th Hungarian search, i.e. the set of $v \in V$ with 
+	\item Let $S^t_0$ denote the initial set $S$ at the beginning of the
+		$t$-th Hungarian search, i.e. the set of $v \in V$ with
 		$e_f(v) > 0$ after $t$ blocking flows.
-		Assume for now that, at the beginning of the $(t+1)$-th 
-		Hungarian search, we have on hand the $S^t_0$ from the 
+		Assume for now that, at the beginning of the $(t+1)$-th
+		Hungarian search, we have on hand the $S^t_0$ from the
 		previous iteration.
-		To construct $S^{t+1}_0$, we remove the vertices that had 
+		To construct $S^{t+1}_0$, we remove the vertices that had
 		excess decreased to 0 by the $t$-th blocking flow.
-		Thus, with that assumption, we are able to initialize $S$ at 
+		Thus, with that assumption, we are able to initialize $S$ at
 		the cost of one BCP deletion per excess vertex, which sums to
 		$O(k)$ over the entire course of \textsc{Refine}.
 	\item During each Hungarian search, a vertex entering $S$ may cause $P$
 		or $Q$ to update and incur one BCP insertion/deletion.
-		Like before, we can charge these to the number of edge 
+		Like before, we can charge these to the number of edge
 		relaxations over the course of \textsc{Hungarian-Search2}.
 		%TODO ref lemma hs_length
 	\item Like before, we can meet the assumption in (1) by rewinding a log
@@ -1113,24 +1158,24 @@ number of relaxations, each of which take $O(1)$ BCP queries and updates.
 
 
 
-	Unlike matchings, there are now some arcs that are eligible for the 
+	Unlike matchings, there are now some arcs that are eligible for the
 	minimum but not ``captured'' by the BCP.
-	Specifically, it makes no sense to place $s$ or $t$ in the BCP 
-	(they do not correspond to points in the plane), or the arcs from 
+	Specifically, it makes no sense to place $s$ or $t$ in the BCP
+	(they do not correspond to points in the plane), or the arcs from
 	$B \to A$ (arcs of $(S \cap B) \times (V \setminus S)$ are not residual
 	unless there is positive flow on the respective $A \to B$ arc).
-	We label these special classes of arcs (i) $E_s^+$ and $E_s^-$, 
-	residual arcs with $s$ on the head and tail respectively, (ii) 
-	$E_t^+$ and $E_t^-$, residual arcs with $t$ on the head and tail 
+	We label these special classes of arcs (i) $E_s^+$ and $E_s^-$,
+	residual arcs with $s$ on the head and tail respectively, (ii)
+	$E_t^+$ and $E_t^-$, residual arcs with $t$ on the head and tail
 	respectively, and (iii) $E_{BA}$, $B \to A$ residual arcs.
-	There are $O(r)$ arcs in $E_s^+$ and $E_s^-$, $O(n)$ arcs in $E_t^+$ 
-	and $E_t^-$, and $O(k)$ arcs in $E_{BA}$ 
+	There are $O(r)$ arcs in $E_s^+$ and $E_s^-$, $O(n)$ arcs in $E_t^+$
+	and $E_t^-$, and $O(k)$ arcs in $E_{BA}$
 	(by Lemma~\ref{lemma:reduction_count}).
 	We maintain a min-heap for each arc set on the same distances used
 	by the BCP ($c(v, w) - \omega(v) + \omega(w)$).
 	Until $s$ (resp. $t$) is included into $S$, we ``deactivate'' $E_s^+$
 	(resp. $E_t^+$) and do not query it for the minimum.
-	Once $s$ (resp. $t$) is added, we activate $E_s^+$ (resp. $E_t^+$) and 
+	Once $s$ (resp. $t$) is added, we activate $E_s^+$ (resp. $E_t^+$) and
 	deactivate $E_s^-$ (resp. $E_t^-$).
 	These activations/deactivations occur once per Hungarian search, since
 	vertices do not leave $S$ once they enter.
@@ -1139,13 +1184,13 @@ number of relaxations, each of which take $O(1)$ BCP queries and updates.
 
 	We can ultimately charge all heap operations to BCP operations, and
 	see that there are $O(k)$ total.
-	When a vertex moves into $S$, it begets a heap operation in addition 
+	When a vertex moves into $S$, it begets a heap operation in addition
 	to the BCP deletion.
-	For example, if $a \in A$ moves into $S$, $(s, a)$ should be deleted 
+	For example, if $a \in A$ moves into $S$, $(s, a)$ should be deleted
 	from $E_t^-$, or $(a, s)$ should be added to $E_t^+$
 
 
-	For potential updates, we use the same trick as in 
+	For potential updates, we use the same trick as in
 	Lemma~\ref{lemma:hs_time} to lazily update potentials after vertices
 	leave $S$.
 	To remind, these potential updates were bounded by the number of times
@@ -1156,7 +1201,7 @@ number of relaxations, each of which take $O(1)$ BCP queries and updates.
 
 \subsubsection{Depth-first search}
 
-The depth-first search is similar to \textsc{Hungarian-Search2} in that it 
+The depth-first search is similar to \textsc{Hungarian-Search2} in that it
 relies on the relaxation of a minimum-reduced cost edge.
 %TODO simplify dfs, also the empty vertex stuff may complicate this
 \begin{algorithm}
@@ -1171,7 +1216,7 @@ relies on the relaxation of a minimum-reduced cost edge.
 		\If{$e_f(v') < 0$}
 			\Comment{if we reached a deficit, save the path to $f'$}
 			\State add to $f'$ a unit flow on the path $P$
-			
+
 			\State $P \gets \emptyset$
 		\EndIf
 
@@ -1182,7 +1227,7 @@ relies on the relaxation of a minimum-reduced cost edge.
 		\If{$\gamma \leq 0$}
 			\Comment{if $(v', w')$ is admissible, extend the current path}
 			\State $S \gets S \cup \{w'\}$
-			
+
 			\State $P \gets \Call{Push}{$P$, $w'$}$
 
 		\EndIf
@@ -1203,7 +1248,7 @@ relies on the relaxation of a minimum-reduced cost edge.
 
 \begin{lemma}
 \label{lemma:goldberg_dfs_time}
-	Using a dynamic NN, we can implement \textsc{DFS} with 
+	Using a dynamic NN, we can implement \textsc{DFS} with
 	$T_2(n, k) = O(k\polylog(n))$ and $P_2(n, k) = O(n\polylog(n))$.
 \end{lemma}
 \begin{proof}
@@ -1222,7 +1267,7 @@ relies on the relaxation of a minimum-reduced cost edge.
 %TODO
 \begin{lemma}[Sharathkumar, Agarwal]
 	In $O(n\log n)$ time, we can preprocess $A, B$ by partitioning into
-	$(A_1, B_1), \ldots, (A_\ell, B_\ell)$ such that 
+	$(A_1, B_1), \ldots, (A_\ell, B_\ell)$ such that
 	\begin{enumerate}
 	\item each $(A_i, B_i)$ has $|A_i| = |B_i|$,
 	\item the union of optimal matching solutions on $(A_i, B_i)$
