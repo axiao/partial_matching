@@ -426,7 +426,7 @@ the duals such that the edge becomes admissible, and adding the opposite $B$
 vertex into $S$.
 
 The dual update uniformly decreases the reduced costs of the frontier edges.
-Since $(a', b')$ is the minimum-reduced cost frontier edge, the potential 
+Since $(a', b')$ is the minimum reduced cost frontier edge, the potential 
 update in line~\ref{line:hs_update} does not make any reduced cost negative, 
 and thus preserves the dual feasibility constraint for all edges.
 The algorithm is shown below as Algorithm~\ref{algorithm:hung_hs}.
@@ -877,6 +877,7 @@ completes the proof of Theorem~\ref{theorem:gmcm}.
 
 \subsubsection{Hungarian search}
 
+%TODO add in relaxation decisions for 2-paths and 3-paths
 \begin{algorithm}
 \caption{Hungarian Search (cost-scaling)}
 \begin{algorithmic}[1]
@@ -900,18 +901,123 @@ completes the proof of Theorem~\ref{theorem:gmcm}.
 \end{algorithmic}
 \end{algorithm}
 
-Compared to \textsc{Hungarian-Search}, this algorithm does not maintain special
-invariants for edges with $f(v, w) > 0$, so no edges are relaxed ``for free''
-like in the matching case.
+Compared to \textsc{Hungarian-Search}, this algorithm does not maintain 
+admissibility as an invariant for edges with $f(v, w) > 0$, so these edges are 
+not relaxed in a special case.
 Like the previous case, uniformly raising the potentials of $S$ preserves 
 reduced costs for arcs within $S$ and decreases them for arcs leaving $S$.
 Raising potentials in intervals of $\eps$ will also not decrease a reduced
 cost to less than $-\eps$, so arcs leaving $S$ still satisfy $\eps$-optimality.
 
+%TODO need another category for when both a, b empty
+%TODO so take the min among: empty 2-paths, empty 3-paths, and BCP response
+Vertices of $A \cup B$ with $e_f(v) = 0$ and 0 incoming and outgoing flow 
+cannot be charged to $k$ using the previous analysis, so the algorithm treats 
+these \emph{empty vertices} separately. %TODO reference line
+Namely, there is no edge with $f(e) > 0$ adjacent to an empty vertex, 
+reaching an empty vertex does not terminate the search, and there may be 
+$\Omega(n)$ empty vertices at once (consider $H_{f = 0}$, the residual graph 
+of the empty flow).
+
+We use $A_\emptyset$ and $B_\emptyset$ to denote the empty vertices of $A$ and 
+$B$ respectively.
+For an empty vertex $v$, either residual in-degree ($v \in A_\emptyset$) or 
+residual out-degree ($v \in B_\emptyset$) is 1. 
+Instead of querying an empty vertex during the search, we shortcut it using the
+length 2 paths to/from non-empty vertices, called \emph{empty 2-paths}.
+For example, if $v \in A_\emptyset$ (resp. $v \in B_\emptyset$), then its empty 
+2-paths have the form $(s, v, b)$ (resp. $(a, v, t)$) for each 
+$b \in B \setminus B_\emptyset$ (resp. $a \in A \setminus A_\emptyset$).
+We say that $(s, v, b)$ is an empty 2-path \emph{surrounding} empty vertex $v$.
+Separately, we consider the length 3 $s$-$t$ paths that pass through two empty 
+vertices, called \emph{empty 3-paths}.
+As with 2-paths, we say an empty 3-path $(s, v_1, v_2, t)$ \emph{surrounds}
+$v_1 \in A_\emptyset$ and $v_2 \in B_\emptyset$.
+Relaxation steps involving an empty 2- or 3-path will relax the entire path
+at once, moving all vertices of the path into $S$.
+Relaxation steps that do not involve an empty 2- or 3-path are called 
+\emph{non-empty}.
+
+Consider an empty 2-path $(s, v, b)$ that surrounds $v$.
+Since $v$ has zero excess/deficit, the search cannot ``make progress'' through 
+$v$ until it reaches $b$.
+Since reduced costs telescope for residual paths, the reduced cost of 
+$(s, v, b)$ does not depend on the potential of $v$.
+\begin{equation*}
+	c_\pi((s, v, b)) = c_\pi(s, v) + c_\pi(v, b) = c(v, b) - \pi(s) + \pi(b)
+\end{equation*}
+Thus, we can safely ignore the potential of $v$ until it ceases to be 
+empty, e.g. after an augmentation across one of its empty paths. 
+At that point, we can infer $\pi(v)$ from the potentials of the empty 2-path 
+augmented through (this path must be admissible).
+Before we go into the details of updating the sets of empty vertices and their 
+potentials, we describe the mechanism for querying the minimum-reduced cost 
+empty 2- and 3-paths.
+
+When the search has $s \in S$, we can query the minimum-reduced cost empty 
+2-path surrounding $A_\emptyset$ vertices using a data structure 
+$D_\emptyset(A)$ maintaining 
+$BCP(P = A_\emptyset, Q = (B \setminus B_\emptyset) \setminus S)$ with weights 
+$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for all 
+$q \in Q$.
+It is simple to verify that if $(p, q)$ is the BCP of $P, Q$ above, then its
+BCP distance is precisely the reduced cost of the 2-path $(s, p, q)$.
+We can build similar query data structures for other empty 2-paths and empty 
+3-paths, also reporting a pair whose weighted distance is equal to the reduced
+cost of the corresponding empty 2- or 3-path.
+Empty 2-paths surrounding $B_\emptyset$ vertices can be queried using 
+$D_\emptyset(B)$ which maintains 
+$BCP(P = (A \setminus A_\emptyset) \cap S, Q = B_\emptyset)$ with weights 
+$\omega(p) = \pi(p)$ for all $p \in P$, and $\omega(q) = \pi(t)$ for all 
+$q \in Q$.
+We query $D_\emptyset(B)$ so long as $t \not\in S$.
+Lastly, the minimum-reduced cost empty 3-path can be queried using a data 
+structure $D_\emptyset(A, B)$ maintaining 
+$BCP(P = A_\emptyset \setminus S, Q = B_\emptyset)$ with weights 
+$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(t)$ for all 
+$q \in Q$.
+We query $D_\emptyset(A, B)$ only while $s \in S$ and $t \not\in S$.
+
+%TODO describe/bound the update process for each data structure:
+	% how to find them:
+	% empty both: BCP with all empty vertices, using s/t potentials
+	%	active as long as s reached, t unreached
+	%	updates according to S with deletions
+	% empty a: BCP with empty A to nonempty unreached B, using s/b potentials
+	%	active as long as s reached
+	%	updates according to S with deletions in B
+	% empty b: BCP with with nonempty reached A to empty unreached B, using a/t potentials
+	%	active as long as t unreached
+	%	updates according to S with insertions in A
+
+	% ^ the empty sets will only change through empty relaxations
+
+	% assuming we can find them, how many empty a, b, and both?
+	% only one empty both per h.s., starting at s and adding t.
+	% empty a leads to a non-empty b, charge to adjoining b support or deficit
+	% empty b comes from a non-empty a, charge to adjoining a support or excess
+
+	% how to find empty both? potentials at s, t plus BCP on empty A x empty B
+	% how to find empty a? potential at s, min of potentials of nonempty B
+	% how to find empty b? potential at t, max of potentials of nonempty A
+
+	% empty/nonempty may only change during augmentation, and only on nodes augmented through
+	% charge empty/nonempty d.s. updates to the blocking flow nodes
+	% \eps is fixed at the current scale
+	% potentials MUST be recovered during augmentation and at scale end
+	% seems like fixing them to \pi(s) or \pi(t) is correct; certainly will not violate feas if \pi(s) doesn't
+
+
+
+
+In the next few lemmas, we bound the number of relaxations of each type.
+This will provide a time bound for the Hungarian search in terms of the
+number of relaxations, each of which take $O(1)$ BCP queries and updates.
+
 \begin{lemma}
-\label{lemma:goldberg_hs_length}
-	There are $O(k)$ edge relations in \textsc{Hungarian-Search2} before
-	a deficit vertex is reached.
+\label{lemma:goldberg_hs_length1}
+	There are $O(k)$ non-empty relaxations in \textsc{Hungarian-Search2} 
+	before a deficit vertex is reached.
 \end{lemma}
 \begin{proof}
 	Let $E_{>0}(f) = \{(v, w) \in E \mid f(v, w) > 0\}$.
@@ -919,18 +1025,50 @@ cost to less than $-\eps$, so arcs leaving $S$ still satisfy $\eps$-optimality.
 	The vertices of $V \setminus S$ fall into several categories: 
 	(i) $s$ or $t$, (ii) $A$ or $B$ vertex with 0 imbalance, and (iii) $A$ 
 	or $B$ vertex with deficit ($S$ contains all excess vertices).
-	The number of vertices in (i) and (iii) is $O(k)$, therefore we focus
-	our attention on the number of (ii) vertices reached.
+	The number of vertices in (i) and (iii) is $O(k)$, leaving us to bound
+	the number of (ii) vertices.
 
 	An $A$ or $B$ vertex with 0 imbalance must have an even number of 
 	$E_{>0}(f)$ edges.
 	There is either only one positive-capacity incoming edge (for $A$) or 
 	outgoing edge (for $B$), so this quantity is either 0 or 2.
-	If there are 2, we charge 0.5 to each of the two $E_{>0}(f)$ edges;
+	By the non-emptiness assumption, it must be 2.
+	We charge 0.5 to each of the two $E_{>0}(f)$ edges;
 	the edges of $E_{>0}(f)$ have no more than 1 charge each.
-	Otherwise, %TODO shit
-	
+	Thus, the number of (ii) vertex relaxations is $O(|E_{>0}(f)|)$.
+	%TODO prove that |E_{>0}(f)| = O(k)
 \end{proof}
+
+\begin{lemma}
+\label{lemma:goldberg_hs_length2}
+	There are $O(k)$ empty 2- and 3-path relaxations in 
+	\textsc{Hungarian-Search2} before a deficit vertex is reached.
+\end{lemma}
+\begin{proof}
+	There is only one empty 3-path relaxation, since $t$ can only be added 
+	to $S$ once.
+	This is also the case for the empty 2-paths surrounding a $B_\emptyset$
+	vertex.
+
+	On the other hand, the relaxation of an empty 2-path surrounding an 
+	$A_\emptyset$ vertex adds some non-empty 
+	$b \in B \setminus B_\emptyset$ into $S$.
+	By definition, $b$ must either have deficit or an adjacent edge with 
+	$f(e) > 0$.
+	We charge this relaxation to $b$ if it is deficit, or the adjacent 
+	$f(e) > 0$ edge otherwise.
+	No $f(e) > 0$ edge is charged more than twice, therefore the total 
+	number of empty 2-path relaxations surrounding $A_\emptyset$ vertices
+	is $O(|E_{>0}(f)|)$.
+	%TODO bound size of flow support in k
+\end{proof}
+
+
+
+%TODO
+
+
+
 
 \begin{lemma}
 \label{lemma:goldberg_hs_time}
@@ -1004,7 +1142,7 @@ cost to less than $-\eps$, so arcs leaving $S$ still satisfy $\eps$-optimality.
 	When a vertex moves into $S$, it begets a heap operation in addition 
 	to the BCP deletion.
 	For example, if $a \in A$ moves into $S$, $(s, a)$ should be deleted 
-	from $E_t^-$ (), or $(a, s)$ should be added to $E_t^+$
+	from $E_t^-$, or $(a, s)$ should be added to $E_t^+$
 
 
 	For potential updates, we use the same trick as in 
@@ -1020,7 +1158,7 @@ cost to less than $-\eps$, so arcs leaving $S$ still satisfy $\eps$-optimality.
 
 The depth-first search is similar to \textsc{Hungarian-Search2} in that it 
 relies on the relaxation of a minimum-reduced cost edge.
-%TODO simplify dfs
+%TODO simplify dfs, also the empty vertex stuff may complicate this
 \begin{algorithm}
 \caption{Depth-first search}
 \begin{algorithmic}[1]
@@ -1061,13 +1199,16 @@ relies on the relaxation of a minimum-reduced cost edge.
 \end{algorithmic}
 \end{algorithm}
 
-%TODO
+%TODO is this still fine? with the empty path stuff?
 
 \begin{lemma}
 \label{lemma:goldberg_dfs_time}
 	Using a dynamic NN, we can implement \textsc{DFS} with 
 	$T_2(n, k) = O(k\polylog(n))$ and $P_2(n, k) = O(n\polylog(n))$.
 \end{lemma}
+\begin{proof}
+%TODO
+\end{proof}
 
 
 
@@ -1095,13 +1236,12 @@ relies on the relaxation of a minimum-reduced cost edge.
 
 
 
+\section{Unbalanced Transportation}
 
-
-
-
-
-
-
+% definitions
+% introduce the excess scaling algorithm/Orlin's
+% time per hungarian search
+% handling problem cases (stars, singletons)
 
 
 {
