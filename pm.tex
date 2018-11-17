@@ -20,8 +20,9 @@
 \usepackage{xspace}
 \usepackage[shortlabels, inline]{enumitem}
 
-\usepackage{latexsym,amsmath,amssymb,amsthm}
+\usepackage{latexsym,amsmath,amssymb}
 \usepackage{algpseudocode,algorithm,algorithmicx}
+\usepackage{mathtools} % for \coloneqq
 
 \usepackage[title]{appendix}
 
@@ -87,7 +88,13 @@
 %\textfloatsep 18pt plus 2pt minus 4pt      % was 20pt plus 2pt minus 4pt
 \makeatother
 
-\usepackage{notetodo} % for comments
+% ----------------------------------------------------------------------
+%  Notes to myself.  The margin flags are broken, thanks to an
+%  incompatibility with the geometry package.
+% ----------------------------------------------------------------------
+\def\n@te#1{\textsf{\boldmath \textbf{$\langle\!\langle$#1$\rangle\!\rangle$}}\leavevmode}
+\def\note#1{\textcolor{red}{\n@te{#1}}}
+
 
 %----------------------------------------------------------------------
 % 'cramped' list style, stolen from Jeff Vitter.  Doesn't always work.
@@ -133,15 +140,15 @@ Partial matching generalizes both perfect matching and unbalanced matching.
 We will refer to the geometric problem as \emph{geometric partial matching}.
 \text{Maybe bad nameing; there is nothing geometric about this name.}
 
-\begin{TODO}
-Previous work
-\begin{itemize}\itemsep=0pt
-	\item on matching
-	\item on geometric matching
-	\item on unbalanced/partial problems (GHKT, the push-relabel one, the tech report)
-\end{itemize}
-\noindent\textcolor{blue}{[Hsien: State your TODO list explicitly in the pdf file so that it's easier to read.  Make everything that you are planning to do, and put priorities on them.]}
-\end{TODO}
+% \begin{TODO}
+% Previous work
+% \begin{itemize}\itemsep=0pt
+% 	\item on matching
+% 	\item on geometric matching
+% 	\item on unbalanced/partial problems (GHKT, the push-relabel one, the tech report)
+% \end{itemize}
+% \noindent\textcolor{blue}{[Hsien: State your TODO list explicitly in the pdf file so that it's easier to read.  Make everything that you are planning to do, and put priorities on them.]}
+% \end{TODO}
 
 
 \subsection{Contributions}
@@ -150,64 +157,64 @@ In this paper, we present two algorithms for geometric partial matching
 that are based on fitting nearest-neighbor (NN) and geometric closest pair
 (BCP) oracles into primal-dual algorithms for non-geometric bipartite matching
 and minimum-cost flow.
-This pattern is not new, see e.g. %TODO .
+This pattern is not new, see for example \note{TODO}.
 Unlike these previous works, we focus on obtaining running time dependencies on
-$k$ or $r$ instead of $n$, i.e. faster for inputs with small $r$ or $k$.
+$k$ or $r$ instead of $n$, that is, faster for inputs with small $r$ or $k$.
 We begin in Section~\ref{section:prelim} by introducing notation for matching
 and minimum-cost flow.
 
 % O((n + k^2)\polylog n)
 
-In our first algorithm, we show that the Hungarian algorithm~\cite{Kuhn55}
+First in Section~\ref{section:hung}, we show that the Hungarian algorithm~\cite{Kuhn55}
 combined with a BCP oracle solves geometric partial matching exactly in time
-$O((n + k^2)\polylog(n))$.
-Mainly, we show that we can separate the $O(n\polylog(n))$ preprocessing time
+$O((n + k^2)\polylog n)$.
+Mainly, we show that we can separate the $O(n\polylog n)$ preprocessing time
 for building the BCP data structure from the augmenting paths' search time,
 and update duals in a lazy fashion such that the number of dual updates per
 augmenting path is $O(k)$.
-This is done in Section~\ref{section:hung}.
 
 \begin{theorem}
 \label{theorem:hung}
-Given point sets $A, B \subset \mathbb{R}^2$ with $|A| = r \leq |B| = n$ and a
-parameter $k \leq r$, a minimum-cost geometric partial matching of size $k$
-can be computed between $A$ and $B$ in $O((n + k^2)\polylog(n))$ time.
+Let $A$ and $B$ be two point sets in the plane with $|A| = r$ and $|B| = n$ satisfying $r \le n$, and let $k$ be a
+parameter.  A minimum-cost geometric partial matching of size $k$
+can be computed between $A$ and $B$ in $O((n + k^2)\polylog n)$ time.
 \end{theorem}
 
 % O((n + k\sqrt{k})\polylog(n)\log(n/\eps))
 
-Next, we apply a similar technique to the unit-capacity min-cost circulation
+Next in Section~\ref{section:goldberg}, we apply a similar technique to the unit-capacity min-cost circulation
 algorithm of Goldberg, Hed, Kaplan, and Tarjan~\cite{GHKT17}.
 The resulting algorithm finds a $(1 + \eps)$-approximation to the optimal
-geometric partial matching in $O((n + k\sqrt{k})\polylog(n)\log(n/\eps))$
+geometric partial matching in $O((n + k\sqrt{k})\polylog n \log(n/\eps))$
 time.
-This is presented in Section~\ref{section:goldberg}.
 
 \begin{theorem}
 \label{theorem:gmcm}
-Given point sets $A, B \subset \mathbb{R}^2$ with $|A| = r \leq |B| = n$ and a
-parameter $k \leq r$, a $(1+\eps)$ geometric partial matching of size $k$
+Let $A$ and $B$ be two point sets in the plane with $|A| = r$ and $|B| = n$ satisfying $r \le n$, and let $k$ be a
+parameter.
+A $(1+\eps)$ geometric partial matching of size $k$
 can be computed between $A$ and $B$ in
-$O((n + k\sqrt{k})\polylog(n)\log(n/\eps))$ time.
+$O((n + k\sqrt{k})\polylog n \log(n/\eps))$ time.
 \end{theorem}
 
 % add the ~O(rn^{3/2}) version
 
-Our third algorithm solves the transportation problem, in the unbalanced
-setting with $|A| = r$ and $|B| = n$.
+Our third algorithm solves the transportation problem in the unbalanced
+setting.
+%with $|A| = r$ and $|B| = n$.
 This time, we use the strongly polynomial uncapacitated min-cost flow algorithm
-by Orlin~%TODO cite
-The result is an $O(n^{3/2}r\polylog(n))$ time algorithm for unbalanced
+by Orlin~\cite{xxx} \note{Cite}.
+The result is an $O(n^{3/2} r \polylog n)$ time algorithm for unbalanced
 transportation.
 This improves over the $O(n^2 \polylog(n))$ time algorithm of %TODO cite
 when $r = o(\sqrt{n})$.
 
 \begin{theorem}
 \label{theorem:orlin}
-Given point sets $A, B \subset \mathbb{R}^2$ with $|A| = r \leq |B| = n$ with
-supplies and demands $\tsupply(\cdot)$ such that
-$\sum_{a \in A} \tsupply(a) = \sum_{b \in B} \tsupply(b)$, an optimal
-transportation map can be computed in $O(n^{3/2}r\polylog(n))$ time.
+Let $A$ and $B$ be two point sets in the plane with $|A| = r$ and $|B| = n$ satisfying $r \le n$, with
+supplies and demands given by the function $\tsupply(\cdot)$ \note{from $A\cup B$ to $\mathbb{Z}$?} such that
+$\sum_{a \in A} \tsupply(a) = \sum_{b \in B} \tsupply(b)$.
+An optimal transportation map can be computed in $O(n^{3/2}r\polylog n)$ time.
 \end{theorem}
 
 %TODO STILL IN PROGRESS, WE DON'T HAVE A SOLUTION YET. REMOVE IF FAILS.
@@ -223,24 +230,24 @@ transportation map can be computed in $O(n^{3/2}r\polylog(n))$ time.
 %Avoiding the backtracking is the main challenge for this algorithm.
 %% how?
 
-By nature of the BCP/NN oracles we use, our results generalize from Euclidean
-distances to any $L_p$ distances.
+By nature of the BCP/NN oracles we use, our results generalize to any $L_p$ distances. \note{Mention Euclidean distance earlier.}
+
 
 \section{Preliminaries}
 \label{section:prelim}
 
 \subsection{Matching}
 
-Let $G = (A \cup B, E)$ be a bipartite graph between vertex sets $A$ and $B$,
-with costs $c(v, w)$ for each $e \in E$.
-We use $C = \max_{e \in E} c(e)$, and assume that the problem is scaled such
+Let $G$ be a bipartite graph between vertex sets $A$ and $B$ and edge set $E$,
+with costs $c(v, w)$ for each edge $e$ in $E$.
+We use $C = \max_{e \in E} c(e)$, \note{you might want to use $\coloneqq$ instead of $=$ for definition?} and assume that the problem is scaled such
 that $\min_{e \in E} c(e) = 1$.
-A \emph{matching} $M \subseteq E$ is a set of edges where no two share an
+A \emph{matching} $M \subseteq E$ is a set of edges where no two edges share an
 endpoint.
 We use $V(M)$ to denote the vertices matched by $M$.
-The size of a matching is the number of edges in the set, and the cost of a
+The \emph{size} of a matching is the number of edges in the set, and the \emph{cost} of a
 matching is the sum of costs of its edges.
-The minimum-cost partial matching problem (MPM) asks to find the size $k$
+The minimum-cost partial matching problem (MPM) asks to find a size $k$
 matching $M^*$ of minimum cost.
 
 \subsection{Minimum-cost flow}
