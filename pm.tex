@@ -130,7 +130,7 @@ When $k = r < n$ ($A$ and $B$ have different sizes, but the matching is
 maximal), we say the matching instance is \emph{unblanced}.
 \note{Don't mix up the definition of \emph{balanced} and \emph{perfect}; the former is between $r$ and $n$, where the latter is between $k$ and $r$.}
 Partial matching generalizes both perfect matching and unbalanced matching.
-We will refer to the geometric problem as \emph{bichromatic partial matching}.
+We will refer to the geometric problem as \emph{geometric partial matching}.
 \text{Maybe bad nameing; there is nothing geometric about this name.}
 
 \begin{TODO}
@@ -146,8 +146,8 @@ Previous work
 
 \subsection{Contributions}
 
-In this paper, we present two algorithms for bichromatic partial matching
-that are based on fitting nearest-neighbor (NN) and bichromatic closest pair
+In this paper, we present two algorithms for geometric partial matching
+that are based on fitting nearest-neighbor (NN) and geometric closest pair
 (BCP) oracles into primal-dual algorithms for non-geometric bipartite matching
 and minimum-cost flow.
 This pattern is not new, see e.g. %TODO .
@@ -159,7 +159,7 @@ and minimum-cost flow.
 % O((n + k^2)\polylog n)
 
 In our first algorithm, we show that the Hungarian algorithm~\cite{Kuhn55}
-combined with a BCP oracle solves bichromatic partial matching exactly in time
+combined with a BCP oracle solves geometric partial matching exactly in time
 $O((n + k^2)\polylog(n))$.
 Mainly, we show that we can separate the $O(n\polylog(n))$ preprocessing time
 for building the BCP data structure from the augmenting paths' search time,
@@ -170,7 +170,7 @@ This is done in Section~\ref{section:hung}.
 \begin{theorem}
 \label{theorem:hung}
 Given point sets $A, B \subset \mathbb{R}^2$ with $|A| = r \leq |B| = n$ and a
-parameter $k \leq r$, a minimum-cost bichromatic partial matching of size $k$
+parameter $k \leq r$, a minimum-cost geometric partial matching of size $k$
 can be computed between $A$ and $B$ in $O((n + k^2)\polylog(n))$ time.
 \end{theorem}
 
@@ -179,14 +179,14 @@ can be computed between $A$ and $B$ in $O((n + k^2)\polylog(n))$ time.
 Next, we apply a similar technique to the unit-capacity min-cost circulation
 algorithm of Goldberg, Hed, Kaplan, and Tarjan~\cite{GHKT17}.
 The resulting algorithm finds a $(1 + \eps)$-approximation to the optimal
-bichromatic partial matching in $O((n + k\sqrt{k})\polylog(n)\log(n/\eps))$
+geometric partial matching in $O((n + k\sqrt{k})\polylog(n)\log(n/\eps))$
 time.
 This is presented in Section~\ref{section:goldberg}.
 
 \begin{theorem}
 \label{theorem:gmcm}
 Given point sets $A, B \subset \mathbb{R}^2$ with $|A| = r \leq |B| = n$ and a
-parameter $k \leq r$, a $(1+\eps)$ bichromatic partial matching of size $k$
+parameter $k \leq r$, a $(1+\eps)$ geometric partial matching of size $k$
 can be computed between $A$ and $B$ in
 $O((n + k\sqrt{k})\polylog(n)\log(n/\eps))$ time.
 \end{theorem}
@@ -351,7 +351,7 @@ algorithm for $\eps > 0$.
 	admissible improving flow in $G_f$.
 	Then $f + f'$ is also $\eps$-optimal.
 \end{lemma}
-\begin{proof}https://youtu.be/OcYzzPtCrII
+\begin{proof}
 	Augmentation by $f'$ will not change the potentials, but may introduce
 	new arcs with $u_{f+f'}(v, w) > 0$.
 	We will verify that these arcs satisfy the $\eps$-optimality condition.
@@ -426,7 +426,7 @@ finds an admissible augmenting path, called the \emph{Hungarian search}.
 
 \begin{theorem}[Hungarian algorithm time]
 \label{theorem:hung_orig}
-	Let $G = (A \cup B, A \times B)$ be an instance of bichromatic partial
+	Let $G = (A \cup B, A \times B)$ be an instance of geometric partial
 	matching with $|A| = r \geq |B| = n$, and parameter $k \leq r$.
 	Suppose the Hungarian search finds each augmenting path in $T(n, k)$
 	time after a one-time $P(n, k)$ preprocessing time.
@@ -720,8 +720,8 @@ values of $\eps$.
 Each period where $\eps$ holds constant is called a \emph{scale}.
 Once $\eps$ is sufficiently small, the $\eps$-optimal flow is a suitable
 approximation or even optimal when costs are integer~\cite{GT90,GHKT17}.
-We present this algorithm as an approximation is because costs in bichromatic
-matching (i.e. Euclidean distances) are generally not integer.
+We present this algorithm as an approximation is because costs in geometric
+partial matching (i.e. Euclidean distances) are generally not integer.
 
 \begin{algorithm}
 \caption{Cost-Scaling MCF}
@@ -925,14 +925,15 @@ completes the proof of Theorem~\ref{theorem:gmcm}.
 
 Compared to \textsc{Hungarian-Search}, this algorithm does not maintain
 admissibility as an invariant for edges with $f(v, w) > 0$, so these edges are
-not relaxed in a special case.
-Like the previous case, uniformly raising the potentials of $S$ preserves
-reduced costs for arcs within $S$ and decreases them for arcs leaving $S$.
+not relaxed immediately in a special case.
+Instead, we store the $O(|E_{>0}(f)|)$ of them leaving $S$ in a min heap and
+compare their reduced costs with the BCP result, relaxing the edge with lower
+reduced cost.
+Uniformly raising the potentials of $S$ preserves reduced costs for arcs within
+$S$ and decreases them for arcs leaving $S$.
 Raising potentials in intervals of $\eps$ will also not decrease a reduced
 cost to less than $-\eps$, so arcs leaving $S$ still satisfy $\eps$-optimality.
 
-%TODO need another category for when both a, b empty
-%TODO so take the min among: empty 2-paths, empty 3-paths, and BCP response
 Vertices of $A \cup B$ with $e_f(v) = 0$ and 0 incoming and outgoing flow
 cannot be charged to $k$ using the previous analysis, so the algorithm treats
 these \emph{empty vertices} separately. %TODO reference line
