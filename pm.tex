@@ -247,57 +247,76 @@ endpoint.
 We use $V(M)$ to denote the vertices matched by $M$.
 The \emph{size} of a matching is the number of edges in the set, and the \emph{cost} of a
 matching is the sum of costs of its edges.
-The minimum-cost partial matching problem (MPM) asks to find a size $k$
+The \emph{minimum-cost partial matching problem (MPM)} asks to find a size-$k$
 matching $M^*$ of minimum cost.
 
 \subsection{Minimum-cost flow}
 
+\note{Collect definitions into paragraphs.}
+
+\paragraph{Network.}
 For minimum-cost flow, let $G_0 = (V, E_0)$ be a directed graph with
 nonnegative arc capacities $u(v, w)$ and costs $c(v, w)$ for each arc
 $(v, w) \in E_0$.
-We say $G_0$ is \emph{unit-capacity} if all $u(v, w) = 1$.
-Let $\fsupply: V \to \ints_{\geq 0}$ be a supply-demand function on $V$,
-where positive values of $\fsupply(v)$ we refer to as \emph{supply},
-negative values of $\fsupply(v)$ are \emph{demand}, and
-$\sum_{v \in V} \fsupply(v) = 0$.
-We augment $G_0$ to make it \emph{symmetric} (for every arc $(v, w) \in E_0$
-its reverse $(v, w)^R = (w, v)$ is also an arc) and the costs
-\emph{antisymmetric} ($c(v, w) = -c(w, v)$): for each $(v, w) \in E_0$, create
-an arc $(w, v)$ and define $u(w, v) = 0$ and $c(w, v) = -c(v, w)$.
-Let this set of new \emph{reverse arcs} be $E^R$.
-From here forward, we work with the symmetric multigraph
-$G = (V, E = E_0 \cup E^R)$.
-The combination of graph, costs, capacities, and supply-demands is a
-\emph{network} $(G, c, u, \fsupply)$.
+We say $G_0$ is \emph{unit-capacity} if $u(v, w) = 1$ holds for all arc $(v, w)$.
+Let $\fsupply: V \to \ints_{\geq 0}$ be a supply-demand function on $V$, satisfying $\sum_{v \in V} \fsupply(v) = 0$.
+The positive values of $\fsupply(v)$ are referred to as \emph{supply}, and the negative values of $\fsupply(v)$ as \emph{demand}.
 
-A \emph{pseudoflow} $f$ is an antisymmetric function on arcs
-($f(v, w) = -f(w, v)$) such that for each arc $f(v, w) \leq u(v, w)$.
-We say that $f$ \emph{saturates} an arc $e \in E$ if $f(v, w) = u(v, w)$.
+A
+We augment $G_0$ to make it \emph{symmetric}
+%for every arc $(v, w) \in E_0$ its reverse $(w, v)$ is also an arc;
+and the costs
+\emph{antisymmetric}
+%$c(v, w) = -c(w, v)$).
+by creating an arc $(w, v)$ for each $(v, w) \in E_0$ and define $u(w, v) = 0$ and $c(w, v) = -c(v, w)$.
+Denote this set of new \emph{reverse arcs} by $E^R$.
+\note{How do you feel about using darts and arcs to describe the distinction?}
+From here forward, we work with the symmetric multigraph
+$G = (V, E = E_0 \cup E^R)$. \note{Oh man.  This is a mouthful, use English.}
+A \emph{network} $(G, c, u, \fsupply)$ is a graph $G$ argmented with arc costs, capacities, and a supply-demand function on vertices of $G$.
+
+\paragraph{Pseudoflows.}
+A \emph{pseudoflow} $f$ is an antisymmetric function on arcs \note{define codomain; integers?}
+satisfying $f(v, w) \leq u(v, w)$ for all arcs $(v, w)$.
+We say that $f$ \emph{saturates} an arc $e$ if $f(v, w) = u(v, w)$.
 All our algorithms will handle integer-valued pseudoflows, so in the
-unit-capacity setting an arc has either 0 flow or is saturated.
+unit-capacity setting an arc is either saturated or has zero flow.
 Given a pseudoflow $f$, we define the \emph{imbalance} of a vertex to be
-$e_f(v) := \fsupply(v) + \sum_{(w, v) \in E}{f(w, v)} - \sum_{(v, w) \in E}{f(v, w)}$.
-We call positive imbalance \emph{excess} and negative imbalance \emph{deficit},
-vertices with $e_f(v) > 0$ we call \emph{excess vertices} and respectively
-those with $e_f(v) < 0$ \emph{deficit vertices}.
-If all vertices have $e_f(v) = 0$, the pseudoflow is a \emph{circulation}.
-The cost of a pseudoflow is $\cost(f) = \sum_{(v, w) \in E} c(v, w) f(v, w)$.
-The minimum-cost flow problem (MCF) asks to find the circulation $f^*$ of
+\[
+e_f(v) \coloneqq \fsupply(v) + \sum_{(w, v) \in E}{f(w, v)} - \sum_{(v, w) \in E}{f(v, w)}.
+\]
+We call positive imbalance \emph{excess} and negative imbalance \emph{deficit}; and
+vertices with positive and negative imbalance \emph{excess vertices} and \emph{deficit vertices}, respectively.
+A vertex is \emph{balanced} if it has zero imbalance.
+If all vertices are balanced, the pseudoflow is a \emph{circulation}.
+The cost of a pseudoflow is
+\[
+\cost(f) \coloneqq \sum_{(v, w) \in E} c(v, w) \cdot f(v, w).
+\]
+The \emph{minimum-cost flow problem (MCF)} asks to find the circulation $f^*$ of
 minimum cost.
 
-For each arc $(v, w) \in E$, the \emph{residual capacity} with respect to
-pseudoflow $f$ is defined to be $u_f(v, w) := u(v, w) - f(v, w)$.
-The set of \emph{residual edges} is
-$E_f := \{(v, w) \in E \mid u_f(v, w) > 0\}$.
-The \emph{residual graph} is $G_f = (V, E_f)$.
+\paragraph{Residual network.}
+For each arc $(v, w)$, the \emph{residual capacity} with respect to
+pseudoflow $f$ is defined to be $u_f(v, w) \coloneqq u(v, w) - f(v, w)$.
+The set of \emph{residual edges} is defined as
+\[
+E_f \coloneqq \{(v, w) \in E \mid u_f(v, w) > 0\}.
+\]
+We call $G_f = (V, E_f)$ the \emph{residual graph} with respect to pseudoflow $f$.
 A pseudoflow $f'$ in $G_f$ can be ``added'' or ``augmented'' to $f$ to produce
-a new pseudoflow (i.e. the per-arc addition of $f + f'$ is a valid pseudoflow
+a new pseudoflow (that is, the arc-wise addition $f + f'$ is a valid pseudoflow
 in $G$).
-A pseudoflow $f'$ in $G_f$ is an \emph{improving flow} if (1)
+A pseudoflow $f'$ in $G_f$ is an \emph{improving flow} if
+\begin{enumerate}\itemsep=0pt
+\item
 $0 \leq e_{f'}(v) \leq e_f(v)$ for all excess vertices $v \in V$,
-(2) $0 \leq -e_{f'}(v) \leq -e_f(v)$ for all deficit vertices $v \in V$,
-(3) if $e_f(v) = 0$ then $e_{f'}(v) = 0$, and (4)
-$\sum_{v \in V} |e_{f'}(v)| < \sum_{v \in V} |e_f(v)|$.
+\item
+$0 \leq -e_{f'}(v) \leq -e_f(v)$ for all deficit vertices $v \in V$,
+\item
+if $e_f(v) = 0$ then $e_{f'}(v) = 0$, and
+\item $\sum_{v \in V} |e_{f'}(v)| < \sum_{v \in V} |e_f(v)|$.
+\end{enumerate}
 If improving flow $f'$ is on a simple path (from an excess vertex to a deficit
 vertex), we call it an \emph{augmenting path flow} and its edges an
 \emph{augmenting path}.
@@ -965,7 +984,7 @@ vertices, called \emph{empty 3-paths}.
 As with 2-paths, we say an empty 3-path $(s, v_1, v_2, t)$ \emph{surrounds}
 $v_1 \in A_\emptyset$ and $v_2 \in B_\emptyset$.
 
-Each relaxation (Line 
+Each relaxation (Line
 Relaxation steps involving an empty 2- or 3-path will relax the entire path
 at once, moving all vertices of the path into $S$.
 Relaxation steps that do not involve an empty 2- or 3-path are called
