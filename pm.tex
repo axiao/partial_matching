@@ -87,32 +87,7 @@
 %\textfloatsep 18pt plus 2pt minus 4pt      % was 20pt plus 2pt minus 4pt
 \makeatother
 
-
-
-% ----------------------------------------------------------------------
-%  Notes to myself.  The margin flags are broken, thanks to an
-%  incompatibility with the geometry package.
-% ----------------------------------------------------------------------
-\def\n@te#1{\textsf{\boldmath \textbf{$\langle\!\langle$#1$\rangle\!\rangle$}}\leavevmode}
-\def\note#1{\textcolor{red}{\n@te{#1}}}
-
-%----------------------------------------------------------------------
-%  TODO sets enclosed text in a gray rectangle with a red border
-%  with small sans-serif text.
-%----------------------------------------------------------------------
-\definecolor{TODOcolor}{cmyk}{0.05,0,0,0}
-\definecolor{TODOtxtcolor}{cmyk}{0,1,1,0}
-
-\newenvironment{TODO}
-   {\fboxrule1.5pt\begin{center}
-     \marginpar{\LARGE\color{Red}$\bigstar\bigstar\bigstar$}
-    {\leavevmode
-     \begin{lrbox}{0\null\global\setbox\tempboxb}
-     \begin{minipage}{0.9\columnwidth}
-     \small\sffamily\parindent1.5em\color{TODOtxtcolor}} }
-   {\end{minipage}
-    \end{lrbox}
-    \fcolorbox{TODOtxtcolor}{TODOcolor}{\usebox{\tempboxb}}\end{center}}
+\usepackage{notetodo} % for comments
 
 %----------------------------------------------------------------------
 % 'cramped' list style, stolen from Jeff Vitter.  Doesn't always work.
@@ -160,13 +135,11 @@ We will refer to the geometric problem as \emph{bichromatic partial matching}.
 
 \begin{TODO}
 Previous work
-\smallskip
 \begin{itemize}\itemsep=0pt
 	\item on matching
 	\item on geometric matching
 	\item on unbalanced/partial problems (GHKT, the push-relabel one, the tech report)
 \end{itemize}
-\smallskip
 \noindent\textcolor{blue}{[Hsien: State your TODO list explicitly in the pdf file so that it's easier to read.  Make everything that you are planning to do, and put priorities on them.]}
 \end{TODO}
 
