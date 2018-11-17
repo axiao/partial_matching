@@ -1,25 +1,27 @@
 %!TEX encoding = UTF-8 Unicode
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
+\usepackage[hmargin=1in,vmargin=1in]{geometry}
+
+\usepackage[dvipsnames,usenames]{xcolor}
 
 \usepackage[T1]{fontenc}
-\usepackage{latexsym,amsmath,amssymb,amsthm}
-\usepackage[dvipsnames,usenames]{xcolor}
-\usepackage{floatflt}
 \usepackage{times}
 \usepackage{euscript}
-\usepackage{epsfig}
-\usepackage{graphics}
-\usepackage{graphicx}
 \usepackage{mathpazo}
-\usepackage[top=1.25in,bottom=1.25in,left=1.25in,right=1.25in]{geometry}
+\usepackage[scaled=.90]{berasans,beramono}
+
+%\usepackage{epsfig}
+%\usepackage{floatflt}
+\usepackage{graphicx}
+
 \usepackage{microtype}
 \usepackage{subcaption}
-\usepackage{algpseudocode,algorithm,algorithmicx}
-
-\usepackage{fullpage}
 \usepackage{xspace}
 \usepackage[shortlabels, inline]{enumitem}
+
+\usepackage{latexsym,amsmath,amssymb,amsthm}
+\usepackage{algpseudocode,algorithm,algorithmicx}
 
 \usepackage[title]{appendix}
 
@@ -104,12 +106,13 @@
 \newenvironment{TODO}
    {\fboxrule1.5pt\begin{center}
      \marginpar{\LARGE\color{Red}$\bigstar\bigstar\bigstar$}
-     \begin{lrbox}{\tempboxa}
+    {\leavevmode
+     \begin{lrbox}{0\null\global\setbox\tempboxb}
      \begin{minipage}{0.9\columnwidth}
-     \small\sffamily\parindent1.5em\color{TODOtxtcolor}}
+     \small\sffamily\parindent1.5em\color{TODOtxtcolor}} }
    {\end{minipage}
     \end{lrbox}
-    \fcolorbox{TODOtxtcolor}{TODOcolor}{\usebox{\tempboxa}}\end{center}}
+    \fcolorbox{TODOtxtcolor}{TODOcolor}{\usebox{\tempboxb}}\end{center}}
 
 %----------------------------------------------------------------------
 % 'cramped' list style, stolen from Jeff Vitter.  Doesn't always work.
@@ -163,7 +166,8 @@ Previous work
 	\item on geometric matching
 	\item on unbalanced/partial problems (GHKT, the push-relabel one, the tech report)
 \end{itemize}
-\textcolor{blue}{[Hsien: State your TODO list explicitly in the pdf file so that it's easier to read.  Make everything that you are planning to do, and put priorities on them.]}
+\smallskip
+\noindent\textcolor{blue}{[Hsien: State your TODO list explicitly in the pdf file so that it's easier to read.  Make everything that you are planning to do, and put priorities on them.]}
 \end{TODO}
 
 
