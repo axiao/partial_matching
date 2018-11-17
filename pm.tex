@@ -262,7 +262,6 @@ We say $G_0$ is \emph{unit-capacity} if $u(v, w) = 1$ holds for all arc $(v, w)$
 Let $\fsupply: V \to \ints_{\geq 0}$ be a supply-demand function on $V$, satisfying $\sum_{v \in V} \fsupply(v) = 0$.
 The positive values of $\fsupply(v)$ are referred to as \emph{supply}, and the negative values of $\fsupply(v)$ as \emph{demand}.
 
-A
 We augment $G_0$ to make it \emph{symmetric}
 %for every arc $(v, w) \in E_0$ its reverse $(w, v)$ is also an arc;
 and the costs
@@ -299,7 +298,7 @@ minimum cost.
 \paragraph{Residual network.}
 For each arc $(v, w)$, the \emph{residual capacity} with respect to
 pseudoflow $f$ is defined to be $u_f(v, w) \coloneqq u(v, w) - f(v, w)$.
-The set of \emph{residual edges} is defined as
+The set of \emph{residual edges} \note{arcs?} is defined as
 \[
 E_f \coloneqq \{(v, w) \in E \mid u_f(v, w) > 0\}.
 \]
@@ -308,70 +307,80 @@ A pseudoflow $f'$ in $G_f$ can be ``added'' or ``augmented'' to $f$ to produce
 a new pseudoflow (that is, the arc-wise addition $f + f'$ is a valid pseudoflow
 in $G$).
 A pseudoflow $f'$ in $G_f$ is an \emph{improving flow} if
-\begin{enumerate}\itemsep=0pt
+\begin{enumerate}[(1)]\itemsep=0pt
 \item
-$0 \leq e_{f'}(v) \leq e_f(v)$ for all excess vertices $v \in V$,
+$0 \leq e_{f'}(v) \leq e_f(v)$ for all excess vertices $v$,
 \item
-$0 \leq -e_{f'}(v) \leq -e_f(v)$ for all deficit vertices $v \in V$,
-\item
-if $e_f(v) = 0$ then $e_{f'}(v) = 0$, and
-\item $\sum_{v \in V} |e_{f'}(v)| < \sum_{v \in V} |e_f(v)|$.
+$0 \leq -e_{f'}(v) \leq -e_f(v)$ for all deficit vertices $v$, and
+%\item
+% if $e_f(v) = 0$ then $e_{f'}(v) = 0$, \note{this follows from (1) or (2)} and
+\item $\sum_{v \in V} |e_{f'}(v)| < \sum_{v \in V} |e_f(v)|$ holds. \note{this follows from (1) and (2) too?}
 \end{enumerate}
 If improving flow $f'$ is on a simple path (from an excess vertex to a deficit
-vertex), we call it an \emph{augmenting path flow} and its edges an
+vertex), we call it an \emph{augmenting-path flow} \note{path flow for short? only used twice throughout the paper} and its underlying support path \note{support undefined} an
 \emph{augmenting path}.
-If $f'$ saturates at least one residual arc of every augmenting path in $G_f$,
-we call it a \emph{blocking flow}.
-In other words, for blocking flow $f'$, there is no augmenting path flow
-$f'' \in G_f$ for which $f + (f' + f'')$ is a feasible pseudoflow in $G$.
+If $f'$ saturates at least one residual arc in every augmenting path in $G_f$,
+we call $f'$ a \emph{blocking flow}.
+In other words, for blocking flow $f'$, there is no augmenting-path flow
+$f''$ in $G_f$ for which $f + (f' + f'')$ is a feasible pseudoflow in $G$.
 
 \subsection{Primal-dual augmentation algorithms}
 
-The Hungarian algorithm begins with an empty matching and increases it to size
-$k$ using \emph{alternating augmenting paths}.
+The Hungarian algorithm begins with an empty matching and gradually increases its size to $k$ using \emph{alternating augmenting paths}.
 Given a non-maximal matching $M$, an alternating augmenting path $P$ is a path
-between an unmatched $a \in A$ and unmatched $b \in B$.
+between an unmatched vertex $a \in A$ and unmatched $b \in B$.
+\note{What is $A$ and $B$? Remind the readers about the bipartite graph again.}
 Then, $M' = M \oplus P$ is a matching of size 1 greater.
-By restricting alternating augmenting paths to edges which satisfy a certain
-cost condition (admissibility, defined momentarily), one can prove that each
-intermediate matching, of size $j \leq k$, is minimum-cost for size $j$.
+\note{$\oplus$ undefined.  Personally I believe it's easier to define in words; using notation is fine too.}
+By restricting alternating augmenting paths to edges \note{when do you use edges and when do you use arcs?}
+which satisfy a certain
+cost condition (admissibility, defined momentarily) \note{define it or don't say it}, one can prove that each
+intermediate matching of size $j \leq k$ is of minimum-cost among matchings of size $j$.
+
 There is a similar augmentation procedure for flows, which sends improving
-flows (e.g. augmenting path flows) to gradually reduce the imbalance in a
-pseudoflow to 0, making it a circulation.
+flows (e.g. augmenting-path flows) \note{no reason to give out details that does not help with sketch of ideas} to gradually reduce the imbalance in a
+pseudoflow to 0, making it a circulation. \note{imbalance of a pseudoflow is undefined; you only define it on the vertices.}
 By restricting augmentations to residual arcs satisfying a certain cost
 condition (admissibility), one can prove that the resulting circulation is
 minimum cost.
 
-Formally, we use the linear programming dual problem to define
-\emph{potentials} (dual variables) $\pi(v)$ for each $v \in V$.
-The \emph{reduced cost} of $(v, w) \in E_f$ with respect to $\pi$ is
-$c_\pi(v, w) := c(v, w) - \pi(v) + \pi(w)$.
-The \emph{dual feasibility constraint} is that $c_\pi(v, w) \geq 0$ for all
-residual arcs; potentials which satisfy this are said to be \emph{feasible}.
+\note{The above paragraph might be clearer if you put it after the definition of admissibility; because you can actually provide a formal proof.  Sketch of ideas are not that useful because for experts they don't need to read it, for beginners they won't understand without former definitions.}
+
+\paragraph{LP-duality and admissability.}
+Formally, the
+\emph{potentials} $\pi(v)$ are the variables of the linear program dual to \note{which primal problem? State the correspodning linear problems explicitly}.
+The \emph{reduced cost} of an arc $(v, w)$ in $E_f$ with respect to $\pi$ is
+\[
+c_\pi(v, w) := c(v, w) - \pi(v) + \pi(w).
+\]
+\note{Mention that reduced costs are still antisymmetric.}
+The \emph{dual feasibility constraint} is that $c_\pi(v, w) \geq 0$ holds for all
+residual arcs; potentials which satisfy this constraint are said to be \emph{feasible}.
 The linear programming \emph{optimality conditions} state that, for an optimal
-circulation $f^*$, there exist feasible potentials $\pi^*$ which satisfy
-$c_\pi(v, w) = 0$ on all arcs with $f^*(v, w) > 0$.
-We can similarly define potentials and reduced cost for matchings, using
+circulation $f^*$, there are feasible potentials $\pi^*$ which satisfy
+$c_\pi(v, w) = 0$ \note{$\pi^*$?} on all arcs with $f^*(v, w) > 0$.
+We can similarly define potentials and reduced costs for matchings, using
 $c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b)$ for $(a, b) \in A \times B$.
 
 Suppose we relax the dual feasibility constraint to allow for a violation of
 $\eps > 0$.
-We say that a pseudoflow $f$ is \emph{$\eps$-optimal} if
-$c_\pi(v, w) \geq -\eps$ for all $(v, w) \in E_f$ with $u_f(v, w) > 0$.
-Note that 0-optimality coincides with the optimality conditions.
-We say that residual arcs with $c_\pi(v, w) \leq 0$ are \emph{admissible}.
+We say that a pseudoflow $f$ is \emph{$\eps$-optimal} \note{with respect to $\pi$} if
+$c_\pi(v, w) \geq -\eps$ for all arcs $(v, w)$ in $E_f$ with $u_f(v, w) > 0$.
+Note that 0-optimality coincides with the optimality conditions. \note{Careful here.  Technically it's dual feasibility.}
+We say that a residual arc $(v ,w)$ satisfying $c_\pi(v, w) \leq 0$ is \emph{admissible}.
 We say that an improving flow $f'$ is \emph{admissible} if $f'(v, w) > 0$
 only on admissible arcs $(v, w)$.
-For matchings, we say that $M$ is $\eps$-optimal if $c_\pi(a, b) \leq \eps$ for
+%
+For matchings, we say that matching $M$ is $\eps$-optimal if $c_\pi(a, b) \leq \eps$ for
 $(a, b) \in M$ and $c_\pi(a, b) \geq -\eps$ $(a, b) \in E \setminus M$.
-Matching edges are admissible if $c_\pi(a, b) \geq 0$ (resp. nonmatching edges,
-if $c_\pi(a, b) \leq 0$), and an alternating augmenting path is admissible
+Matching edges (resp.\ nonmatching edges) are \emph{admissible} if $c_\pi(a, b) \geq 0$ (resp.\ $c_\pi(a, b) \leq 0$); and an alternating augmenting path is \emph{admissible}
 if all its edges are.
 For both matching and flows, 0-optimal $f$ implies the admissibility condition
 is with equality, instead ($c_\pi(v, w) = 0$).
 
-Now, we can concretely state how admissible augmentations lead to a correct
-algorithm for $\eps > 0$.
+\note{I got the sense that it might be helpful to define admissibility at the start of the flow section and the matching section separately.}
+
+%Now, we can concretely state how admissible augmentations lead to a correct algorithm for $\eps > 0$.
 \begin{lemma}
 	Let $f$ be an $\eps$-optimal pseudoflow in $G$ and let $f'$ be an
 	admissible improving flow in $G_f$.
@@ -382,43 +391,43 @@ algorithm for $\eps > 0$.
 	new arcs with $u_{f+f'}(v, w) > 0$.
 	We will verify that these arcs satisfy the $\eps$-optimality condition.
 	Such an arc $(v, w)$ must have $u(v, w) = f(v, w) > (f+f')(v, w)$,
-	meaning $f'(w, v) > 0$.
-	By assumption, $(w, v)$ was an $\eps$-admissible arc, thus
-	$c_\pi(w, v) \leq 0$, meaning $c_\pi(v, w) \geq 0$.
+	implying $f'(w, v) > 0$.
+\note{I don't understand.  Never write a sentense that requires multiple steps to decode. I think what you meant is $u_f = 0$ thus $u=f$, and $u_{f+f'} > 0$ thus $u-(f+f') > 0$; finally $f'(v,w) > 0$ thus $f'(w,v) < 0$.}
+	By assumption that $f'$ is admissible, $(w, v)$ was an admissible arc, thus
+	$c_\pi(w, v) \leq 0$, implying $c_\pi(v, w) \geq 0$.
 	Thus, all such arcs have $c_\pi(v, w) \geq 0 \geq -\eps$, and $f + f'$
 	is $\eps$-optimal.
 \end{proof}
 
-With a similar argument, we could prove the same for matchings.
-Finally, we show that $\eps$-optimality is sufficient to prove when a
+With a similar argument, we could prove the same for matchings. \note{Proof it or cite it, at least in full version.}
+Finally, we show that $\eps$-optimality is sufficient to certify that a
 circulation is an approximate MCF solution, when the underlying graph is
-unit-capacity.
+of unit-capacity.
 
 \begin{lemma}
 \label{lemma:mcf_cost}
-	Let $G$ be a unit-capacity graph with $|V| = n$ and $|E| = m$,
-	$f$ an $\eps$-optimal circulation in $G$, and $f^*$ an optimal
-	circulation for $G$.
+	Let $G$ be a unit-capacity graph with $n$ vertices and $m$ arcs,
+	let $f$ be an $\eps$-optimal circulation in $G$, and let $f^*$ be an optimal circulation for $G$.
 	Then, $\cost(f) \leq \cost(f^*) + m\eps$.
 \end{lemma}
 \begin{proof}
-	By the flow decomposition theorem, there exists a residual pseudoflow
+	By the flow decomposition theorem \note{cite?}, there is a residual pseudoflow
 	$f'$ such that $f + f' = f^*$, and $f'$ can be decomposed into a set of
 	unit flows on edge-disjoint cycles.
 	The number of edges used by these cycles is at most $m$.
 	The cost of a residual cycle is equal to its reduced cost, since the
-	potentials of telescope.
-	Thus, $\cost(f') \geq m(-\eps)$, and therefore
+	potentials telescope.
+	Thus, $\cost(f') \geq m(-\eps)$ \note{why is $f'$ $\eps$-optimal?}, and therefore
 	$\cost(f) \leq \cost(f^*) + m\eps$.
 \end{proof}
 
 This bound can be improved if we have a better upper bound on the number of
 edges used in the cycles of $f'$.
-Indeed, the algorithm in Section~\ref{section:goldberg} uses a graph where the
-bound is $6k$, and converts the statement from an additive approximation to a
-relative approximation.
+Indeed, the algorithm in Section~\ref{section:goldberg} gives a
+bound of $6k$, and converts the statement from an additive approximation to a
+relative approximation. \note{Maybe not here; move to Sec.\ 4.}
 Since our matching algorithm uses a 0-optimal (exact) solution, we do not
-include a proof for approximation quality of $\eps$-optimal matchings.
+include a proof for approximation quality of $\eps$-optimal matchings. \note{Which means you don't have to explain.}
 
 
 \section{Matching with the Hungarian algorithm}
