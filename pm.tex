@@ -21,7 +21,8 @@
 \usepackage[shortlabels, inline]{enumitem}
 
 \usepackage{latexsym,amsmath,amssymb,amsthm}
-\usepackage{algpseudocode,algorithm,algorithmicx}
+\usepackage{algorithm,algorithmicx}
+\usepackage[noend]{algpseudocode}
 \usepackage{mathtools} % for \coloneqq
 
 \usepackage[title]{appendix}
@@ -355,12 +356,12 @@ c_\pi(v, w) := c(v, w) - \pi(v) + \pi(w).
 \]
 \note{Mention that reduced costs are still antisymmetric.}
 The \emph{dual feasibility constraint} is that $c_\pi(v, w) \geq 0$ holds for all
-residual arcs; potentials which satisfy this constraint are said to be \emph{feasible}.
+residual arcs \note{naturally, not the reverse arcs; thus the distinction between arcs and darts}; potentials which satisfy this constraint are said to be \emph{feasible}.
 The linear programming \emph{optimality conditions} state that, for an optimal
 circulation $f^*$, there are feasible potentials $\pi^*$ which satisfy
 $c_\pi(v, w) = 0$ \note{$\pi^*$?} on all arcs with $f^*(v, w) > 0$.
 We can similarly define potentials and reduced costs for matchings, using
-$c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b)$ for $(a, b) \in A \times B$.
+$c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b)$ for $(a, b) \in A \times B$. \note{How about the reverse arcs?}
 
 Suppose we relax the dual feasibility constraint to allow for a violation of
 $\eps > 0$.
@@ -370,7 +371,7 @@ Note that 0-optimality coincides with the optimality conditions. \note{Careful h
 We say that a residual arc $(v ,w)$ satisfying $c_\pi(v, w) \leq 0$ is \emph{admissible}.
 We say that an improving flow $f'$ is \emph{admissible} if $f'(v, w) > 0$
 only on admissible arcs $(v, w)$.
-%
+
 For matchings, we say that matching $M$ is $\eps$-optimal if $c_\pi(a, b) \leq \eps$ for
 $(a, b) \in M$ and $c_\pi(a, b) \geq -\eps$ $(a, b) \in E \setminus M$.
 Matching edges (resp.\ nonmatching edges) are \emph{admissible} if $c_\pi(a, b) \geq 0$ (resp.\ $c_\pi(a, b) \leq 0$); and an alternating augmenting path is \emph{admissible}
@@ -437,32 +438,38 @@ The Hungarian algorithm maintains a 0-optimal (initially empty) matching $M$,
 and repeatedly augments by alternating augmenting paths of admissible edges
 until $|M| = k$.
 To this end, the algorithm maintains a set of feasible potentials $\pi$ and
-updates them to find augmenting paths of admissible edges.
+updates them to find augmenting paths of admissible edges. \note{admissible augmenting path?}
 It maintains the invariant that matching edges are admissible.
-Since there are $k$ augmentations and each alternating path is length at most
+Since there are $k$ augmentations and each alternating path has length at most
 $2k-1$, the total time spent on bookkeeping the matching is $O(k^2)$.
-This leaves the analysis of the subroutine which updates the potentials and
-finds an admissible augmenting path, called the \emph{Hungarian search}.
+This leaves the analysis of the subroutine that updates the potentials and
+finds an admissible augmenting path; we call this subrouotine the \emph{Hungarian search}.
 
-\begin{algorithm}
-\caption{Hungarian Algorithm}
+\begin{figure*}
+\centering
+\begin{minipage}{.7\linewidth}
+\begin{algorithm}[H]
+\caption{Hungarian algorithm}
 \begin{algorithmic}[1]
 \Function{Match}{$G = (A \cup B, E)$, $k$}
 	\State $M \gets \emptyset$
-	\State $\pi(v) \gets 0, \forall v \in A \cup B$
+	\State $\pi(v) \gets 0$ for all $v \in A \cup B$
 	\While{$|M| < k$}
 		\State $\Pi \gets$ \Call{Hungarian-Search}{$G$, $M$, $\pi$}
 		\State $M \gets M \oplus \Pi$
-	\EndWhile
+	\EndWhile \note{indentation is enough for scope}
 	\State\Return $M$
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
+\end{minipage}
+\end{figure*}
 
-\begin{theorem}[Hungarian algorithm time]
+
+\begin{theorem}[Tim for Hungarian algorithm]
 \label{theorem:hung_orig}
 	Let $G = (A \cup B, A \times B)$ be an instance of geometric partial
-	matching with $|A| = r \geq |B| = n$, and parameter $k \leq r$.
+	matching with $|A| = r \geq |B| = n$ \note{$r\le n$?}, and parameter $k \leq r$.
 	Suppose the Hungarian search finds each augmenting path in $T(n, k)$
 	time after a one-time $P(n, k)$ preprocessing time.
 	Then, the Hungarian algorithm finds the optimal size $k$ matching in
@@ -488,33 +495,38 @@ update in line~\ref{line:hs_update} does not make any reduced cost negative,
 and thus preserves the dual feasibility constraint for all edges.
 The algorithm is shown below as Algorithm~\ref{algorithm:hung_hs}.
 
-\begin{algorithm}
+\begin{figure*}
+\centering
+\begin{minipage}{.8\linewidth}
+\begin{algorithm}[H]
 \caption{Hungarian Search (matching)}
 \label{algorithm:hung_hs}
 \begin{algorithmic}[1]
-\Require{$\forall (a, b) \in M, c_\pi(a, b) = 0$}
-\Statex %newline
+\Require{$c_\pi(a, b) = 0$ for all $(a, b) \in M$}
+%\Statex %newline
 \Function{Hungarian-Search}{$G = (A \cup B, E)$, $M$, $\pi$}
 	\State $S \gets a \in (A \setminus V(M))$
 	\Repeat
 		\State $(a', b') \gets \argmin\{c_\pi(a, b) \mid (a, b) \in (S \cap A) \times (B \setminus S)\}$
-		\State $\gamma \gets c_\pi(a', b')$
-		\State $\pi(v) \gets \pi(v) + \gamma, \forall v \in S$
+		% \State $\gamma \gets c_\pi(a', b')$ \note{$\gamma$ is never used afterwards}
+		\State $\pi(v) \gets \pi(v) + c_\pi(a', b'), \forall v \in S$
 			\Comment{make $(a', b')$ admissible}
 			\label{line:hs_update}
 		\State $S \gets S \cup \{b'\}$
-		\Statex %newline
+		% \Statex %newline
 		\If{$b' \not\in V(M)$} \Comment{$b'$ unmatched}
-			\State $\Pi \gets$ alternating augmenting path in $S$ to $b'$
+			\State $\Pi \gets$ alternating augmenting path from $S$ to $b'$
 			\State\Return $\Pi$
 		\Else \Comment{$b'$ is matched to some $a'' \in A \cap V(M)$}
 			\State $S \gets S \cup \{a''\}$
 		\EndIf
-	\Until{$S = (A \cup B)$}
+	\Until{$S = A \cup B$}
 	\State\Return failure
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
+\end{minipage}
+\end{figure}
 
 By tracking the forest of relaxed edges (e.g. back pointers), it is
 straightforward to recover the alternating augmenting path $\Pi$ once we reach
@@ -523,28 +535,31 @@ We make the following observation about the Hungarian search:
 
 \begin{lemma}
 \label{lemma:hungsearch_length}
-	There are $\leq k$ edge relaxations before the Hungarian search finds
+	At most $k$ edge relaxations have been performed before the Hungarian search finds
 	an alternating augmenting path.
 \end{lemma}
 \begin{proof}
-	Each edge relaxation either leads to a matched $B$ vertex (of which
-	there are at most $k-1$), or finds an unmatched vertex and ends the
+	Each edge relaxation either leads to a matched vertex in $B$ (there are at most $k-1$ such vertices), or finds an unmatched vertex and ends the
 	search.
 \end{proof}
 
-In non-geometric graphs, the minimum edge is typically found by pushing all
+In general graphs, the minimum edge is typically found by pushing all
 encountered $(S \cap A) \times (B \setminus S)$ edges into a priority queue.
 However, in the bipartite complete graph, this may take $\Theta(rn\polylog(n))$
-time in each Hungarian search --- edges must be pushed into the queue even if
+time for each Hungarian search --- edges are being pushed into the queue even when
 they are not relaxed.
-We avoid this problem by finding the minimum edge using a \emph{bichromatic
-closest pair} (BCP) query on additively weighted Euclidean distances,
-for which there exist fast (poly-logarithmic query and update) dynamic data
-structures.
-The BCP problem is to find, between two point sets
-$P, Q \subseteq \mathbb{R}^2$, the $p \in P$ and $q \in Q$ minimizing
+We avoid this problem by finding an  edge with minimum cost using  \emph{bichromatic
+closest pair} (BCP) queries on an additively weighted Euclidean distances,
+for which there exist fast %(poly-logarithmic query and update)
+dynamic data structures.
+Given two point sets
+$P$ and $Q$ in the plane,
+the task for BCP problem is to find two points $p \in P$ and $q \in Q$ minimizing the (adjusted) distance
 $\|p - q\| - \omega(p) + \omega(q)$, for some real-valued vertex weights
-$\omega(p)$; a perfect fit for reduced cost.
+$\omega(p)$.
+In our setting, the vertex weights will be set as the potentials; the corresponding adjusted distance then will be the reduced costs.
+
+\note{Short history on BCP?}
 The state of the art for dynamic BCP data structures --- from Kaplan, Mulzer,
 Roditty, Seiferth, and Sharir~\cite{KMRSS17} --- inserts and deletes points in
 $O(\polylog(n))$ time, and answers queries in $O(\log^2 n)$ time.
