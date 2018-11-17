@@ -466,7 +466,7 @@ finds an admissible augmenting path; we call this subrouotine the \emph{Hungaria
 \end{figure*}
 
 
-\begin{theorem}[Tim for Hungarian algorithm]
+\begin{theorem}[Time for Hungarian algorithm]
 \label{theorem:hung_orig}
 	Let $G = (A \cup B, A \times B)$ be an instance of geometric partial
 	matching with $|A| = r \geq |B| = n$ \note{$r\le n$?}, and parameter $k \leq r$.
@@ -560,92 +560,90 @@ $\omega(p)$.
 In our setting, the vertex weights will be set as the potentials; the corresponding adjusted distance then will be the reduced costs.
 
 \note{Short history on BCP?}
-The state of the art for dynamic BCP data structures --- from Kaplan, Mulzer,
-Roditty, Seiferth, and Sharir~\cite{KMRSS17} --- inserts and deletes points in
+The state of the art dynamic BCP data structure from Kaplan, Mulzer,
+Roditty, Seiferth, and Sharir~\cite{KMRSS17} supports point insertions and deletions in
 $O(\polylog(n))$ time, and answers queries in $O(\log^2 n)$ time.
 The following lemma, combined with Theorem~\ref{theorem:hung_orig}, completes
 the proof of Theorem~\ref{theorem:hung}.
 
 \begin{lemma}
 \label{lemma:hs_time}
-	Using a dynamic BCP, we can implement Hungarian search with
+	Using the dynamic BCP data structure from Kaplan \etal, we can implement Hungarian search with
 	$T(n, k) = O(k\polylog(n))$ and $P(n, k) = O(n\polylog(n))$.
 \end{lemma}
 \begin{proof}
-	We will maintain a BCP between $P = (S \cap A)$ and
+	We will maintain a BCP \note{BCP is a \emph{problem}, not a \emph{data structure}} between $P = (S \cap A)$ and
 	$Q = (B \setminus S)$.
-	Changes to the BCP sets are entirely driven by changing $S$,
-	i.e. updates to $S$ incur BCP insertions/deletions.
-	We first analyze the bookkeeping outside of dual updates, and then
-	show how dual updates can be done efficiently.
+	Changes to the BCP sets \note{undefined} are entirely driven by changing $S$; that is, updates to $S$ incur BCP insertions/deletions.
+	We first analyze the bookkeeping besides the dual updates, and then
+	show how dual updates can be implemented efficiently.
 
 	\begin{enumerate}
-	\item Let $S^t_0$ denote the initial set $S$ at the beginning of the
-		$t$-th Hungarian search, i.e. the set of unmatched $A$ points
+	\item Let $S^t_0$ \note{Is there a reason why you want the subscript?  Do you ever define $S^t$?} denote the initial set $S$ at the beginning of the
+		$t$-th Hungarian search, that is, the set of unmatched points in $A$
 		after $t$ augmentations.
 		At the very beginning of the Hungarian algorithm, we initialize
-		$S^0_0 \gets A$ (meaning $P = A$ and $Q = B$), which is a
-		one-time addition of $O(n)$ points into BCP.
+		$S^0_0 \gets A$ (meaning that $P = A$ and $Q = B$), which is a
+		one-time insertion of $O(n)$ points into BCP.
 		On each successive Hungarian search, $S^t_0$ shrinks as more
-		and more $A$ points are matched.
+		and more points in $A$ are matched.
 		Assume for now that, at the beginning of the $(t+1)$-th
-		Hungarian search, we are able to construct the $S^t_0$ from the
+		Hungarian search, we are able to construct $S^t_0$ from the
 		previous iteration.
-		To construct $S^{t+1}_0$, we simply remove the $A$ point that
+		To construct $S^{t+1}_0$, we simply remove the $A$ point \note{point in $A$} that
 		was matched by the $t$-th augmenting path.
-		Thus, with that assumption, we are able to initialize $S$ in
+		Thus, with that assumption, we are able to initialize $S$ using
 		one BCP deletion operation per augmentation.
 
-	\item During each Hungarian search, points are added to $P$ ($A$ points
-		added to $S$) and removed from $Q$ ($B$ points added to $S$)
-		--- at most one of each per edge relaxation.
+	\item During each Hungarian search, points are added to $P$ (that is, some points in $A$ are
+		added to $S$) and removed from $Q$ (points in $B$ added to $S$), which will happen at most once per edge relaxation.
 		By Lemma~\ref{lemma:hungsearch_length} the number of relaxed
-		edges is at most $k$, so the number of these BCP operations is
+		edges is at most $k$, so the number of such BCP operations is
 		also at most $k$.
 
-	\item To obtain the assumption used in (1), we keep a log of the
+	\item To obtain $S^t_0$, we keep track \note{give a name to such points} of the
 		points added since $S^t_0$ in the last Hungarian search
-		(i.e. those of (2)).
-		After the augmentation, we use this log to delete the added
+		(i.e.\ those of (2)). \note{Unclear}
+		After the augmentation, we use this log \note{use the name} to delete the added
 		vertices from $S$ and recover $S^t_0$.
 		By the argument in (2) there are $O(k)$ of such points to
-		delete, so reconstructing $S^t_0$ costs $O(k)$ BCP operations.
-		% TODO instead of reversing a log, is persistence an easier solution to this?
+		delete, so reconstructing $S^t_0$ takes $O(k)$ BCP operations.
+		\note{TODO instead of reversing a log, is persistence an easier solution to this?}
 	\end{enumerate}
 
-	We spend a one-time fee of $P(n, k) = O(n \polylog(n))$ time to build
+	We spend $P(n, k) = O(n \polylog(n))$ time to build
 	the initial BCP.
 	The number of BCP operations associated with each Hungarian search is
 	$O(k)$, so the time spent on BCP operations in each Hungarian search
 	is $O(k \polylog(n))$.
 
-	We modify a trick from Vaidya~\cite{Vaidya89} to batch potential
+  As for the potential updates,
+	we modify a trick from Vaidya~\cite{Vaidya89} to batch potential
 	updates such that the dual updates we do perform can be charged to a
-	BCP insertion or deletion.
+	BCP insertion or deletion. \note{Mouthful}
 	Throughout the course of the Hungarian algorithm, we maintain a value
-	$\delta$ (initially 0) which aggregates dual changes.
-	Vertices that are added to $S$ are saved into $P$ with weight
+	$\delta$ (initially 0) which aggregates the dual changes.
+	Vertices that are added to $S$ are saved into $P$ \note{I don't understand; do you mean only when vertices in $A$ are added to $S$?} with weight
 	$\omega(p) \gets \pi(p) - \delta$.
-	When the points of $S$ have their duals increased in (2), we instead
-	raise $\delta \gets \delta + c_\pi(\hat{a}, \hat{b})$.
+	When the points of $S$ have their duals \note{Undefined. You mean their potentials?} increased in (2), we instead
+	raise $\delta \gets \delta + c_\pi(\hat{a}, \hat{b})$. \note{What is $\hat{a}$ and $\hat{b}$?}
 	Thus, the ``true'' potential for any point in $S$ is
 	$\omega(p) + \delta$.
-	For points outside $S$ (i.e. $B \setminus S$), we simply use the true
+	For points outside $S$ (i.e. $B \setminus S$) \note{only point in $B$?}, we simply use the true
 	potential as the BCP weight.
-	Since all $S \cap A$ BCP weights are uniformly offset from their
-	potential by $\delta$, this change does not alter the BCP result.
+	Since all $S \cap A$ BCP weights \note{you mean BCP weights of points in $P$?} are uniformly offsetted by $\delta$, the solution returned by the BCP oracle does not change.
 	Once a point is removed from $S$, we update its true potential
-	as $\pi(p) \gets \omega(p) + \delta$.
+	to be $\pi(p) \gets \omega(p) + \delta$.
 
-	Obviously, the number of updates to $\delta$ is equal to the number of
+	Obviously \note{Never use this word}, the number of updates to $\delta$ is equal to the number of
 	edge relaxations, which is $O(k)$ per Hungarian search.
-	The number of times we have to save the true potential is bounded by
-	the number times we remove a point from $S$.
-	By the previous argument (2), this is $O(k)$ per Hungarian search as
-	well.
-	The total time for potential updates per Hungarian search is therefore
+	The number of times we have to compute the true potential is bounded by
+	the number times we remove a point from $S$, which is at most $O(k)$ per Hungarian search as well.
+	The total time spent on potential updates per Hungarian search is therefore
 	$O(k)$.
-	Overall, the time per Hungarian search is $T(n, k) = O(k\polylog(n))$.
+	Overall, the time spent per Hungarian search is $T(n, k) = O(k\polylog(n))$.
+
+\note{The proof gets more handwavy as the paragraph progresses.  Consider a revision after this round.}
 \end{proof}
 
 
