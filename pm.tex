@@ -913,15 +913,17 @@ completes the proof of Theorem~\ref{theorem:gmcm}.
 \Function{Hungarian-Search2}{$H = (V, E)$, $f$, $\pi$}
 	\State $S \gets \{v \in V \mid e_f(v) > 0\}$
 	\Repeat
-		\State $(v', w') \gets \argmin\{c_\pi(v, w) \mid (v, w) \in S \times (V \setminus S)\}$
-		\State $\gamma \gets c_\pi(v', w')$
+		\State $\Pi \gets \argmin\{c_\pi(v, w) \mid \text{$\Pi$ is an edge between non-empty vertices of $S \times V \setminus S$, or empty 2-/3-path out of $S$}\}$
+		\State $\gamma \gets c_\pi(\Pi)$
+			\Comment{relax the minimum edge or empty path}
 		\If{$\gamma > 0$}
-			\Comment{make $(v', w')$ admissible if it isn't}
+			\Comment{make $\Pi$ admissible if it isn't}
 			\State $\pi(v) \gets \pi(v) + \gamma\lceil\frac{\gamma}{\eps}\rceil, \forall v \in S$
 		\EndIf
-		\State $S \gets S \cup \{w'\}$
+		\State $S \gets S \cup \Pi$
 		\Statex %newline
-		\If{$e_f(w') < 0$} \Comment{$w'$ is a deficit}
+		\State Let $\Pi = v_1, \ldots, v_\ell$
+		\If{$e_f(v_\ell) < 0$} \Comment{$\Pi$ reached a deficit}
 			\State\Return $(f, \pi)$
 		\EndIf
 	\Until{$S = (A \cup B)$}
@@ -943,12 +945,11 @@ cost to less than $-\eps$, so arcs leaving $S$ still satisfy $\eps$-optimality.
 
 Vertices of $A \cup B$ with $e_f(v) = 0$ and 0 incoming and outgoing flow
 cannot be charged to $k$ using the previous analysis, so the algorithm treats
-these \emph{empty vertices} separately. %TODO reference line
+these \emph{empty vertices} separately.
 Namely, there is no edge with $f(e) > 0$ adjacent to an empty vertex,
 reaching an empty vertex does not terminate the search, and there may be
 $\Omega(n)$ empty vertices at once (consider $H_{f = 0}$, the residual graph
 of the empty flow).
-
 We use $A_\emptyset$ and $B_\emptyset$ to denote the empty vertices of $A$ and
 $B$ respectively.
 For an empty vertex $v$, either residual in-degree ($v \in A_\emptyset$) or
@@ -963,6 +964,8 @@ Separately, we consider the length 3 $s$-$t$ paths that pass through two empty
 vertices, called \emph{empty 3-paths}.
 As with 2-paths, we say an empty 3-path $(s, v_1, v_2, t)$ \emph{surrounds}
 $v_1 \in A_\emptyset$ and $v_2 \in B_\emptyset$.
+
+Each relaxation (Line 
 Relaxation steps involving an empty 2- or 3-path will relax the entire path
 at once, moving all vertices of the path into $S$.
 Relaxation steps that do not involve an empty 2- or 3-path are called
