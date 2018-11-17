@@ -407,19 +407,24 @@ of unit-capacity.
 
 \begin{lemma}
 \label{lemma:mcf_cost}
-	Let $G$ be a unit-capacity graph with $n$ vertices and $m$ arcs,
-	let $f$ be an $\eps$-optimal circulation in $G$, and let $f^*$ be an optimal circulation for $G$.
-	Then, $\cost(f) \leq \cost(f^*) + m\eps$.
+Let $G$ be a unit-capacity graph with $n$ vertices and $m$ arcs, let $f$ be an
+$\eps$-optimal circulation in $G$, and let $f^*$ be an optimal circulation for
+$G$.
+Then, $\cost(f) \leq \cost(f^*) + m\eps$.
 \end{lemma}
+
+\note{AX: this may be the wrong cost analysis for approximation. would like a
+stronger statement that addresses 0 cost edges (for instance)}
 \begin{proof}
-	By the flow decomposition theorem \note{cite?}, there is a residual pseudoflow
-	$f'$ such that $f + f' = f^*$, and $f'$ can be decomposed into a set of
-	unit flows on edge-disjoint cycles.
-	The number of edges used by these cycles is at most $m$.
-	The cost of a residual cycle is equal to its reduced cost, since the
-	potentials telescope.
-	Thus, $\cost(f') \geq m(-\eps)$ \note{why is $f'$ $\eps$-optimal?}, and therefore
-	$\cost(f) \leq \cost(f^*) + m\eps$.
+By the flow decomposition theorem \note{cite?}, there is a residual pseudoflow
+$f'$ such that $f + f' = f^*$, and $f'$ can be decomposed into a set of unit
+flows on edge-disjoint cycles in $G_f$.
+The number of edges used by these cycles is at most $m$.
+The cost of a residual cycle is equal to its reduced cost, since the potentials
+telescope, so the cost of each $f'$ cycle $\Gamma$ is at least $-|\Gamma|\eps$
+by $\eps$-optimality of $f$.
+Thus, $\cost(f') \geq -m\eps$ , and therefore 
+$\cost(f) \leq \cost(f^*) + m\eps$.
 \end{proof}
 
 This bound can be improved if we have a better upper bound on the number of
@@ -468,12 +473,12 @@ finds an admissible augmenting path; we call this subrouotine the \emph{Hungaria
 
 \begin{theorem}[Time for Hungarian algorithm]
 \label{theorem:hung_orig}
-	Let $G = (A \cup B, A \times B)$ be an instance of geometric partial
-	matching with $|A| = r \geq |B| = n$ \note{$r\le n$?}, and parameter $k \leq r$.
-	Suppose the Hungarian search finds each augmenting path in $T(n, k)$
-	time after a one-time $P(n, k)$ preprocessing time.
-	Then, the Hungarian algorithm finds the optimal size $k$ matching in
-	time $O(P(n, k) + k T(n, k) + k^2)$.
+Let $G = (A \cup B, A \times B)$ be an instance of geometric partial matching
+with $|A| = r \geq |B| = n$, and parameter $k \leq r$.
+Suppose the Hungarian search finds each augmenting path in $T(n, k)$ time after
+a one-time $P(n, k)$ preprocessing time.
+Then, the Hungarian algorithm finds the optimal size $k$ matching in time
+$O(P(n, k) + k T(n, k) + k^2)$.
 \end{theorem}
 
 \subsection{Hungarian search}
@@ -526,7 +531,7 @@ The algorithm is shown below as Algorithm~\ref{algorithm:hung_hs}.
 \end{algorithmic}
 \end{algorithm}
 \end{minipage}
-\end{figure}
+\end{figure*}
 
 By tracking the forest of relaxed edges (e.g. back pointers), it is
 straightforward to recover the alternating augmenting path $\Pi$ once we reach
@@ -535,12 +540,13 @@ We make the following observation about the Hungarian search:
 
 \begin{lemma}
 \label{lemma:hungsearch_length}
-	At most $k$ edge relaxations have been performed before the Hungarian search finds
-	an alternating augmenting path.
+There are at most $k$ edge relaxations before the Hungarian search finds an
+alternating augmenting path.
 \end{lemma}
+
 \begin{proof}
-	Each edge relaxation either leads to a matched vertex in $B$ (there are at most $k-1$ such vertices), or finds an unmatched vertex and ends the
-	search.
+Each edge relaxation either leads to a matched vertex in $B$ (there are at most
+$k-1$ such vertices), or finds an unmatched vertex and ends the search.
 \end{proof}
 
 In general graphs, the minimum edge is typically found by pushing all
@@ -568,10 +574,17 @@ the proof of Theorem~\ref{theorem:hung}.
 
 \begin{lemma}
 \label{lemma:hs_time}
+<<<<<<< HEAD
 	Using the dynamic BCP data structure from Kaplan \etal, we can implement Hungarian search with
 	$T(n, k) = O(k\polylog(n))$ and $P(n, k) = O(n\polylog(n))$.
+=======
+Using a dynamic BCP, we can implement Hungarian search with
+$T(n, k) = O(k\polylog(n))$ and $P(n, k) = O(n\polylog(n))$.
+>>>>>>> 6f2c778b5ea7140d95e6b3ce1a4b1146f7ebc842
 \end{lemma}
+
 \begin{proof}
+<<<<<<< HEAD
 	We will maintain a BCP \note{BCP is a \emph{problem}, not a \emph{data structure}} between $P = (S \cap A)$ and
 	$Q = (B \setminus S)$.
 	Changes to the BCP sets \note{undefined} are entirely driven by changing $S$; that is, updates to $S$ incur BCP insertions/deletions.
@@ -644,6 +657,78 @@ the proof of Theorem~\ref{theorem:hung}.
 	Overall, the time spent per Hungarian search is $T(n, k) = O(k\polylog(n))$.
 
 \note{The proof gets more handwavy as the paragraph progresses.  Consider a revision after this round.}
+=======
+We will maintain a BCP between $P = (S \cap A)$ and $Q = (B \setminus S)$.
+Changes to the BCP sets are entirely driven by changing $S$, i.e. updates to
+$S$ incur BCP insertions/deletions.
+We first analyze the bookkeeping outside of dual updates, and then show how
+dual updates can be done efficiently.
+
+\begin{enumerate}
+\item Let $S^t_0$ denote the initial set $S$ at the beginning of the
+	$t$-th Hungarian search, i.e. the set of unmatched $A$ points
+	after $t$ augmentations.
+	At the very beginning of the Hungarian algorithm, we initialize
+	$S^0_0 \gets A$ (meaning $P = A$ and $Q = B$), which is a
+	one-time addition of $O(n)$ points into BCP.
+	On each successive Hungarian search, $S^t_0$ shrinks as more
+	and more $A$ points are matched.
+	Assume for now that, at the beginning of the $(t+1)$-th
+	Hungarian search, we are able to construct the $S^t_0$ from the
+	previous iteration.
+	To construct $S^{t+1}_0$, we simply remove the $A$ point that
+	was matched by the $t$-th augmenting path.
+	Thus, with that assumption, we are able to initialize $S$ in
+	one BCP deletion operation per augmentation.
+
+\item During each Hungarian search, points are added to $P$ ($A$ points
+	added to $S$) and removed from $Q$ ($B$ points added to $S$)
+	--- at most one of each per edge relaxation.
+	By Lemma~\ref{lemma:hungsearch_length} the number of relaxed
+	edges is at most $k$, so the number of these BCP operations is
+	also at most $k$.
+
+\item To obtain the assumption used in (1), we keep a log of the
+	points added since $S^t_0$ in the last Hungarian search
+	(i.e. those of (2)).
+	After the augmentation, we use this log to delete the added
+	vertices from $S$ and recover $S^t_0$.
+	By the argument in (2) there are $O(k)$ of such points to
+	delete, so reconstructing $S^t_0$ costs $O(k)$ BCP operations.
+	% TODO instead of reversing a log, is persistence an easier solution to this?
+\end{enumerate}
+
+We spend a one-time fee of $P(n, k) = O(n \polylog(n))$ time to build the
+initial BCP.
+The number of BCP operations associated with each Hungarian search is $O(k)$,
+so the time spent on BCP operations in each Hungarian search is
+$O(k \polylog(n))$.
+
+We modify a trick from Vaidya~\cite{Vaidya89} to batch potential updates such
+that the dual updates we do perform can be charged to a BCP insertion or
+deletion.
+Throughout the course of the Hungarian algorithm, we maintain a value $\delta$
+(initially 0) which aggregates dual changes.
+Vertices that are added to $S$ are saved into $P$ with weight
+$\omega(p) \gets \pi(p) - \delta$.
+When the points of $S$ have their duals increased in (2), we instead raise
+$\delta \gets \delta + c_\pi(\hat{a}, \hat{b})$.
+Thus, the ``true'' potential for any point in $S$ is $\omega(p) + \delta$.
+For points outside $S$ (i.e. $B \setminus S$), we simply use the true potential
+as the BCP weight.
+Since all $S \cap A$ BCP weights are uniformly offset from their potential by
+$\delta$, this change does not alter the BCP result.
+Once a point is removed from $S$, we update its true potential as
+$\pi(p) \gets \omega(p) + \delta$.
+
+Obviously, the number of updates to $\delta$ is equal to the number of edge
+relaxations, which is $O(k)$ per Hungarian search.
+The number of times we have to save the true potential is bounded by the number
+times we remove a point from $S$.
+By the previous argument (2), this is $O(k)$ per Hungarian search as well.
+The total time for potential updates per Hungarian search is therefore $O(k)$.
+Overall, the time per Hungarian search is $T(n, k) = O(k\polylog(n))$.
+>>>>>>> 6f2c778b5ea7140d95e6b3ce1a4b1146f7ebc842
 \end{proof}
 
 
@@ -684,19 +769,20 @@ in $H$ (with $O(k)$ excess) is $O(k)$.
 
 \begin{lemma}
 \label{lemma:reduction_count}
-	Let $f$ be an integer pseudoflow in $H$ with $O(k)$ excess, and let
-	$E_{>0}(f) = \{(v, w) \mid f(v, w) > 0\}$.
-	Then, $|E_{>0}(f)| = O(k)$.
+Let $f$ be an integer pseudoflow in $H$ with $O(k)$ excess, and let
+$E_{>0}(f) = \{(v, w) \mid f(v, w) > 0\}$.
+Then, $|E_{>0}(f)| = O(k)$.
 \end{lemma}
+
 \begin{proof}
-	By Observation~\ref{observation:dag}, the positive-flow edges of $f$
-	do not contain a cycle.
-	Thus, the flow decomposition of $f$ is a series of paths, each of which
-	can create a single unit of excess if it does not terminate at $t$.
-	By assumption, then, there are $O(k)$ such paths.
-	The maximum length of any path of positive-flow arcs in $H$ is 3,
-	by the capacities in the construction.
-	We conclude that the number of positive flow arcs in $f$ is $O(k)$.
+By Observation~\ref{observation:dag}, the positive-flow edges of $f$ do not
+contain a cycle.
+Thus, the flow decomposition of $f$ is a series of paths, each of which can
+create a single unit of excess if it does not terminate at $t$.
+By assumption, then, there are $O(k)$ such paths.
+The maximum length of any path of positive-flow arcs in $H$ is 3, by the
+capacities in the construction.
+We conclude that the number of positive flow arcs in $f$ is $O(k)$.
 \end{proof}
 
 It is straightforward to show that any integer circulation on $H$ uses exactly
@@ -712,26 +798,26 @@ Note that for integer-valued (e.g. unit) capacities, there is always an
 integer-valued optimal circulation.
 \begin{lemma}
 \label{lemma:goldberg_cost_add}
-	Let $f$ an $\eps$-optimal integer circulation in $H$, and $f^*$ an
-	optimal integer circulation for $H$.
-	Then, $\cost(f) \leq \cost(f^*) + 6k\eps$.
+Let $f$ an $\eps$-optimal integer circulation in $H$, and $f^*$ an optimal
+integer circulation for $H$.
+Then, $\cost(f) \leq \cost(f^*) + 6k\eps$.
 \end{lemma}
+
 \begin{proof}
-	We label the arcs of $H_f$ as follows: \emph{forward arcs} directed
-	from $s \to A$ or $A \to B$ or $B \to t$, and \emph{reverse arcs} in
-	the opposite directions.
-	Observe that a residual cycle $\Gamma$ must have exactly half of its
-	edges be reverse arcs.
-	The reverse arcs may either be (i) on one of the $M_f$ edges or else
-	(ii) between $\{s\} \times A$ or (iii) between $B \times \{t\}$.
-	If it is of type (ii) or (iii), there is an adjacent type (i) reverse
-	arc.
-	Thus, we can charge the reverse arcs of $\Gamma$ to $M_f \cap \Gamma$
-	edges with at most 3 charge per edge of $M_f \cap \Gamma$.
-	We can then charge all arcs of $f' = (f^* - f) = \sum \Gamma_i$ to
-	$M_f$ with at most 6 charge per $M_f$ edge.
-	As $|M_f| = k$, the number of arcs in $f'$ is at most $6k$.
-	The rest of the argument proceeds as in Lemma~\ref{lemma:mcf_cost}.
+We label the arcs of $H_f$ as follows: \emph{forward arcs} directed from
+$s \to A$ or $A \to B$ or $B \to t$, and \emph{reverse arcs} in the opposite
+directions.
+Observe that a residual cycle $\Gamma$ must have exactly half of its edges be
+reverse arcs.
+The reverse arcs may either be (i) on one of the $M_f$ edges or else (ii)
+between $\{s\} \times A$ or (iii) between $B \times \{t\}$.
+If it is of type (ii) or (iii), there is an adjacent type (i) reverse arc.
+Thus, we can charge the reverse arcs of $\Gamma$ to $M_f \cap \Gamma$ edges
+with at most 3 charge per edge of $M_f \cap \Gamma$.
+We can then charge all arcs of $f' = (f^* - f) = \sum \Gamma_i$ to $M_f$ with
+at most 6 charge per $M_f$ edge.
+As $|M_f| = k$, the number of arcs in $f'$ is at most $6k$.
+The rest of the argument proceeds as in Lemma~\ref{lemma:mcf_cost}.
 \end{proof}
 
 Suppose we scaled arc costs (via uniform scaling of the input points) such that
@@ -741,18 +827,18 @@ into a relative approximation.
 
 \begin{corollary}
 \label{corollary:flow_approx}
-	Let $f$ an $\eps$-optimal integer circulation in $H$, and $f^*$ an
-	optimal integer circulation for $H$.
-	Suppose costs are scaled such that $\min \|a - b\| = 1$.
-	Then, $\cost(f) \leq (1 + 6\eps) \cost(f^*)$.
+Let $f$ an $\eps$-optimal integer circulation in $H$, and $f^*$ an optimal
+integer circulation for $H$.
+Suppose costs are scaled such that $\min \|a - b\| = 1$.
+Then, $\cost(f) \leq (1 + 6\eps) \cost(f^*)$.
 \end{corollary}
 
 \begin{corollary}
 \label{corollary:match_approx}
-	Let $f$ an $(\eps'/6)$-optimal integer circulation in $H$, and $M^*$ an
-	optimal size $k$ matching of $G$.
-	Suppose costs are scaled such that $\min \|a - b\| = 1$.
-	Then, $\cost(M_f) \leq (1 + \eps') \cost(M^*)$.
+Let $f$ an $(\eps'/6)$-optimal integer circulation in $H$, and $M^*$ an optimal
+size $k$ matching of $G$.
+Suppose costs are scaled such that $\min \|a - b\| = 1$.
+Then, $\cost(M_f) \leq (1 + \eps') \cost(M^*)$.
 \end{corollary}
 
 In other words, a $(\eps'/6)$-optimal circulation is sufficient for a
@@ -807,8 +893,8 @@ We briefly describe this preprocessing step at the end of this section.
 
 \begin{lemma}
 \label{lemma:goldberg_scales}
-	The cost-scaling algorithm finds a $(1 + \eps')$-approximate matching
-	after $O(\log(n/\eps'))$ scales.
+The cost-scaling algorithm finds a $(1 + \eps')$-approximate matching after
+$O(\log(n/\eps'))$ scales.
 \end{lemma}
 
 \subsection{\textsc{Scale-Init}}
@@ -852,25 +938,24 @@ now $\eps$-optimal.
 
 \begin{lemma}
 \label{lemma:scale_init}
-	In $O(n)$ time, \textsc{Scale-Init} turns a $2\eps$-optimal circulation
-	into an $\eps$-optimal pseudoflow with $O(k)$ excess.
+In $O(n)$ time, \textsc{Scale-Init} turns a $2\eps$-optimal circulation into an
+$\eps$-optimal pseudoflow with $O(k)$ excess.
 \end{lemma}
-\begin{proof}
-	The potential updates affect every vertex except $s$,
-	so this takes $O(n)$ time.
-	As for the arc de-saturations, every reverse arc is induced by positive
-	flow on a forward arc, and the number of positive flow edges in $f$ is
-	$O(k)$.
-	The total number of edges that get examined by the loop is therefore
-	$O(k)$.
-	In total, the time taken is $O(n)$.
 
-	For the amount of excess, notice that new excess is only created due
-	to the de-saturations of reverse arcs.
-	Because the graph is unit-capacity, each de-saturation creates one unit
-	of excess.
-	There are $O(k)$ reverse arcs possible, so the total created excess
-	must be $O(k)$.
+\begin{proof}
+The potential updates affect every vertex except $s$, so this takes $O(n)$
+time.
+As for the arc de-saturations, every reverse arc is induced by positive flow on
+a forward arc, and the number of positive flow edges in $f$ is $O(k)$.
+The total number of edges that get examined by the loop is therefore $O(k)$.
+In total, the time taken is $O(n)$.
+
+For the amount of excess, notice that new excess is only created due to the
+de-saturations of reverse arcs.
+Because the graph is unit-capacity, each de-saturation creates one unit of
+excess.
+There are $O(k)$ reverse arcs possible, so the total created excess must be
+$O(k)$.
 \end{proof}
 
 \subsection{\textsc{Refine}}
@@ -900,8 +985,8 @@ Goldberg~{\etal} prove that there are $O(\sqrt{k})$ blocking flows before
 excess becomes 0.
 
 \begin{lemma}[Goldberg~{\etal}~\cite{GHKT17} Lemma 3.11 and Section 6]
-	Let $f$ be a pseudoflow in $H$ with $O(k)$ excess.
-	There are $O(\sqrt{k})$ blocking flows before excess is 0.
+Let $f$ be a pseudoflow in $H$ with $O(k)$ excess.
+There are $O(\sqrt{k})$ blocking flows before excess is 0.
 \end{lemma}
 
 We can use this, alongside Lemma~\ref{lemma:reduction_count} to argue that the
@@ -930,13 +1015,11 @@ admissible edges explicitly.
 This is applied in a similar way as the BCP is for Hungarian search.
 
 \begin{lemma}
-	Suppose \textsc{Hungarian-Search2} can be implemented in $T_1(n, k)$
-	time after a once-per-\textsc{Refine} $P_1(n, k)$ time preprocessing,
-	and respectively \textsc{DFS} in $T_2(n, k)$ time after $P_2(n, k)$
-	preprocessing.
-	Then, \textsc{Refine} can be implemented in
-	$O(P_1(n, k) + P_2(n, k) + \sqrt{k}[T_1(n, k) + T_2(n, k)] + k\sqrt{k})$
-	time.
+Suppose \textsc{Hungarian-Search2} can be implemented in $T_1(n, k)$ time after
+a once-per-\textsc{Refine} $P_1(n, k)$ time preprocessing, and respectively
+\textsc{DFS} in $T_2(n, k)$ time after $P_2(n, k)$ preprocessing.
+Then, \textsc{Refine} can be implemented in
+$O(P_1(n, k) + P_2(n, k) + \sqrt{k}[T_1(n, k) + T_2(n, k)] + k\sqrt{k})$ time.
 \end{lemma}
 
 As we will show shortly (Lemmas~\ref{lemma:goldberg_hs_time},
@@ -1090,51 +1173,51 @@ number of relaxations, each of which take $O(1)$ BCP queries and updates.
 
 \begin{lemma}
 \label{lemma:goldberg_hs_length1}
-	There are $O(k)$ non-empty relaxations in \textsc{Hungarian-Search2}
-	before a deficit vertex is reached.
+There are $O(k)$ non-empty relaxations in \textsc{Hungarian-Search2} before a
+deficit vertex is reached.
 \end{lemma}
-\begin{proof}
-	Let $E_{>0}(f) = \{(v, w) \in E \mid f(v, w) > 0\}$.
-	Each edge relaxation adds a new vertex to $S$.
-	The vertices of $V \setminus S$ fall into several categories:
-	(i) $s$ or $t$, (ii) $A$ or $B$ vertex with 0 imbalance, and (iii) $A$
-	or $B$ vertex with deficit ($S$ contains all excess vertices).
-	The number of vertices in (i) and (iii) is $O(k)$, leaving us to bound
-	the number of (ii) vertices.
 
-	An $A$ or $B$ vertex with 0 imbalance must have an even number of
-	$E_{>0}(f)$ edges.
-	There is either only one positive-capacity incoming edge (for $A$) or
-	outgoing edge (for $B$), so this quantity is either 0 or 2.
-	By the non-emptiness assumption, it must be 2.
-	We charge 0.5 to each of the two $E_{>0}(f)$ edges;
-	the edges of $E_{>0}(f)$ have no more than 1 charge each.
-	Thus, the number of (ii) vertex relaxations is $O(|E_{>0}(f)|)$.
-	%TODO prove that |E_{>0}(f)| = O(k)
+\begin{proof}
+Let $E_{>0}(f) = \{(v, w) \in E \mid f(v, w) > 0\}$.
+Each edge relaxation adds a new vertex to $S$.
+The vertices of $V \setminus S$ fall into several categories:
+(i) $s$ or $t$, (ii) $A$ or $B$ vertex with 0 imbalance, and (iii) $A$ or $B$
+vertex with deficit ($S$ contains all excess vertices).
+The number of vertices in (i) and (iii) is $O(k)$, leaving us to bound the
+number of (ii) vertices.
+
+An $A$ or $B$ vertex with 0 imbalance must have an even number of $E_{>0}(f)$
+edges.
+There is either only one positive-capacity incoming edge (for $A$) or outgoing
+edge (for $B$), so this quantity is either 0 or 2.
+By the non-emptiness assumption, it must be 2.
+We charge 0.5 to each of the two $E_{>0}(f)$ edges; the edges of $E_{>0}(f)$
+have no more than 1 charge each.
+Thus, the number of (ii) vertex relaxations is $O(|E_{>0}(f)|)$.
+%TODO prove that |E_{>0}(f)| = O(k)
 \end{proof}
 
 \begin{lemma}
 \label{lemma:goldberg_hs_length2}
-	There are $O(k)$ empty 2- and 3-path relaxations in
-	\textsc{Hungarian-Search2} before a deficit vertex is reached.
+There are $O(k)$ empty 2- and 3-path relaxations in \textsc{Hungarian-Search2}
+before a deficit vertex is reached.
 \end{lemma}
-\begin{proof}
-	There is only one empty 3-path relaxation, since $t$ can only be added
-	to $S$ once.
-	This is also the case for the empty 2-paths surrounding a $B_\emptyset$
-	vertex.
 
-	On the other hand, the relaxation of an empty 2-path surrounding an
-	$A_\emptyset$ vertex adds some non-empty
-	$b \in B \setminus B_\emptyset$ into $S$.
-	By definition, $b$ must either have deficit or an adjacent edge with
-	$f(e) > 0$.
-	We charge this relaxation to $b$ if it is deficit, or the adjacent
-	$f(e) > 0$ edge otherwise.
-	No $f(e) > 0$ edge is charged more than twice, therefore the total
-	number of empty 2-path relaxations surrounding $A_\emptyset$ vertices
-	is $O(|E_{>0}(f)|)$.
-	%TODO bound size of flow support in k
+\begin{proof}
+There is only one empty 3-path relaxation, since $t$ can only be added to $S$
+once.
+This is also the case for the empty 2-paths surrounding a $B_\emptyset$ vertex.
+
+On the other hand, the relaxation of an empty 2-path surrounding an
+$A_\emptyset$ vertex adds some non-empty $b \in B \setminus B_\emptyset$ into
+$S$.
+By definition, $b$ must either have deficit or an adjacent edge of $E_{>0}(f)$.
+We charge this relaxation to $b$ if it is deficit, or the adjacent $E_{>0}(f)$
+edge otherwise.
+No $E_{>0}(f)$ edge is charged more than twice, therefore the total number of
+empty 2-path relaxations surrounding $A_\emptyset$ vertices is
+$O(|E_{>0}(f)|)$.
+%TODO bound size of flow support in k
 \end{proof}
 
 
@@ -1146,37 +1229,38 @@ number of relaxations, each of which take $O(1)$ BCP queries and updates.
 
 \begin{lemma}
 \label{lemma:goldberg_hs_time}
-	Using a dynamic BCP, we can implement \textsc{Hungarian-Search2} with
-	$T_1(n, k) = O(k\polylog(n))$ and $P_1(n, k) = O(n\polylog(n))$.
+Using a dynamic BCP, we can implement \textsc{Hungarian-Search2} with
+$T_1(n, k) = O(k\polylog(n))$ and $P_1(n, k) = O(n\polylog(n))$.
 \end{lemma}
+
 \begin{proof}
-	Like for matchings, we use a BCP to find the argmin quickly;
-	we maintain $P = (S \cap A)$ and $Q = (B \setminus V)$ using weights
-	$\omega(v) = \pi(v) - \delta$, and increase $\delta$ in lieu of
-	increasing the potential of all $S$ vertices.
-	Using Lemma~\ref{lemma:hs_time} as a basis, we first analyze the number
-	of BCP operations over the course of \textsc{Hungarian-Search2}.
-	\begin{enumerate}
-	\item Let $S^t_0$ denote the initial set $S$ at the beginning of the
-		$t$-th Hungarian search, i.e. the set of $v \in V$ with
-		$e_f(v) > 0$ after $t$ blocking flows.
-		Assume for now that, at the beginning of the $(t+1)$-th
-		Hungarian search, we have on hand the $S^t_0$ from the
-		previous iteration.
-		To construct $S^{t+1}_0$, we remove the vertices that had
-		excess decreased to 0 by the $t$-th blocking flow.
-		Thus, with that assumption, we are able to initialize $S$ at
-		the cost of one BCP deletion per excess vertex, which sums to
-		$O(k)$ over the entire course of \textsc{Refine}.
-	\item During each Hungarian search, a vertex entering $S$ may cause $P$
-		or $Q$ to update and incur one BCP insertion/deletion.
-		Like before, we can charge these to the number of edge
-		relaxations over the course of \textsc{Hungarian-Search2}.
-		%TODO ref lemma hs_length
-	\item Like before, we can meet the assumption in (1) by rewinding a log
-		of point additions to $S$, and recover $S^t_0$.
-		%TODO ref lemma for bounding the number of rewinds
-	\end{enumerate}
+Like for matchings, we use a BCP to find the argmin quickly; we maintain
+$P = (S \cap A)$ and $Q = (B \setminus V)$ using weights
+$\omega(v) = \pi(v) - \delta$, and increase $\delta$ in lieu of increasing the
+potential of all $S$ vertices.
+Using Lemma~\ref{lemma:hs_time} as a basis, we first analyze the number of BCP
+operations over the course of \textsc{Hungarian-Search2}.
+\begin{enumerate}
+\item Let $S^t_0$ denote the initial set $S$ at the beginning of the
+	$t$-th Hungarian search, i.e. the set of $v \in V$ with
+	$e_f(v) > 0$ after $t$ blocking flows.
+	Assume for now that, at the beginning of the $(t+1)$-th
+	Hungarian search, we have on hand the $S^t_0$ from the
+	previous iteration.
+	To construct $S^{t+1}_0$, we remove the vertices that had
+	excess decreased to 0 by the $t$-th blocking flow.
+	Thus, with that assumption, we are able to initialize $S$ at
+	the cost of one BCP deletion per excess vertex, which sums to
+	$O(k)$ over the entire course of \textsc{Refine}.
+\item During each Hungarian search, a vertex entering $S$ may cause $P$
+	or $Q$ to update and incur one BCP insertion/deletion.
+	Like before, we can charge these to the number of edge
+	relaxations over the course of \textsc{Hungarian-Search2}.
+	%TODO ref lemma hs_length
+\item Like before, we can meet the assumption in (1) by rewinding a log
+	of point additions to $S$, and recover $S^t_0$.
+	%TODO ref lemma for bounding the number of rewinds
+\end{enumerate}
 
 
 
@@ -1186,44 +1270,44 @@ number of relaxations, each of which take $O(1)$ BCP queries and updates.
 
 
 
+%TODO removing the mechanics of updates to outside
+Unlike matchings, there are now some arcs that are eligible for the
+minimum but not ``captured'' by the BCP.
+Specifically, it makes no sense to place $s$ or $t$ in the BCP
+(they do not correspond to points in the plane), or the arcs from
+$B \to A$ (arcs of $(S \cap B) \times (V \setminus S)$ are not residual
+unless there is positive flow on the respective $A \to B$ arc).
+We label these special classes of arcs (i) $E_s^+$ and $E_s^-$,
+residual arcs with $s$ on the head and tail respectively, (ii)
+$E_t^+$ and $E_t^-$, residual arcs with $t$ on the head and tail
+respectively, and (iii) $E_{BA}$, $B \to A$ residual arcs.
+There are $O(r)$ arcs in $E_s^+$ and $E_s^-$, $O(n)$ arcs in $E_t^+$
+and $E_t^-$, and $O(k)$ arcs in $E_{BA}$
+(by Lemma~\ref{lemma:reduction_count}).
+We maintain a min-heap for each arc set on the same distances used
+by the BCP ($c(v, w) - \omega(v) + \omega(w)$).
+Until $s$ (resp. $t$) is included into $S$, we ``deactivate'' $E_s^+$
+(resp. $E_t^+$) and do not query it for the minimum.
+Once $s$ (resp. $t$) is added, we activate $E_s^+$ (resp. $E_t^+$) and
+deactivate $E_s^-$ (resp. $E_t^-$).
+These activations/deactivations occur once per Hungarian search, since
+vertices do not leave $S$ once they enter.
+When evaluating the argmin, we take the minimum over all active heaps
+plus the BCP.
 
-	Unlike matchings, there are now some arcs that are eligible for the
-	minimum but not ``captured'' by the BCP.
-	Specifically, it makes no sense to place $s$ or $t$ in the BCP
-	(they do not correspond to points in the plane), or the arcs from
-	$B \to A$ (arcs of $(S \cap B) \times (V \setminus S)$ are not residual
-	unless there is positive flow on the respective $A \to B$ arc).
-	We label these special classes of arcs (i) $E_s^+$ and $E_s^-$,
-	residual arcs with $s$ on the head and tail respectively, (ii)
-	$E_t^+$ and $E_t^-$, residual arcs with $t$ on the head and tail
-	respectively, and (iii) $E_{BA}$, $B \to A$ residual arcs.
-	There are $O(r)$ arcs in $E_s^+$ and $E_s^-$, $O(n)$ arcs in $E_t^+$
-	and $E_t^-$, and $O(k)$ arcs in $E_{BA}$
-	(by Lemma~\ref{lemma:reduction_count}).
-	We maintain a min-heap for each arc set on the same distances used
-	by the BCP ($c(v, w) - \omega(v) + \omega(w)$).
-	Until $s$ (resp. $t$) is included into $S$, we ``deactivate'' $E_s^+$
-	(resp. $E_t^+$) and do not query it for the minimum.
-	Once $s$ (resp. $t$) is added, we activate $E_s^+$ (resp. $E_t^+$) and
-	deactivate $E_s^-$ (resp. $E_t^-$).
-	These activations/deactivations occur once per Hungarian search, since
-	vertices do not leave $S$ once they enter.
-	When evaluating the argmin, we take the minimum over all active heaps
-	plus the BCP.
-
-	We can ultimately charge all heap operations to BCP operations, and
-	see that there are $O(k)$ total.
-	When a vertex moves into $S$, it begets a heap operation in addition
-	to the BCP deletion.
-	For example, if $a \in A$ moves into $S$, $(s, a)$ should be deleted
-	from $E_t^-$, or $(a, s)$ should be added to $E_t^+$
+We can ultimately charge all heap operations to BCP operations, and
+see that there are $O(k)$ total.
+When a vertex moves into $S$, it begets a heap operation in addition
+to the BCP deletion.
+For example, if $a \in A$ moves into $S$, $(s, a)$ should be deleted
+from $E_t^-$, or $(a, s)$ should be added to $E_t^+$
 
 
-	For potential updates, we use the same trick as in
-	Lemma~\ref{lemma:hs_time} to lazily update potentials after vertices
-	leave $S$.
-	To remind, these potential updates were bounded by the number of times
-	a point left $S$.
+For potential updates, we use the same trick as in
+Lemma~\ref{lemma:hs_time} to lazily update potentials after vertices
+leave $S$.
+To remind, these potential updates were bounded by the number of times
+a point left $S$.
 
 \end{proof}
 
@@ -1277,9 +1361,10 @@ relies on the relaxation of a minimum-reduced cost edge.
 
 \begin{lemma}
 \label{lemma:goldberg_dfs_time}
-	Using a dynamic NN, we can implement \textsc{DFS} with
-	$T_2(n, k) = O(k\polylog(n))$ and $P_2(n, k) = O(n\polylog(n))$.
+Using a dynamic NN, we can implement \textsc{DFS} with
+$T_2(n, k) = O(k\polylog(n))$ and $P_2(n, k) = O(n\polylog(n))$.
 \end{lemma}
+
 \begin{proof}
 %TODO
 \end{proof}
