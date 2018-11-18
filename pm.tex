@@ -241,7 +241,7 @@ By nature of the BCP/NN oracles we use, our results generalize to any $L_p$ dist
 
 Let $G$ be a bipartite graph between vertex sets $A$ and $B$ and edge set $E$,
 with costs $c(v, w)$ for each edge $e$ in $E$.
-We use $C = \max_{e \in E} c(e)$, \note{you might want to use $\coloneqq$ instead of $=$ for definition?} and assume that the problem is scaled such
+We use $C := \max_{e \in E} c(e)$, and assume that the problem is scaled such
 that $\min_{e \in E} c(e) = 1$.
 A \emph{matching} $M \subseteq E$ is a set of edges where no two edges share an
 endpoint.
@@ -554,7 +554,7 @@ encountered $(S \cap A) \times (B \setminus S)$ edges into a priority queue.
 However, in the bipartite complete graph, this may take $\Theta(rn\polylog(n))$
 time for each Hungarian search --- edges are being pushed into the queue even when
 they are not relaxed.
-We avoid this problem by finding an  edge with minimum cost using  \emph{bichromatic
+We avoid this problem by finding an  edge with minimum cost using \emph{bichromatic
 closest pair} (BCP) queries on an additively weighted Euclidean distances,
 for which there exist fast %(poly-logarithmic query and update)
 dynamic data structures.
@@ -574,161 +574,84 @@ the proof of Theorem~\ref{theorem:hung}.
 
 \begin{lemma}
 \label{lemma:hs_time}
-<<<<<<< HEAD
-	Using the dynamic BCP data structure from Kaplan \etal, we can implement Hungarian search with
-	$T(n, k) = O(k\polylog(n))$ and $P(n, k) = O(n\polylog(n))$.
-=======
-Using a dynamic BCP, we can implement Hungarian search with
-$T(n, k) = O(k\polylog(n))$ and $P(n, k) = O(n\polylog(n))$.
->>>>>>> 6f2c778b5ea7140d95e6b3ce1a4b1146f7ebc842
+Using the dynamic BCP data structure from Kaplan \etal, we can implement
+Hungarian search with $T(n, k) = O(k\polylog(n))$ and 
+$P(n, k) = O(n\polylog(n))$.
 \end{lemma}
 
 \begin{proof}
-<<<<<<< HEAD
-	We will maintain a BCP \note{BCP is a \emph{problem}, not a \emph{data structure}} between $P = (S \cap A)$ and
-	$Q = (B \setminus S)$.
-	Changes to the BCP sets \note{undefined} are entirely driven by changing $S$; that is, updates to $S$ incur BCP insertions/deletions.
-	We first analyze the bookkeeping besides the dual updates, and then
-	show how dual updates can be implemented efficiently.
-
-	\begin{enumerate}
-	\item Let $S^t_0$ \note{Is there a reason why you want the subscript?  Do you ever define $S^t$?} denote the initial set $S$ at the beginning of the
-		$t$-th Hungarian search, that is, the set of unmatched points in $A$
-		after $t$ augmentations.
-		At the very beginning of the Hungarian algorithm, we initialize
-		$S^0_0 \gets A$ (meaning that $P = A$ and $Q = B$), which is a
-		one-time insertion of $O(n)$ points into BCP.
-		On each successive Hungarian search, $S^t_0$ shrinks as more
-		and more points in $A$ are matched.
-		Assume for now that, at the beginning of the $(t+1)$-th
-		Hungarian search, we are able to construct $S^t_0$ from the
-		previous iteration.
-		To construct $S^{t+1}_0$, we simply remove the $A$ point \note{point in $A$} that
-		was matched by the $t$-th augmenting path.
-		Thus, with that assumption, we are able to initialize $S$ using
-		one BCP deletion operation per augmentation.
-
-	\item During each Hungarian search, points are added to $P$ (that is, some points in $A$ are
-		added to $S$) and removed from $Q$ (points in $B$ added to $S$), which will happen at most once per edge relaxation.
-		By Lemma~\ref{lemma:hungsearch_length} the number of relaxed
-		edges is at most $k$, so the number of such BCP operations is
-		also at most $k$.
-
-	\item To obtain $S^t_0$, we keep track \note{give a name to such points} of the
-		points added since $S^t_0$ in the last Hungarian search
-		(i.e.\ those of (2)). \note{Unclear}
-		After the augmentation, we use this log \note{use the name} to delete the added
-		vertices from $S$ and recover $S^t_0$.
-		By the argument in (2) there are $O(k)$ of such points to
-		delete, so reconstructing $S^t_0$ takes $O(k)$ BCP operations.
-		\note{TODO instead of reversing a log, is persistence an easier solution to this?}
-	\end{enumerate}
-
-	We spend $P(n, k) = O(n \polylog(n))$ time to build
-	the initial BCP.
-	The number of BCP operations associated with each Hungarian search is
-	$O(k)$, so the time spent on BCP operations in each Hungarian search
-	is $O(k \polylog(n))$.
-
-  As for the potential updates,
-	we modify a trick from Vaidya~\cite{Vaidya89} to batch potential
-	updates such that the dual updates we do perform can be charged to a
-	BCP insertion or deletion. \note{Mouthful}
-	Throughout the course of the Hungarian algorithm, we maintain a value
-	$\delta$ (initially 0) which aggregates the dual changes.
-	Vertices that are added to $S$ are saved into $P$ \note{I don't understand; do you mean only when vertices in $A$ are added to $S$?} with weight
-	$\omega(p) \gets \pi(p) - \delta$.
-	When the points of $S$ have their duals \note{Undefined. You mean their potentials?} increased in (2), we instead
-	raise $\delta \gets \delta + c_\pi(\hat{a}, \hat{b})$. \note{What is $\hat{a}$ and $\hat{b}$?}
-	Thus, the ``true'' potential for any point in $S$ is
-	$\omega(p) + \delta$.
-	For points outside $S$ (i.e. $B \setminus S$) \note{only point in $B$?}, we simply use the true
-	potential as the BCP weight.
-	Since all $S \cap A$ BCP weights \note{you mean BCP weights of points in $P$?} are uniformly offsetted by $\delta$, the solution returned by the BCP oracle does not change.
-	Once a point is removed from $S$, we update its true potential
-	to be $\pi(p) \gets \omega(p) + \delta$.
-
-	Obviously \note{Never use this word}, the number of updates to $\delta$ is equal to the number of
-	edge relaxations, which is $O(k)$ per Hungarian search.
-	The number of times we have to compute the true potential is bounded by
-	the number times we remove a point from $S$, which is at most $O(k)$ per Hungarian search as well.
-	The total time spent on potential updates per Hungarian search is therefore
-	$O(k)$.
-	Overall, the time spent per Hungarian search is $T(n, k) = O(k\polylog(n))$.
-
-\note{The proof gets more handwavy as the paragraph progresses.  Consider a revision after this round.}
-=======
-We will maintain a BCP between $P = (S \cap A)$ and $Q = (B \setminus S)$.
-Changes to the BCP sets are entirely driven by changing $S$, i.e. updates to
-$S$ incur BCP insertions/deletions.
-We first analyze the bookkeeping outside of dual updates, and then show how
-dual updates can be done efficiently.
+We will maintain a BCP \note{BCP is a \emph{problem}, not a \emph{data structure}} between $P = (S \cap A)$ and
+$Q = (B \setminus S)$.
+Changes to the BCP sets \note{undefined} are entirely driven by changing $S$; that is, updates to $S$ incur BCP insertions/deletions.
+We first analyze the bookkeeping besides the dual updates, and then
+show how dual updates can be implemented efficiently.
 
 \begin{enumerate}
-\item Let $S^t_0$ denote the initial set $S$ at the beginning of the
-	$t$-th Hungarian search, i.e. the set of unmatched $A$ points
+\item Let $S^t_0$ \note{Is there a reason why you want the subscript?  Do you ever define $S^t$?} denote the initial set $S$ at the beginning of the
+	$t$-th Hungarian search, that is, the set of unmatched points in $A$
 	after $t$ augmentations.
 	At the very beginning of the Hungarian algorithm, we initialize
-	$S^0_0 \gets A$ (meaning $P = A$ and $Q = B$), which is a
-	one-time addition of $O(n)$ points into BCP.
+	$S^0_0 \gets A$ (meaning that $P = A$ and $Q = B$), which is a
+	one-time insertion of $O(n)$ points into BCP.
 	On each successive Hungarian search, $S^t_0$ shrinks as more
-	and more $A$ points are matched.
+	and more points in $A$ are matched.
 	Assume for now that, at the beginning of the $(t+1)$-th
-	Hungarian search, we are able to construct the $S^t_0$ from the
+	Hungarian search, we are able to construct $S^t_0$ from the
 	previous iteration.
-	To construct $S^{t+1}_0$, we simply remove the $A$ point that
+	To construct $S^{t+1}_0$, we simply remove the $A$ point \note{point in $A$} that
 	was matched by the $t$-th augmenting path.
-	Thus, with that assumption, we are able to initialize $S$ in
+	Thus, with that assumption, we are able to initialize $S$ using
 	one BCP deletion operation per augmentation.
 
-\item During each Hungarian search, points are added to $P$ ($A$ points
-	added to $S$) and removed from $Q$ ($B$ points added to $S$)
-	--- at most one of each per edge relaxation.
+\item During each Hungarian search, points are added to $P$ (that is, some points in $A$ are
+	added to $S$) and removed from $Q$ (points in $B$ added to $S$), which will happen at most once per edge relaxation.
 	By Lemma~\ref{lemma:hungsearch_length} the number of relaxed
-	edges is at most $k$, so the number of these BCP operations is
+	edges is at most $k$, so the number of such BCP operations is
 	also at most $k$.
 
-\item To obtain the assumption used in (1), we keep a log of the
+\item To obtain $S^t_0$, we keep track \note{give a name to such points} of the
 	points added since $S^t_0$ in the last Hungarian search
-	(i.e. those of (2)).
-	After the augmentation, we use this log to delete the added
+	(i.e.\ those of (2)). \note{Unclear}
+	After the augmentation, we use this log \note{use the name} to delete the added
 	vertices from $S$ and recover $S^t_0$.
 	By the argument in (2) there are $O(k)$ of such points to
-	delete, so reconstructing $S^t_0$ costs $O(k)$ BCP operations.
-	% TODO instead of reversing a log, is persistence an easier solution to this?
+	delete, so reconstructing $S^t_0$ takes $O(k)$ BCP operations.
+	\note{TODO instead of reversing a log, is persistence an easier solution to this?}
 \end{enumerate}
 
-We spend a one-time fee of $P(n, k) = O(n \polylog(n))$ time to build the
-initial BCP.
-The number of BCP operations associated with each Hungarian search is $O(k)$,
-so the time spent on BCP operations in each Hungarian search is
-$O(k \polylog(n))$.
+We spend $P(n, k) = O(n \polylog(n))$ time to build
+the initial BCP.
+The number of BCP operations associated with each Hungarian search is
+$O(k)$, so the time spent on BCP operations in each Hungarian search
+is $O(k \polylog(n))$.
 
-We modify a trick from Vaidya~\cite{Vaidya89} to batch potential updates such
-that the dual updates we do perform can be charged to a BCP insertion or
-deletion.
-Throughout the course of the Hungarian algorithm, we maintain a value $\delta$
-(initially 0) which aggregates dual changes.
-Vertices that are added to $S$ are saved into $P$ with weight
+As for the potential updates,
+we modify a trick from Vaidya~\cite{Vaidya89} to batch potential
+updates such that the dual updates we do perform can be charged to a
+BCP insertion or deletion. \note{Mouthful}
+Throughout the course of the Hungarian algorithm, we maintain a value
+$\delta$ (initially 0) which aggregates the dual changes.
+Vertices that are added to $S$ are saved into $P$ \note{I don't understand; do you mean only when vertices in $A$ are added to $S$?} with weight
 $\omega(p) \gets \pi(p) - \delta$.
-When the points of $S$ have their duals increased in (2), we instead raise
-$\delta \gets \delta + c_\pi(\hat{a}, \hat{b})$.
-Thus, the ``true'' potential for any point in $S$ is $\omega(p) + \delta$.
-For points outside $S$ (i.e. $B \setminus S$), we simply use the true potential
-as the BCP weight.
-Since all $S \cap A$ BCP weights are uniformly offset from their potential by
-$\delta$, this change does not alter the BCP result.
-Once a point is removed from $S$, we update its true potential as
-$\pi(p) \gets \omega(p) + \delta$.
+When the points of $S$ have their duals \note{Undefined. You mean their potentials?} increased in (2), we instead
+raise $\delta \gets \delta + c_\pi(\hat{a}, \hat{b})$. \note{What is $\hat{a}$ and $\hat{b}$?}
+Thus, the ``true'' potential for any point in $S$ is
+$\omega(p) + \delta$.
+For points outside $S$ (i.e. $B \setminus S$) \note{only point in $B$?}, we simply use the true
+potential as the BCP weight.
+Since all $S \cap A$ BCP weights \note{you mean BCP weights of points in $P$?} are uniformly offsetted by $\delta$, the solution returned by the BCP oracle does not change.
+Once a point is removed from $S$, we update its true potential
+to be $\pi(p) \gets \omega(p) + \delta$.
 
-Obviously, the number of updates to $\delta$ is equal to the number of edge
-relaxations, which is $O(k)$ per Hungarian search.
-The number of times we have to save the true potential is bounded by the number
-times we remove a point from $S$.
-By the previous argument (2), this is $O(k)$ per Hungarian search as well.
-The total time for potential updates per Hungarian search is therefore $O(k)$.
-Overall, the time per Hungarian search is $T(n, k) = O(k\polylog(n))$.
->>>>>>> 6f2c778b5ea7140d95e6b3ce1a4b1146f7ebc842
+Obviously \note{Never use this word}, the number of updates to $\delta$ is equal to the number of
+edge relaxations, which is $O(k)$ per Hungarian search.
+The number of times we have to compute the true potential is bounded by
+the number times we remove a point from $S$, which is at most $O(k)$ per Hungarian search as well.
+The total time spent on potential updates per Hungarian search is therefore
+$O(k)$.
+Overall, the time spent per Hungarian search is $T(n, k) = O(k\polylog(n))$.
+
+\note{The proof gets more handwavy as the paragraph progresses.  Consider a revision after this round.}
 \end{proof}
 
 
@@ -751,7 +674,7 @@ Next, we add a dummy vertex $s$ with arcs $(s, a)$ to every $a \in A$,
 and respectively a dummy vertex $t$ with arcs $(b, t)$ for each $b \in B$,
 all with arc cost 0 and capacity 1.
 For each of the above arcs $(v, w)$, we also add a reverse arc $(w, v)$ with
-cost $c(w, v) = -c(v, w)$ and capacity 0.
+cost $c(w, v) = -c(v, w)$ and capacity 0. \note{is this consistent with the other residual graph description?}
 Let the complete set of arcs be $E$, and $V = A \cup B \cup \{s, t\}$.
 Set $\fsupply(s) = k$, $\fsupply(t) = -k$, and $\fsupply(v) = 0$ for all other
 vertices.
@@ -886,10 +809,10 @@ The bulk of this section will describe and analyze \textsc{Scale-Init} and
 For now, we analyze the number of scales (iterations of the outer loop).
 Initially $\eps = kC$, and the algorithm is stopped once $\eps \leq \eps'/6$.
 Thus, the number of scales is $O(\log(kC/\eps'))$.
-For bichromatic matching, there is a simple way to preprocess the point set
-such that $C = O(n^2)$, effectively, by Sharathkumar and Agarwal~\cite{SA12}.
+For geometric matching problems, there is a simple way to preprocess the point 
+set such that $C = O(n^2)$, effectively, by Sharathkumar and Agarwal~\cite{SA12}.
 Using this preprocessing gives us $O(\log(n/\eps'))$ scales, instead.
-We briefly describe this preprocessing step at the end of this section.
+We briefly describe this preprocessing procedure at the end of this section.
 
 \begin{lemma}
 \label{lemma:goldberg_scales}
@@ -908,7 +831,7 @@ $O(\log(n/\eps'))$ scales.
 	\State $\forall b \in B, \pi(b) \gets \pi(b) + 2\eps$
 	\State $\pi(t) \gets \pi(t) + 3\eps$
 	\Statex %newline
-	\ForAll{$(v, w) \in E_f$}
+	\ForAll{$(v, w) \in E_{>0}(f)$}
 		\If{$c_\pi(w, v) < -\eps$}
 			\State $f(v, w) \gets 0$
 		\EndIf
@@ -954,8 +877,8 @@ For the amount of excess, notice that new excess is only created due to the
 de-saturations of reverse arcs.
 Because the graph is unit-capacity, each de-saturation creates one unit of
 excess.
-There are $O(k)$ reverse arcs possible, so the total created excess must be
-$O(k)$.
+There are $|E_{>0}(f)| = O(k)$ reverse arcs possible, so the total created
+excess must be $O(k)$.
 \end{proof}
 
 \subsection{\textsc{Refine}}
@@ -983,13 +906,14 @@ paths.
 Using the properties of blocking flows and the unit-capacity input graph,
 Goldberg~{\etal} prove that there are $O(\sqrt{k})$ blocking flows before
 excess becomes 0.
+\note{This is not honest, I think. There is a derivation almost identical to theirs, but they are using a slightly different reduction graph.}
 
 \begin{lemma}[Goldberg~{\etal}~\cite{GHKT17} Lemma 3.11 and Section 6]
 Let $f$ be a pseudoflow in $H$ with $O(k)$ excess.
 There are $O(\sqrt{k})$ blocking flows before excess is 0.
 \end{lemma}
 
-We can use this, alongside Lemma~\ref{lemma:reduction_count} to argue that the
+We can combine this with Lemma~\ref{lemma:reduction_count} to argue that the
 amount of time spent updating the flow within \textsc{Refine} is
 $O(k\sqrt{k})$.
 
@@ -1023,8 +947,8 @@ $O(P_1(n, k) + P_2(n, k) + \sqrt{k}[T_1(n, k) + T_2(n, k)] + k\sqrt{k})$ time.
 \end{lemma}
 
 As we will show shortly (Lemmas~\ref{lemma:goldberg_hs_time},
-\ref{lemma:goldberg_dfs_time}), the total running time for \textsc{Refine}
-is ultimately $O((n + k\sqrt{k})\polylog(n))$.
+\ref{lemma:goldberg_dfs_time}), the total running time for \textsc{Refine} is 
+$O((n + k\sqrt{k})\polylog(n))$.
 Combining with Lemmas~\ref{lemma:goldberg_scales} and \ref{lemma:scale_init}
 completes the proof of Theorem~\ref{theorem:gmcm}.
 
@@ -1037,9 +961,9 @@ completes the proof of Theorem~\ref{theorem:gmcm}.
 \Function{Hungarian-Search2}{$H = (V, E)$, $f$, $\pi$}
 	\State $S \gets \{v \in V \mid e_f(v) > 0\}$
 	\Repeat
-		\State $\Pi \gets \argmin\{c_\pi(v, w) \mid \text{$\Pi$ is an edge between non-empty vertices of $S \times V \setminus S$, or empty 2-/3-path out of $S$}\}$
+		\State $\Pi \gets \argmin\{c_\pi(\Pi) \mid \text{$\Pi$ non-empty edge or empty 2-/3-path leaving $S$}\}$
+			\label{line:hs_relaxation}
 		\State $\gamma \gets c_\pi(\Pi)$
-			\Comment{relax the minimum edge or empty path}
 		\If{$\gamma > 0$}
 			\Comment{make $\Pi$ admissible if it isn't}
 			\State $\pi(v) \gets \pi(v) + \gamma\lceil\frac{\gamma}{\eps}\rceil, \forall v \in S$
@@ -1056,26 +980,35 @@ completes the proof of Theorem~\ref{theorem:gmcm}.
 \end{algorithmic}
 \end{algorithm}
 
-Compared to \textsc{Hungarian-Search}, this algorithm does not maintain
-admissibility as an invariant for edges with $f(v, w) > 0$, so these edges are
-not relaxed immediately in a special case.
-Instead, we store the $O(|E_{>0}(f)|)$ of them leaving $S$ in a min heap and
-compare their reduced costs with the BCP result, relaxing the edge with lower
-reduced cost.
-Uniformly raising the potentials of $S$ preserves reduced costs for arcs within
-$S$ and decreases them for arcs leaving $S$.
-Raising potentials in intervals of $\eps$ will also not decrease a reduced
-cost to less than $-\eps$, so arcs leaving $S$ still satisfy $\eps$-optimality.
 
-Vertices of $A \cup B$ with $e_f(v) = 0$ and 0 incoming and outgoing flow
-cannot be charged to $k$ using the previous analysis, so the algorithm treats
-these \emph{empty vertices} separately.
+\note{a higher level comment about this section, it feels like we need a formal proof of correctness for relaxing empty paths}
+
+Like \textsc{Hungarian-Search}, \textsc{Hungarian-Search2} includes new
+vertices into $S$ by relaxing minimum-reduced cost arcs.
+Potentials are now raised in intervals of $\eps$, but this still preserves
+$\eps$-optimality on the $S \times V \setminus S$ residual arcs.
+Similar to the previous discussion, \textsc{Hungarian-Search2} computes the
+arcs to relax as the minimum from $O(1)$ candidate categories:
+\begin{enumerate}
+\item Reverse arcs $(v, w)$ with $(w, v) \in E_{>0}(f)$ using a min-heap.
+\item Forward arcs using a BCP data structure between points of $A$ and $B$.
+\item Forward arcs from $s$ to $A$ and from $B$ to $t$, using min-heaps.
+\item A new category of short (length 2, 3) paths called \emph{empty paths},
+	which we describe in the remainder of this section.
+\end{enumerate}
+
+We say $v \in A \cup B$ is an \emph{empty vertex} if $e_f(v) = 0$ and no edges
+of $E_{>0}(f)$ adjoin $v$.
+The analysis from the previous section is unable to charge relaxation steps 
+involving empty vertices to $|E_{>0}(f)|$, so the algorithm must deal with them 
+separately.
 Namely, there is no edge with $f(e) > 0$ adjacent to an empty vertex,
 reaching an empty vertex does not terminate the search, and there may be
 $\Omega(n)$ empty vertices at once (consider $H_{f = 0}$, the residual graph
 of the empty flow).
 We use $A_\emptyset$ and $B_\emptyset$ to denote the empty vertices of $A$ and
 $B$ respectively.
+
 For an empty vertex $v$, either residual in-degree ($v \in A_\emptyset$) or
 residual out-degree ($v \in B_\emptyset$) is 1.
 Instead of querying an empty vertex during the search, we shortcut it using the
@@ -1089,17 +1022,18 @@ vertices, called \emph{empty 3-paths}.
 As with 2-paths, we say an empty 3-path $(s, v_1, v_2, t)$ \emph{surrounds}
 $v_1 \in A_\emptyset$ and $v_2 \in B_\emptyset$.
 
-Each relaxation (Line
+Each relaxation step (Line~\ref{line:hs_relaxation} in 
+\textsc{Hungarian-Search2}) relaxes either an edge between two non-empty 
+vertices (of $S \times V \setminus S$), or an empty 2- or 3-path that starts
+in $S$ and ends in $V \setminus S$.
 Relaxation steps involving an empty 2- or 3-path will relax the entire path
 at once, moving all vertices of the path into $S$.
 Relaxation steps that do not involve an empty 2- or 3-path are called
 \emph{non-empty}.
 
 Consider an empty 2-path $(s, v, b)$ that surrounds $v$.
-Since $v$ has zero excess/deficit, the search cannot ``make progress'' through
-$v$ until it reaches $b$.
-Since reduced costs telescope for residual paths, the reduced cost of
-$(s, v, b)$ does not depend on the potential of $v$.
+Reduced costs telescope for residual paths, the reduced cost of $(s, v, b)$
+does not depend on the potential of $v$.
 \begin{equation*}
 	c_\pi((s, v, b)) = c_\pi(s, v) + c_\pi(v, b) = c(v, b) - \pi(s) + \pi(b)
 \end{equation*}
@@ -1135,6 +1069,24 @@ $\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(t)$ for all
 $q \in Q$.
 We query $D_\emptyset(A, B)$ only while $s \in S$ and $t \not\in S$.
 
+To summarize, each relaxation step of \textsc{Hungarian-Search2} takes the 
+minimum between:
+\begin{enumerate}
+\item Reverse arcs of $E_{>0}(f)$ edges, maintained in a min-heap as their 
+	endpoints arrive in $S$.
+\item Forward arcs of $(A \setminus A_\emptyset) \cap S \times (B \setminus B_\emptyset) \setminus S$.
+\item Forward arcs between $s$ and $(A \setminus A_\emptyset) \cap S$ if
+	$s \in S$, maintained in a min-heap.
+\item Forward arcs between $(B \setminus B_\emptyset) \cap S$ and $t$ if
+	$t \not\in S$, maintained in a min-heap.
+\item Empty 2-paths from $s$ to vertices of $B_\emptyset \setminus S$, if
+	$s \in S$, maintained in BCP data structure $D_\emptyset(A)$.
+\item Empty 2-paths from vertices of $A_\emptyset \cap S$ to $t$, if
+	$t \not\in S$, maintained in a BCP data structure $D_\emptyset(B)$.
+\item Empty 3-paths, from $s$ to $t$, if $s \in S$ and $t \not\in S$,
+	maintained in a BCP data structure $D_\emptyset(A, B)$.
+\end{enumerate}
+
 %TODO describe/bound the update process for each data structure:
 	% how to find them:
 	% empty both: BCP with all empty vertices, using s/t potentials
@@ -1165,11 +1117,11 @@ We query $D_\emptyset(A, B)$ only while $s \in S$ and $t \not\in S$.
 	% seems like fixing them to \pi(s) or \pi(t) is correct; certainly will not violate feas if \pi(s) doesn't
 
 
-
-
 In the next few lemmas, we bound the number of relaxations of each type.
 This will provide a time bound for the Hungarian search in terms of the
-number of relaxations, each of which take $O(1)$ BCP queries and updates.
+number of relaxations, each of which incur $O(1)$ BCP or min-heap queries and 
+updates.
+\note{afterwards, need to provide a time bound of potential updates, or otherwise explain that mechanism}
 
 \begin{lemma}
 \label{lemma:goldberg_hs_length1}
@@ -1194,7 +1146,7 @@ By the non-emptiness assumption, it must be 2.
 We charge 0.5 to each of the two $E_{>0}(f)$ edges; the edges of $E_{>0}(f)$
 have no more than 1 charge each.
 Thus, the number of (ii) vertex relaxations is $O(|E_{>0}(f)|)$.
-%TODO prove that |E_{>0}(f)| = O(k)
+\note{need a formal statement that that $|E_{>0}(f)| = O(k)$}
 \end{proof}
 
 \begin{lemma}
@@ -1217,14 +1169,8 @@ edge otherwise.
 No $E_{>0}(f)$ edge is charged more than twice, therefore the total number of
 empty 2-path relaxations surrounding $A_\emptyset$ vertices is
 $O(|E_{>0}(f)|)$.
-%TODO bound size of flow support in k
+\note{need a formal statement that that $|E_{>0}(f)| = O(k)$}
 \end{proof}
-
-
-
-%TODO
-
-
 
 
 \begin{lemma}
@@ -1263,60 +1209,60 @@ operations over the course of \textsc{Hungarian-Search2}.
 \end{enumerate}
 
 
-
-
-
-
-
-
-
 %TODO removing the mechanics of updates to outside
-Unlike matchings, there are now some arcs that are eligible for the
-minimum but not ``captured'' by the BCP.
-Specifically, it makes no sense to place $s$ or $t$ in the BCP
-(they do not correspond to points in the plane), or the arcs from
-$B \to A$ (arcs of $(S \cap B) \times (V \setminus S)$ are not residual
-unless there is positive flow on the respective $A \to B$ arc).
-We label these special classes of arcs (i) $E_s^+$ and $E_s^-$,
-residual arcs with $s$ on the head and tail respectively, (ii)
-$E_t^+$ and $E_t^-$, residual arcs with $t$ on the head and tail
-respectively, and (iii) $E_{BA}$, $B \to A$ residual arcs.
-There are $O(r)$ arcs in $E_s^+$ and $E_s^-$, $O(n)$ arcs in $E_t^+$
-and $E_t^-$, and $O(k)$ arcs in $E_{BA}$
-(by Lemma~\ref{lemma:reduction_count}).
-We maintain a min-heap for each arc set on the same distances used
-by the BCP ($c(v, w) - \omega(v) + \omega(w)$).
-Until $s$ (resp. $t$) is included into $S$, we ``deactivate'' $E_s^+$
-(resp. $E_t^+$) and do not query it for the minimum.
-Once $s$ (resp. $t$) is added, we activate $E_s^+$ (resp. $E_t^+$) and
-deactivate $E_s^-$ (resp. $E_t^-$).
-These activations/deactivations occur once per Hungarian search, since
-vertices do not leave $S$ once they enter.
-When evaluating the argmin, we take the minimum over all active heaps
-plus the BCP.
+%Unlike matchings, there are now some arcs that are eligible for the
+%minimum but not ``captured'' by the BCP.
+%Specifically, it makes no sense to place $s$ or $t$ in the BCP
+%(they do not correspond to points in the plane), or the arcs from
+%$B \to A$ (arcs of $(S \cap B) \times (V \setminus S)$ are not residual
+%unless there is positive flow on the respective $A \to B$ arc).
+%We label these special classes of arcs (i) $E_s^+$ and $E_s^-$,
+%residual arcs with $s$ on the head and tail respectively, (ii)
+%$E_t^+$ and $E_t^-$, residual arcs with $t$ on the head and tail
+%respectively, and (iii) $E_{BA}$, $B \to A$ residual arcs.
+%There are $O(r)$ arcs in $E_s^+$ and $E_s^-$, $O(n)$ arcs in $E_t^+$
+%and $E_t^-$, and $O(k)$ arcs in $E_{BA}$
+%(by Lemma~\ref{lemma:reduction_count}).
+%We maintain a min-heap for each arc set on the same distances used
+%by the BCP ($c(v, w) - \omega(v) + \omega(w)$).
+%Until $s$ (resp. $t$) is included into $S$, we ``deactivate'' $E_s^+$
+%(resp. $E_t^+$) and do not query it for the minimum.
+%Once $s$ (resp. $t$) is added, we activate $E_s^+$ (resp. $E_t^+$) and
+%deactivate $E_s^-$ (resp. $E_t^-$).
+%These activations/deactivations occur once per Hungarian search, since
+%vertices do not leave $S$ once they enter.
+%When evaluating the argmin, we take the minimum over all active heaps
+%plus the BCP.
 
-We can ultimately charge all heap operations to BCP operations, and
-see that there are $O(k)$ total.
-When a vertex moves into $S$, it begets a heap operation in addition
-to the BCP deletion.
-For example, if $a \in A$ moves into $S$, $(s, a)$ should be deleted
-from $E_t^-$, or $(a, s)$ should be added to $E_t^+$
+For each of the $O(1)$ data structures that are queried during a relaxation,
+the new vertex moved into $S$ as a result of the relaxation causes $O(1)$
+insertion/deletion operations.
+For each of the data structures mentioned above, insertions and deletions
+can be performed in $O(\polylog n)$ time.
 
+For potential updates, we use the same trick as in Lemma~\ref{lemma:hs_time} to
+lazily update potentials after vertices leave $S$.
+To remind, the number of potential updates outside of empty vertices was
+bounded by the number of relaxations performed by the most recent invocation
+of Hungarian search, and thus $O(k)$ by Lemma~\ref{lemma:goldberg_hs_length1}
+and \ref{lemma:goldberg_hs_length2}.
 
-For potential updates, we use the same trick as in
-Lemma~\ref{lemma:hs_time} to lazily update potentials after vertices
-leave $S$.
-To remind, these potential updates were bounded by the number of times
-a point left $S$.
-
+Potentials for the empty vertices must be updated at the end of a scale and 
+whenever they stop being empty, i.e. when an augmentation sends flow through 
+one of its surrounding empty paths.
+In both cases, we fix them to $\pi(a) \gets \pi(s)$ for $a \in A_\emptyset$ and 
+$\pi(b) \gets \pi(t)$ for $b \in B_\emptyset$.
+\note{probably move correctness of this choice into its own lemma; ``feasible choice''}
+The number of empty vertex potential updates is proportional to the size of 
+the blocking flows, which is $O(k\sqrt{k})$ in total for the scale. 
+\note{point to a lemma for blocking flow sizes}
 \end{proof}
 
 
 \subsubsection{Depth-first search}
 
 The depth-first search is similar to \textsc{Hungarian-Search2} in that it
-relies on the relaxation of a minimum-reduced cost edge.
-%TODO simplify dfs, also the empty vertex stuff may complicate this
+relies on the relaxation of a minimum-reduced arc or empty path.
 \begin{algorithm}
 \caption{Depth-first search}
 \begin{algorithmic}[1]
@@ -1334,21 +1280,19 @@ relies on the relaxation of a minimum-reduced cost edge.
 		\EndIf
 
 		\Statex %newline
-		\State $w' \gets \argmin\{c_\pi(v', w) \mid w \in V \setminus S\}$
-		\State $\gamma \gets c_\pi(v', w')$
+		\State $\Pi \gets \argmin\{c_\pi(\Pi) \mid \text{$\Pi$ non-empty edge or empty 2-/3-path leaving $S$}\}$
+		\State $\gamma \gets c_\pi(\Pi)$
+		\State Let $\Pi = (v_1, \ldots, v_\ell)$
+
 		\Statex %newline
 		\If{$\gamma \leq 0$}
-			\Comment{if $(v', w')$ is admissible, extend the current path}
-			\State $S \gets S \cup \{w'\}$
+			\Comment{if $\Pi$ is admissible, extend the current path}
+			\State $S \gets S \cup \Pi$
 
-			\State $P \gets \Call{Push}{$P$, $w'$}$
-
+			\State $P \gets$ \Call{Push}{$P$, $v_\ell$}
 		\EndIf
 
-
-
-
-		\If{$e_f(w') < 0$} \Comment{$w'$ is a deficit}
+		\If{$e_f(v_\ell) < 0$} \Comment{$v_\ell$ is a deficit}
 			\State\Return $(f, \pi)$
 		\EndIf
 	\Until{$S = \emptyset$}
