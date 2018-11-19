@@ -627,7 +627,7 @@ $O(k)$, so the time spent on BCP operations in each Hungarian search
 is $O(k \polylog n)$.
 
 As for the potential updates, we modify a trick from Vaidya~\cite{Vaidya89} to
-batch potential updates. 
+batch potential updates.
 Potentials have a \emph{stored value}, i.e. the current value of $\pi(v)$,
 and a \emph{true value}, which may have changed from $\pi(v)$.
 The algorithm uses the true value when dealing with reduced costs and updates
@@ -636,7 +636,7 @@ the stored value rarely; we explain the mechanism shortly.
 Throughout the course of the algorithm, we maintain a nonnegative value
 $\delta$ (initially 0) which aggregates potential changes.
 Vertices that are added to $S$ are immediately added to a BCP data structure
-with weight $\omega(p) \gets \pi(p) - \delta$, for whatever value $\delta$ is 
+with weight $\omega(p) \gets \pi(p) - \delta$, for whatever value $\delta$ is
 at the time of insertion.
 When the points of $S$ have potentials increased by $\gamma$ in (2), we instead
 raise $\delta \gets \delta + \gamma$.
@@ -644,7 +644,7 @@ Thus, true value for any potential of a point in $S$ is $\omega(p) + \delta$.
 For points of $(A \cup B) \setminus S$, the true potential is equal to the
 stored potential.
 
-Since potentials for $S$ points are uniformly offsetted by $\delta$, the 
+Since potentials for $S$ points are uniformly offsetted by $\delta$, the
 minimum edge returned by the BCP oracle does not change.
 Once a point is removed from $S$, we update its stored potential
 to be $\pi(p) \gets \omega(p) + \delta$, for the current value of $\delta$.
@@ -655,7 +655,7 @@ accurately represented by $\delta$ and $\omega(p)$.
 
 The number of updates to $\delta$ is equal to the number of edge relaxations,
 which is $O(k)$ per Hungarian search.
-We update stored potentials when removing a point from $S$ (by the rewind 
+We update stored potentials when removing a point from $S$ (by the rewind
 mechanism, or due to an augmentation) which occurs $O(k)$ times per Hungarian
 search.
 The time spent on potential updates per Hungarian search is therefore $O(k)$.
