@@ -881,40 +881,43 @@ The procedure is described in Algorithm~\ref{algorithm:scale_init}.
 Let the $H_f$ arcs directed from $s \to A$ or $A \to B$ or $B \to t$ be
 \emph{forward arcs}, and let those in the opposite directions be
 \emph{reverse arcs}.
-The first 4 lines of \textsc{Scale-Init} raise the reduced cost of each
+\note{Already did so in Lemma 4.3; might want to move this definition to somewhere before lemma 4.3.}
+The first four lines \note{try not use use specific numbers, in case you change the pseudocode later} of \textsc{Scale-Init} raise the reduced cost of each
 forward arc by $\eps$, therefore making all forward arcs $\eps$-optimal.
-For example, a forward arc of $A \to B$ now has reduced cost
-\begin{equation*}
-	c(a, b) - (\pi(a) + \eps) + (\pi(b) + 2\eps)
-	= c_\pi(a, b) + \eps
-	\geq -2\eps + \eps
-	= -\eps.
-\end{equation*}
-In the lines after, we deal with the reduced cost of reverse arcs by simply
+\note{Instead of an example, mention that at the start of the iteration, every forward arc is $2\eps$-optimal.}
+% For example, a forward arc of $A \to B$ now has reduced cost
+% \begin{equation*}
+% 	c(a, b) - (\pi(a) + \eps) + (\pi(b) + 2\eps)
+% 	= c_\pi(a, b) + \eps
+% 	\geq -2\eps + \eps
+% 	= -\eps.
+% \end{equation*}
+In the lines after \note{the for-loop}, we deal with the reduced cost of reverse arcs by simply
 de-saturating them if they violate $\eps$-optimality.
 Note that forward arcs will not be de-saturated in this step, since they are
 now $\eps$-optimal.
 
 \begin{lemma}
 \label{lemma:scale_init}
-In $O(n)$ time, \textsc{Scale-Init} turns a $2\eps$-optimal circulation into an
-$\eps$-optimal pseudoflow with $O(k)$ excess.
+\textsc{Scale-Init} turns a $2\eps$-optimal circulation into an
+$\eps$-optimal pseudoflow with $O(k)$ excess in $O(n)$ time.
 \end{lemma}
 
 \begin{proof}
 The potential updates affect every vertex except $s$, so this takes $O(n)$
 time.
-As for the arc de-saturations, every reverse arc is induced by positive flow on
-a forward arc, and the number of positive flow edges in $f$ is $O(k)$.
+As for the arc de-saturation, every reverse arc is induced by positive flow on
+a forward arc, and the number of positive flow edges in $f$ is $O(k)$. \note{By Lemma 4.2}
 The total number of edges that get examined by the loop is therefore $O(k)$.
-In total, the time taken is $O(n)$.
+In total, this takes $O(n)$ time.
 
-For the amount of excess, notice that new excess is only created due to the
-de-saturations of reverse arcs.
-Because the graph is unit-capacity, each de-saturation creates one unit of
+%For the amount of excess,
+Notice that new excess vertex is only created due to the
+de-saturation of reverse arcs.
+Because the arcs in the graph has unit capacity, each de-saturation creates one unit of
 excess.
 By Lemma~\ref{lemma:reduction_count}, there are $|E_{>0}(f)| = O(k)$ reverse
-arcs possible, so the total created excess must be $O(k)$.
+arcs, so the total excess created must be $O(k)$.
 \end{proof}
 
 \subsection{\textsc{Refine}}
