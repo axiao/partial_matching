@@ -711,7 +711,7 @@ Then, $|E_{>0}(f)| = O(k)$.
 \begin{proof}
 By Observation~\ref{observation:dag}, the positive-flow edges of $f$ do not
 contain a cycle.
-Thus, $E_{>0}(f)$ can be decomposed into a set of inclusion-maximal paths of,
+Thus, $E_{>0}(f)$ can be decomposed into a set of inclusion-maximal paths,
 each of which creates a single unit of excess if it does not terminate at $t$.
 A path may also create excess at $t$ if there are at least $k$ other paths
 terminating at $t$.
@@ -912,8 +912,9 @@ $\eps$-optimal pseudoflow with $O(k)$ excess in $O(n)$ time.
 The potential updates affect every vertex except $s$, so this takes $O(n)$
 time.
 As for the arc de-saturation, every reverse arc is induced by positive flow on
-a forward arc, and the number of positive flow edges in $f$ is $O(k)$. \note{By Lemma 4.2}
-The total number of edges that get examined by the loop is therefore $O(k)$.
+a forward arc, and the number of positive flow edges in $f$ is $O(k)$ by
+Lemma~\ref{lemma:reduction_count}.
+The total number of edges examined by the loop is $O(k)$.
 In total, this takes $O(n)$ time.
 
 %For the amount of excess,
