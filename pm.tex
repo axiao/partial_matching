@@ -4,6 +4,8 @@
 \usepackage[hmargin=1in,vmargin=1in]{geometry}
 
 \usepackage[dvipsnames,usenames]{xcolor}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, urlcolor=Blue, citecolor=Green, linkcolor=BrickRed, breaklinks, unicode}
 
 \usepackage[T1]{fontenc}
 \usepackage{times}
@@ -56,12 +58,13 @@
 \def\Update{\textsc{Update}}
 
 \theoremstyle{plain}
-\newtheorem{theorem}{Theorem}
-\newtheorem{lemma}{Lemma}
-\newtheorem{corollary}{Corollary}
-\newtheorem{observation}{Observation}
-\newtheorem{claim}{Claim}
-\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{theorem}[lemma]{Theorem}
+\newtheorem{corollary}[lemma]{Corollary}
+\newtheorem{observation}[lemma]{Observation}
+\newtheorem{claim}[lemma]{Claim}
+\newtheorem{definition}[lemma]{Definition}
+\numberwithin{figure}{section}
 
 \newcommand{\lemlab}[1]{\label{lem:#1}}
 \newcommand{\figlab}[1]{\label{fig:#1}}
@@ -248,7 +251,7 @@ endpoint.
 We use $V(M)$ to denote the vertices matched by $M$.
 The \emph{size} of a matching is the number of edges in the set, and the
 \emph{cost} of a matching is the sum of costs of its edges.
-The \emph{minimum-cost partial matching problem (MPM)} asks to find a size $k$
+The \emph{minimum-cost partial matching problem (MPM)} asks to find a size-$k$
 matching $M^*$ of minimum cost.
 
 \subsection{Minimum-cost flow}
@@ -423,7 +426,7 @@ The number of edges used by these cycles is at most $m$.
 The cost of a residual cycle is equal to its reduced cost, since the potentials
 telescope, so the cost of each $f'$ cycle $\Gamma$ is at least $-|\Gamma|\eps$
 by $\eps$-optimality of $f$.
-Thus, $\cost(f') \geq -m\eps$ , and therefore 
+Thus, $\cost(f') \geq -m\eps$ , and therefore
 $\cost(f) \leq \cost(f^*) + m\eps$.
 \end{proof}
 
@@ -554,7 +557,7 @@ encountered $(S \cap A) \times (B \setminus S)$ edges into a priority queue.
 However, in the bipartite complete graph, this may take $\Theta(rn\polylog(n))$
 time for each Hungarian search --- edges are being pushed into the queue even when
 they are not relaxed.
-We avoid this problem by finding an  edge with minimum cost using \emph{bichromatic
+We avoid this problem by finding an edge with minimum cost using \emph{bichromatic
 closest pair} (BCP) queries on an additively weighted Euclidean distances,
 for which there exist fast %(poly-logarithmic query and update)
 dynamic data structures.
@@ -575,7 +578,7 @@ the proof of Theorem~\ref{theorem:hung}.
 \begin{lemma}
 \label{lemma:hs_time}
 Using the dynamic BCP data structure from Kaplan \etal, we can implement
-Hungarian search with $T(n, k) = O(k\polylog(n))$ and 
+Hungarian search with $T(n, k) = O(k\polylog(n))$ and
 $P(n, k) = O(n\polylog(n))$.
 \end{lemma}
 
@@ -658,27 +661,29 @@ Overall, the time spent per Hungarian search is $T(n, k) = O(k\polylog(n))$.
 \section{Matching with the Goldberg~{\etal} algorithm}
 \label{section:goldberg}
 
-The basis of the algorithm in this section is a \emph{cost-scaling} algorithm
-for unit-capacity min-cost flow from \cite{GHKT17}.
+\note{Remind the readers what you want to achieve in this section.}
+
+The basis of the algorithm in this section is a \emph{cost-scaling} algorithm \note{try not to repeat words}
+for unit-capacity min-cost flow from \cite{GHKT17} \note{don't use citation as a noun}.
 Before describing the algorithm, we first give a linear-time reduction from
 min-cost matching to unit-capacity min-cost flow, which allows us to apply the
-Goldberg~{\etal} algorithm to partial matching.
+Goldberg~{\etal} algorithm \note{never defined} to partial matching.
 
 \subsection{MPM to unit-capacity MCF reduction}
 \label{subsection:mcm_mcf_reduction}
 
-For a partial matching problem on $G = (A \cup B, E_0)$ with parameter $k$, we
-direct the bipartite edges of $E_0$ from $(A \to B)$, with costs equal to the
-original cost $c(a, b)$ and capacity 1.
-Next, we add a dummy vertex $s$ with arcs $(s, a)$ to every $a \in A$,
-and respectively a dummy vertex $t$ with arcs $(b, t)$ for each $b \in B$,
-all with arc cost 0 and capacity 1.
+For a partial matching problem on a bipartite graph $G = (A \cup B, E_0)$ with parameter $k$, we
+direct each bipartite edge in $E_0$ from $A$ to $B$, with cost equal to the
+original cost $c(a, b)$ and capacity $1$.
+Next, we add a dummy vertex $s$ with arcs $(s, a)$ to every vertex $a$ in $A$,
+and a dummy vertex $t$ with arcs $(b, t)$ for every vertex $b$ in $B$,
+all with cost $0$ and capacity $1$.
 For each of the above arcs $(v, w)$, we also add a reverse arc $(w, v)$ with
-cost $c(w, v) = -c(v, w)$ and capacity 0. \note{is this consistent with the other residual graph description?}
+cost $c(w, v) = -c(v, w)$ and capacity $0$. \note{is this consistent with the other residual graph description?}
 Let the complete set of arcs be $E$, and $V = A \cup B \cup \{s, t\}$.
 Set $\fsupply(s) = k$, $\fsupply(t) = -k$, and $\fsupply(v) = 0$ for all other
-vertices.
-Let the resulting graph be $H = (V, E)$.
+vertices. \note{What is $\phi$?  Undefined in this section.}
+Let the resulting graph be $H = (V, E)$. \note{Do you mean network, as you have defined cost, capacity, and supply-demand function?}
 
 \begin{observation}
 \label{observation:dag}
@@ -693,7 +698,7 @@ in $H$ (with $O(k)$ excess) is $O(k)$.
 \begin{lemma}
 \label{lemma:reduction_count}
 Let $f$ be an integer pseudoflow in $H$ with $O(k)$ excess, and let
-$E_{>0}(f) = \{(v, w) \mid f(v, w) > 0\}$.
+$E_{>0}(f) \coloneqq \{(v, w) \mid f(v, w) > 0\}$. \note{Define support earlier outside the lemma statement.}
 Then, $|E_{>0}(f)| = O(k)$.
 \end{lemma}
 
@@ -702,22 +707,21 @@ By Observation~\ref{observation:dag}, the positive-flow edges of $f$ do not
 contain a cycle.
 Thus, the flow decomposition of $f$ is a series of paths, each of which can
 create a single unit of excess if it does not terminate at $t$.
-By assumption, then, there are $O(k)$ such paths.
-The maximum length of any path of positive-flow arcs in $H$ is 3, by the
-capacities in the construction.
+By assumption, there are $O(k)$ such paths.
+The maximum length of any path with positive-flow arcs in $H$ is $3$ by construction.
 We conclude that the number of positive flow arcs in $f$ is $O(k)$.
 \end{proof}
 
 It is straightforward to show that any integer circulation on $H$ uses exactly
-$k$ of the $(A \to B)$ arcs, which correspond to the edges of a size $k$
+$k$ of the $A$-to-$B$ arcs, which correspond to the edges of a size $k$
 matching.
-For a circulation $f$ in $H$, we use $M_f \subseteq E$ to denote the
+For a circulation $f$ in $H$, we use $M_f$ to denote the
 corresponding matching.
 Observe that $\cost(f) = \cost(M_f)$, so an $\alpha$-approximation to the MCF
 problem on $H$ is an $\alpha$-approximation to the matching problem on $G$.
 
-For cost approximation, we can improve Lemma~\ref{lemma:mcf_cost} on $H$.
-Note that for integer-valued (e.g. unit) capacities, there is always an
+We can improve the additive error bound in Lemma~\ref{lemma:mcf_cost} on $H$.
+Note that for integer-valued (in particular, unit) capacities, there is always an
 integer-valued optimal circulation.
 \begin{lemma}
 \label{lemma:goldberg_cost_add}
@@ -727,20 +731,20 @@ Then, $\cost(f) \leq \cost(f^*) + 6k\eps$.
 \end{lemma}
 
 \begin{proof}
-We label the arcs of $H_f$ as follows: \emph{forward arcs} directed from
+We label the arcs of $H_f$ \note{what is $H_f$? residual network?} as follows: \emph{forward arcs} directed from
 $s \to A$ or $A \to B$ or $B \to t$, and \emph{reverse arcs} in the opposite
 directions.
-Observe that a residual cycle $\Gamma$ must have exactly half of its edges be
+Observe that a residual cycle $\Gamma$ must have exactly half of its edges being
 reverse arcs.
-The reverse arcs may either be (i) on one of the $M_f$ edges or else (ii)
-between $\{s\} \times A$ or (iii) between $B \times \{t\}$.
+The reverse arcs may either be (i) on one of the $M_f$ edges \note{what does this mean? the underlying edge is in $M_f$?} or else (ii)
+between $s$ and $A$ or (iii) between $B$ and $t$.
 If it is of type (ii) or (iii), there is an adjacent type (i) reverse arc.
 Thus, we can charge the reverse arcs of $\Gamma$ to $M_f \cap \Gamma$ edges
-with at most 3 charge per edge of $M_f \cap \Gamma$.
-We can then charge all arcs of $f' = (f^* - f) = \sum \Gamma_i$ to $M_f$ with
+with at most 3 charges per edge in $M_f \cap \Gamma$.
+We can then charge all arcs of $f' = (f^* - f) = \sum \Gamma_i$ \note{cannot parse} to $M_f$ with
 at most 6 charge per $M_f$ edge.
 As $|M_f| = k$, the number of arcs in $f'$ is at most $6k$.
-The rest of the argument proceeds as in Lemma~\ref{lemma:mcf_cost}.
+The rest of the argument proceeds as in Lemma~\ref{lemma:mcf_cost}. \note{State at the start of the lemma what property do you need to prove in order to apply the black box.  Even better, rewrite Lemma 2 the take care of both situation assuming some bounds, and derive two corollaries from it.}
 \end{proof}
 
 Suppose we scaled arc costs (via uniform scaling of the input points) such that
@@ -809,10 +813,10 @@ The bulk of this section will describe and analyze \textsc{Scale-Init} and
 For now, we analyze the number of scales (iterations of the outer loop).
 Initially $\eps = kC$, and the algorithm is stopped once $\eps \leq \eps'/6$.
 Thus, the number of scales is $O(\log(kC/\eps'))$.
-For geometric matching problems, there is a simple way to preprocess the point 
+For geometric matching problems, there is a simple way to preprocess the point
 set such that $C = O(n^2)$, effectively, by Sharathkumar and Agarwal~\cite{SA12}.
 Using this preprocessing gives us $O(\log(n/\eps'))$ scales, instead.
-We briefly describe this preprocessing procedure at the end of this section.
+We briefly describe this preprocessing step at the end of this section.
 
 \begin{lemma}
 \label{lemma:goldberg_scales}
@@ -869,10 +873,10 @@ Then, $|E_{>0}(f)| = 3k$.
 \end{lemma}
 
 \begin{proof}
-By assumption, $f$ is a circulation sending all the supply at $s$ to $t$. 
-Thus, $f$ can be decomposed into flows on $k$ $s$-$t$ paths and 0 flow cycles, 
+By assumption, $f$ is a circulation sending all the supply at $s$ to $t$.
+Thus, $f$ can be decomposed into flows on $k$ $s$-$t$ paths and 0 flow cycles,
 since $H$ is acylic.
-Each $s$-$t$ path has length 3 in $H$, therefore the number of edges in 
+Each $s$-$t$ path has length 3 in $H$, therefore the number of edges in
 $E_{>0}(f)$ is $3k$.
 \end{proof}
 
@@ -964,18 +968,18 @@ $O(P_1(n, k) + P_2(n, k) + \sqrt{k}[T_1(n, k) + T_2(n, k)] + k\sqrt{k})$ time.
 \end{lemma}
 
 As we will show shortly (Lemmas~\ref{lemma:goldberg_hs_time},
-\ref{lemma:goldberg_dfs_time}), the total running time for \textsc{Refine} is 
+\ref{lemma:goldberg_dfs_time}), the total running time for \textsc{Refine} is
 $O((n + k\sqrt{k})\polylog(n))$.
 Combining with Lemmas~\ref{lemma:goldberg_scales} and \ref{lemma:scale_init}
 completes the proof of Theorem~\ref{theorem:gmcm}.
-At a high level, our analysis strategy is to charge relaxation events in 
+At a high level, our analysis strategy is to charge relaxation events in
 the search to arcs of $E_{>0}(f)$.
-We first extend Lemma~\ref{lemma:support_size_start} to bound the size of 
+We first extend Lemma~\ref{lemma:support_size_start} to bound the size of
 $E_{>0}(f)$ throughout \textsc{Refine}.
 
 \begin{lemma}
 \label{lemma:support_size_during}
-Let $f$ be the integer-valued pseudoflow before or after any iteration of 
+Let $f$ be the integer-valued pseudoflow before or after any iteration of
 \textsc{Refine}, and $E_{>0}(f) = \{(v, w) \in E_f \mid f(v, w) > 0\}$.
 Then, $|E_{>0}(f)| = O(k)$.
 \end{lemma}
@@ -993,17 +997,17 @@ a path of $E_{>0}(f)$ edges.
 We say an inclusion-maximal path $\Pi \subseteq E_{>0}(f)$ of length at least
 one \emph{induces} a unit of excess at its end, and a unit of deficit at its
 beginning.
-Even if $\Pi$ induces deficit at $v$ and excess at $w$, $v$ may have 
+Even if $\Pi$ induces deficit at $v$ and excess at $w$, $v$ may have
 $e_f(v) \geq 0$ and $w$ may have $e_f(v) \leq 0$, i.e. when $v = s$ and $w = t$
 respectively.
-However, if there are more than $k$ paths inducing deficit at $s$ (resp. 
-inducing excess at $t$), then $s$ will be a deficit vertex (resp. $t$ will be 
+However, if there are more than $k$ paths inducing deficit at $s$ (resp.
+inducing excess at $t$), then $s$ will be a deficit vertex (resp. $t$ will be
 an excess vertex).
 Barring these (up to) $2k$ paths, each inclusion-maximal path $\Pi$ can be
 uniquely assigned to a unit of excess and a unit of deficit in $e_f()$.
 
 Let $X$ be the set of inclusion-maximal paths of the edges of $E_{>0}(f)$.
-Every edge of $E_{>0}(f)$ is part of some inclusion-maximal path 
+Every edge of $E_{>0}(f)$ is part of some inclusion-maximal path
 (possibly containing only that edge), so $X$ covers $E_{>0}(f)$.
 Since $H$ is acyclic, each $\Pi \in X$ has length at most 3, so we have that
 $|E_{>0}(f)| \leq 3|X|$.
@@ -1060,8 +1064,8 @@ arcs to relax as the minimum from $O(1)$ candidate categories:
 
 We say $v \in A \cup B$ is an \emph{empty vertex} if $e_f(v) = 0$ and no edges
 of $E_{>0}(f)$ adjoin $v$.
-The analysis from the previous section is unable to charge relaxation steps 
-involving empty vertices to $|E_{>0}(f)|$, so the algorithm must deal with them 
+The analysis from the previous section is unable to charge relaxation steps
+involving empty vertices to $|E_{>0}(f)|$, so the algorithm must deal with them
 separately.
 Namely, there is no edge with $f(e) > 0$ adjacent to an empty vertex,
 reaching an empty vertex does not terminate the search, and there may be
@@ -1084,8 +1088,8 @@ vertices, called \emph{empty 3-paths}.
 As with 2-paths, we say an empty 3-path $(s, v_1, v_2, t)$ \emph{surrounds}
 $v_1 \in A_\emptyset$ and $v_2 \in B_\emptyset$.
 
-Each relaxation step (Line~\ref{line:hs_relaxation} in 
-\textsc{Hungarian-Search2}) relaxes either an edge between two non-empty 
+Each relaxation step (Line~\ref{line:hs_relaxation} in
+\textsc{Hungarian-Search2}) relaxes either an edge between two non-empty
 vertices (of $S \times V \setminus S$), or an empty 2- or 3-path that starts
 in $S$ and ends in $V \setminus S$.
 Relaxation steps involving an empty 2- or 3-path will relax the entire path
@@ -1131,10 +1135,10 @@ $\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(t)$ for all
 $q \in Q$.
 We query $D_\emptyset(A, B)$ only while $s \in S$ and $t \not\in S$.
 
-To summarize, each relaxation step of \textsc{Hungarian-Search2} takes the 
+To summarize, each relaxation step of \textsc{Hungarian-Search2} takes the
 minimum between:
 \begin{enumerate}
-\item Reverse arcs of $E_{>0}(f)$ edges, maintained in a min-heap as their 
+\item Reverse arcs of $E_{>0}(f)$ edges, maintained in a min-heap as their
 	endpoints arrive in $S$.
 \item Forward arcs of $(A \setminus A_\emptyset) \cap S \times (B \setminus B_\emptyset) \setminus S$,
 	maintained in a BCP data structure with potentials as weights.
@@ -1149,9 +1153,9 @@ minimum between:
 \item Empty 3-paths, from $s$ to $t$, if $s \in S$ and $t \not\in S$,
 	maintained in a BCP data structure $D_\emptyset(A, B)$.
 \end{enumerate}
-Observe that (1-4) queries all arcs leaving $S$ to non-empty vertices, and 
+Observe that (1-4) queries all arcs leaving $S$ to non-empty vertices, and
 (5-7) queries the length 2 or 3 paths leaving $S$ through empty vertices.
-In other words, any arc leaving $S$ is accounted for in one of these 
+In other words, any arc leaving $S$ is accounted for in one of these
 structures.
 Correctness of \textsc{Hungarian-Search2} follows from the following lemma,
 which shows that our special treatment of empty vertices does not change the
@@ -1199,7 +1203,7 @@ way non-empty vertices are added to $S$.
 
 In the next few lemmas, we bound the number of relaxations of each type.
 This will provide a time bound for the Hungarian search in terms of the
-number of relaxations, each of which incur $O(1)$ BCP or min-heap queries and 
+number of relaxations, each of which incur $O(1)$ BCP or min-heap queries and
 updates.
 \note{afterwards, need to provide a time bound of potential updates, or otherwise explain that mechanism}
 
@@ -1254,12 +1258,12 @@ By Lemma~\ref{lemma:support_size_during}, $O(|E_{>0}(f)|) = O(k)$.
 
 \begin{corollary}
 \label{corollary:goldberg_hs_length}
-There are $O(k)$ relaxations in \textsc{Hungarian-Search2} before a deficit 
+There are $O(k)$ relaxations in \textsc{Hungarian-Search2} before a deficit
 vertex is reached.
 \end{corollary}
 
 %TODO HERE
-In order to prove that \textsc{Hungarian-Search2} can be 
+In order to prove that \textsc{Hungarian-Search2} can be
 
 \begin{lemma}
 \label{lemma:goldberg_hs_time}
@@ -1290,7 +1294,7 @@ operations over the course of \textsc{Hungarian-Search2}.
 	or $Q$ to update and incur one BCP insertion/deletion.
 	Like before, we can charge these to the number of edge
 	relaxations over the course of \textsc{Hungarian-Search2}.
-	The number of these is $O(k)$ by 
+	The number of these is $O(k)$ by
 	Corollary~\ref{corollary:goldberg_hs_length}.
 \item Like before, we can meet the assumption in (1) by rewinding a log
 	of point additions to $S$, and recover $S^t_0$.
@@ -1309,16 +1313,16 @@ To remind, with lazy updates, the number of potential updates on non-empty
 vertices was bounded by the number of relaxations in the Hungarian search,
 which is $O(k)$ by Corllary~\ref{corollary:goldberg_hs_length}.
 
-Potentials for the empty vertices must be updated at the end of a scale and 
-whenever they stop being empty, i.e. when an augmentation sends flow through 
+Potentials for the empty vertices must be updated at the end of a scale and
+whenever they stop being empty, i.e. when an augmentation sends flow through
 one of its surrounding empty paths.
-In both cases, we fix them to $\pi(a) \gets \pi(s)$ for $a \in A_\emptyset$ and 
+In both cases, we fix them to $\pi(a) \gets \pi(s)$ for $a \in A_\emptyset$ and
 $\pi(b) \gets \pi(t)$ for $b \in B_\emptyset$.
-This preserves feasibility of the potentials on every empty path, and 
+This preserves feasibility of the potentials on every empty path, and
 admissibility on the arcs of an empty path that is augmented through.
 \note{move correctness of this choice into its own lemma; ``feasible choice''?}
-The number of empty vertex potential updates is proportional to the size of 
-the blocking flows, which is $O(k\sqrt{k})$ in total for the scale. 
+The number of empty vertex potential updates is proportional to the size of
+the blocking flows, which is $O(k\sqrt{k})$ in total for the scale.
 \note{point to a lemma for blocking flow sizes}
 \end{proof}
 
