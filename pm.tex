@@ -246,9 +246,9 @@ that $\min_{e \in E} c(e) = 1$.
 A \emph{matching} $M \subseteq E$ is a set of edges where no two edges share an
 endpoint.
 We use $V(M)$ to denote the vertices matched by $M$.
-The \emph{size} of a matching is the number of edges in the set, and the \emph{cost} of a
-matching is the sum of costs of its edges.
-The \emph{minimum-cost partial matching problem (MPM)} asks to find a size-$k$
+The \emph{size} of a matching is the number of edges in the set, and the
+\emph{cost} of a matching is the sum of costs of its edges.
+The \emph{minimum-cost partial matching problem (MPM)} asks to find a size $k$
 matching $M^*$ of minimum cost.
 
 \subsection{Minimum-cost flow}
@@ -273,7 +273,7 @@ Denote this set of new \emph{reverse arcs} by $E^R$.
 \note{How do you feel about using darts and arcs to describe the distinction?}
 From here forward, we work with the symmetric multigraph
 $G = (V, E = E_0 \cup E^R)$. \note{Oh man.  This is a mouthful, use English.}
-A \emph{network} $(G, c, u, \fsupply)$ is a graph $G$ argmented with arc costs, capacities, and a supply-demand function on vertices of $G$.
+A \emph{network} $(G, c, u, \fsupply)$ is a graph $G$ augmented with arc costs, capacities, and a supply-demand function on vertices of $G$.
 
 \paragraph{Pseudoflows.}
 A \emph{pseudoflow} $f$ is an antisymmetric function on arcs \note{define codomain; integers?}
@@ -1258,6 +1258,8 @@ There are $O(k)$ relaxations in \textsc{Hungarian-Search2} before a deficit
 vertex is reached.
 \end{corollary}
 
+%TODO HERE
+In order to prove that \textsc{Hungarian-Search2} can be 
 
 \begin{lemma}
 \label{lemma:goldberg_hs_time}
@@ -1301,11 +1303,11 @@ For each of the data structures mentioned above, insertions and deletions
 can be performed in $O(\polylog n)$ time.
 
 For potential updates, we use the same trick as in Lemma~\ref{lemma:hs_time} to
-lazily update potentials after vertices leave $S$.
-To remind, the number of potential updates outside of empty vertices was
-bounded by the number of relaxations performed by the most recent invocation
-of Hungarian search, and thus $O(k)$ by Lemma~\ref{lemma:goldberg_hs_length1}
-and \ref{lemma:goldberg_hs_length2}.
+lazily update potentials after vertices leave $S$, but only for non-empty
+vertices.
+To remind, with lazy updates, the number of potential updates on non-empty
+vertices was bounded by the number of relaxations in the Hungarian search,
+which is $O(k)$ by Corllary~\ref{corollary:goldberg_hs_length}.
 
 Potentials for the empty vertices must be updated at the end of a scale and 
 whenever they stop being empty, i.e. when an augmentation sends flow through 
@@ -1323,7 +1325,12 @@ the blocking flows, which is $O(k\sqrt{k})$ in total for the scale.
 \subsubsection{Depth-first search}
 
 The depth-first search is similar to \textsc{Hungarian-Search2} in that it
-relies on the relaxation of a minimum-reduced arc or empty path.
+uses the relaxation of minimum-reduced cost arcs/empty paths, this time to
+identify admissible arcs/empty paths in a depth-first manner.
+This requires replacing many of the BCP data structures with nearest-neighbor
+(NN) data structures, to query the minimum reduced-cost path leaving a
+particular $v' \in S$ rather than all vertices of $S$ simultaneously.
+
 \begin{algorithm}
 \caption{Depth-first search}
 \begin{algorithmic}[1]
@@ -1341,19 +1348,19 @@ relies on the relaxation of a minimum-reduced arc or empty path.
 		\EndIf
 
 		\Statex %newline
-		\State $\Pi \gets \argmin\{c_\pi(\Pi) \mid \text{$\Pi$ non-empty edge or empty 2-/3-path leaving $S$}\}$
+		\State $\Pi \gets \argmin\{c_\pi(\Pi) \mid \text{$\Pi$ non-empty edge or empty 2-/3-path from $v'$ into $V \setminus S$}\}$
 		\State $\gamma \gets c_\pi(\Pi)$
-		\State Let $\Pi = (v_1, \ldots, v_\ell)$
+		\State Let $\Pi = (v', w_1, \ldots, w_\ell)$
 
 		\Statex %newline
 		\If{$\gamma \leq 0$}
 			\Comment{if $\Pi$ is admissible, extend the current path}
 			\State $S \gets S \cup \Pi$
 
-			\State $P \gets$ \Call{Push}{$P$, $v_\ell$}
+			\State $P \gets$ \Call{Push}{$P$, $w_\ell$}
 		\EndIf
 
-		\If{$e_f(v_\ell) < 0$} \Comment{$v_\ell$ is a deficit}
+		\If{$e_f(w_\ell) < 0$} \Comment{$w_\ell$ is a deficit}
 			\State\Return $(f, \pi)$
 		\EndIf
 	\Until{$S = \emptyset$}
