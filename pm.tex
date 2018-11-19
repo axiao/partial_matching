@@ -455,7 +455,7 @@ finds an admissible augmenting path; we call this subrouotine the \emph{Hungaria
 
 \begin{figure*}
 \centering
-\begin{minipage}{.7\linewidth}
+\begin{minipage}{.5\linewidth}
 \begin{algorithm}[H]
 \caption{Hungarian algorithm}
 \begin{algorithmic}[1]
@@ -784,7 +784,10 @@ approximation or even optimal when costs are integer~\cite{GT90,GHKT17}.
 We present this algorithm as an approximation is because costs in geometric
 partial matching (i.e. Euclidean distances) are generally not integer.
 
-\begin{algorithm}
+\begin{figure*}
+\centering
+\begin{minipage}{.5\linewidth}
+\begin{algorithm}[H]
 \caption{Cost-Scaling MCF}
 \begin{algorithmic}[1]
 \Function{MCF}{$H$, $\eps'$}
@@ -800,6 +803,8 @@ partial matching (i.e. Euclidean distances) are generally not integer.
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
+\end{minipage}
+\end{figure*}
 
 Note that the 0 flow is trivially $kC$-optimal for $H$.
 At the beginning of each scale, \textsc{Scale-Init} takes the previous
@@ -826,7 +831,10 @@ $O(\log(n/\eps'))$ scales.
 
 \subsection{\textsc{Scale-Init}}
 
-\begin{algorithm}
+\begin{figure*}
+\centering
+\begin{minipage}{.8\linewidth}
+\begin{algorithm}[H]
 \caption{Scale Initialization}
 \label{algorithm:scale_init}
 \begin{algorithmic}[1]
@@ -844,6 +852,8 @@ $O(\log(n/\eps'))$ scales.
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
+\end{minipage}
+\end{figure*}
 
 The procedure is described in Algorithm~\ref{algorithm:scale_init}.
 Let the $H_f$ arcs directed from $s \to A$ or $A \to B$ or $B \to t$ be
@@ -909,7 +919,10 @@ which sends improving flows on admissible edges like the Hungarian algorithm.
 Unlike the Hungarian algorithm, it uses blocking flows instead of augmenting
 paths.
 
-\begin{algorithm}
+\begin{figure*}
+\centering
+\begin{minipage}{.6\linewidth}
+\begin{algorithm}[H]
 \caption{Refinement}
 \begin{algorithmic}[1]
 \Function{Refine}{$H = (V, E)$, $f$, $\pi$}
@@ -923,6 +936,8 @@ paths.
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
+\end{minipage}
+\end{figure*}
 
 Using the properties of blocking flows and the unit-capacity input graph,
 Goldberg~{\etal} prove that there are $O(\sqrt{k})$ blocking flows before
@@ -1020,7 +1035,10 @@ It follows that $|X| = O(k)$ and therefore $|E_{>0}(f)| = O(k)$.
 
 \subsubsection{Hungarian search}
 
-\begin{algorithm}
+\begin{figure*}
+\centering
+\begin{minipage}{.8\linewidth}
+\begin{algorithm}[H]
 \caption{Hungarian Search (cost-scaling)}
 \begin{algorithmic}[1]
 \Function{Hungarian-Search2}{$H = (V, E)$, $f$, $\pi$}
@@ -1044,6 +1062,8 @@ It follows that $|X| = O(k)$ and therefore $|E_{>0}(f)| = O(k)$.
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
+\end{minipage}
+\end{figure*}
 
 
 \note{a higher level comment about this section, it feels like we need a formal proof of correctness for relaxing empty paths}
