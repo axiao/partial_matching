@@ -75,8 +75,9 @@
 \def\corref#1{Corollary~\ref{cor:#1}}
 \def\figref#1{Figure~\ref{fig:#1}} \def\secref#1{Section~\ref{sec:#1}}
 
-\def\parent{\operatorname{par}}
 \def\cost{\operatorname{cost}}
+\def\parent{\operatorname{par}}
+\def\short{\operatorname{short}}
 
 
 \makeatletter
@@ -184,7 +185,7 @@ parameter.  A minimum-cost geometric partial matching of size $k$
 can be computed between $A$ and $B$ in $O((n + k^2)\polylog n)$ time.
 \end{theorem}
 
-% O((n + k\sqrt{k})\polylog(n)\log(n/\eps))
+% O((n + k\sqrt{k})\polylog n\log(n/\eps))
 
 Next in Section~\ref{section:goldberg}, we apply a similar technique to the unit-capacity min-cost circulation
 algorithm of Goldberg, Hed, Kaplan, and Tarjan~\cite{GHKT17}.
@@ -210,7 +211,7 @@ This time, we use the strongly polynomial uncapacitated min-cost flow algorithm
 by Orlin~\cite{xxx} \note{Cite}.
 The result is an $O(n^{3/2} r \polylog n)$ time algorithm for unbalanced
 transportation.
-This improves over the $O(n^2 \polylog(n))$ time algorithm of %TODO cite
+This improves over the $O(n^2 \polylog n)$ time algorithm of %TODO cite
 when $r = o(\sqrt{n})$.
 
 \begin{theorem}
@@ -224,7 +225,7 @@ An optimal transportation map can be computed in $O(n^{3/2}r\polylog n)$ time.
 %TODO STILL IN PROGRESS, WE DON'T HAVE A SOLUTION YET. REMOVE IF FAILS.
 
 %Finally, we show that an algorithm by Orlin~\cite{} for uncapacitated min-cost
-%flow can be modified to give an $O(nr\polylog(n))$ time algorithm for the
+%flow can be modified to give an $O(nr\polylog n)$ time algorithm for the
 %unbalanced transportation problem.
 %Unlike matching, vertices may be ``matched'' (transporting) to more than one
 %other vertex.
@@ -244,7 +245,7 @@ By nature of the BCP/NN oracles we use, our results generalize to any $L_p$ dist
 
 Let $G$ be a bipartite graph between vertex sets $A$ and $B$ and edge set $E$,
 with costs $c(v, w)$ for each edge $e$ in $E$.
-We use $C := \max_{e \in E} c(e)$, and assume that the problem is scaled such
+We use $C \coloneqq \max_{e \in E} c(e)$, and assume that the problem is scaled such
 that $\min_{e \in E} c(e) = 1$.
 A \emph{matching} $M \subseteq E$ is a set of edges where no two edges share an
 endpoint.
@@ -282,6 +283,7 @@ A \emph{network} $(G, c, u, \fsupply)$ is a graph $G$ augmented with arc costs, 
 A \emph{pseudoflow} $f$ is an antisymmetric function on arcs \note{define codomain; integers?}
 satisfying $f(v, w) \leq u(v, w)$ for all arcs $(v, w)$.
 We say that $f$ \emph{saturates} an arc $e$ if $f(v, w) = u(v, w)$.
+The \emph{support} of $f$ is $E_{>0}(f) \coloneqq \{(v, w) \mid f(v, w) > 0\}$.
 All our algorithms will handle integer-valued pseudoflows, so in the
 unit-capacity setting an arc is either saturated or has zero flow.
 Given a pseudoflow $f$, we define the \emph{imbalance} of a vertex to be
@@ -355,7 +357,7 @@ Formally, the
 \emph{potentials} $\pi(v)$ are the variables of the linear program dual to \note{which primal problem? State the correspodning linear problems explicitly}.
 The \emph{reduced cost} of an arc $(v, w)$ in $E_f$ with respect to $\pi$ is
 \[
-c_\pi(v, w) := c(v, w) - \pi(v) + \pi(w).
+c_\pi(v, w) \coloneqq c(v, w) - \pi(v) + \pi(w).
 \]
 \note{Mention that reduced costs are still antisymmetric.}
 The \emph{dual feasibility constraint} is that $c_\pi(v, w) \geq 0$ holds for all
@@ -554,7 +556,7 @@ $k-1$ such vertices), or finds an unmatched vertex and ends the search.
 
 In general graphs, the minimum edge is typically found by pushing all
 encountered $(S \cap A) \times (B \setminus S)$ edges into a priority queue.
-However, in the bipartite complete graph, this may take $\Theta(rn\polylog(n))$
+However, in the bipartite complete graph, this may take $\Theta(rn\polylog n)$
 time for each Hungarian search --- edges are being pushed into the queue even when
 they are not relaxed.
 We avoid this problem by finding an edge with minimum cost using \emph{bichromatic
@@ -571,21 +573,22 @@ In our setting, the vertex weights will be set as the potentials; the correspond
 \note{Short history on BCP?}
 The state of the art dynamic BCP data structure from Kaplan, Mulzer,
 Roditty, Seiferth, and Sharir~\cite{KMRSS17} supports point insertions and deletions in
-$O(\polylog(n))$ time, and answers queries in $O(\log^2 n)$ time.
+$O(\polylog n)$ time, and answers queries in $O(\log^2 n)$ time.
 The following lemma, combined with Theorem~\ref{theorem:hung_orig}, completes
 the proof of Theorem~\ref{theorem:hung}.
 
 \begin{lemma}
 \label{lemma:hs_time}
 Using the dynamic BCP data structure from Kaplan \etal, we can implement
-Hungarian search with $T(n, k) = O(k\polylog(n))$ and
-$P(n, k) = O(n\polylog(n))$.
+Hungarian search with $T(n, k) = O(k\polylog n)$ and
+$P(n, k) = O(n\polylog n)$.
 \end{lemma}
 
 \begin{proof}
-We will maintain a BCP \note{BCP is a \emph{problem}, not a \emph{data structure}} between $P = (S \cap A)$ and
+We will maintain a BCP data structure between $P = (S \cap A)$ and
 $Q = (B \setminus S)$.
-Changes to the BCP sets \note{undefined} are entirely driven by changing $S$; that is, updates to $S$ incur BCP insertions/deletions.
+Changes to the $P$ and $Q$ are entirely driven by changing $S$; that is,
+updates to $S$ incur BCP insertions/deletions.
 We first analyze the bookkeeping besides the dual updates, and then
 show how dual updates can be implemented efficiently.
 
@@ -622,11 +625,10 @@ show how dual updates can be implemented efficiently.
 	\note{TODO instead of reversing a log, is persistence an easier solution to this?}
 \end{enumerate}
 
-We spend $P(n, k) = O(n \polylog(n))$ time to build
-the initial BCP.
+We spend $P(n, k) = O(n \polylog n)$ time to build the initial BCP.
 The number of BCP operations associated with each Hungarian search is
 $O(k)$, so the time spent on BCP operations in each Hungarian search
-is $O(k \polylog(n))$.
+is $O(k \polylog n)$.
 
 As for the potential updates,
 we modify a trick from Vaidya~\cite{Vaidya89} to batch potential
@@ -652,7 +654,7 @@ The number of times we have to compute the true potential is bounded by
 the number times we remove a point from $S$, which is at most $O(k)$ per Hungarian search as well.
 The total time spent on potential updates per Hungarian search is therefore
 $O(k)$.
-Overall, the time spent per Hungarian search is $T(n, k) = O(k\polylog(n))$.
+Overall, the time spent per Hungarian search is $T(n, k) = O(k\polylog n)$.
 
 \note{The proof gets more handwavy as the paragraph progresses.  Consider a revision after this round.}
 \end{proof}
@@ -697,8 +699,7 @@ in $H$ (with $O(k)$ excess) is $O(k)$.
 
 \begin{lemma}
 \label{lemma:reduction_count}
-Let $f$ be an integer pseudoflow in $H$ with $O(k)$ excess, and let
-$E_{>0}(f) \coloneqq \{(v, w) \mid f(v, w) > 0\}$. \note{Define support earlier outside the lemma statement.}
+Let $f$ be an integer pseudoflow in $H$ with $O(k)$ excess.
 Then, $|E_{>0}(f)| = O(k)$.
 \end{lemma}
 
@@ -707,8 +708,12 @@ By Observation~\ref{observation:dag}, the positive-flow edges of $f$ do not
 contain a cycle.
 Thus, the flow decomposition of $f$ is a series of paths, each of which can
 create a single unit of excess if it does not terminate at $t$.
-By assumption, there are $O(k)$ such paths.
-The maximum length of any path with positive-flow arcs in $H$ is $3$ by construction.
+A path may also create excess at $t$ if there are at least $k$ other paths
+terminating at $t$.
+By assumption, there are $O(k)$ units of excess to which we can associate
+paths, and at most $k$ paths that we cannot associate to a unit of excess.
+The maximum length of any path with positive-flow arcs in $H$ is $3$ by
+construction.
 We conclude that the number of positive flow arcs in $f$ is $O(k)$.
 \end{proof}
 
@@ -873,23 +878,6 @@ de-saturating them if they violate $\eps$-optimality.
 Note that forward arcs will not be de-saturated in this step, since they are
 now $\eps$-optimal.
 
-To bound the amount of excess after \textsc{Scale-Init}, we first bound the
-number of edges with positive flow.
-\begin{lemma}
-\label{lemma:support_size_start}
-Let $f$ be the flow at the beginning of \textsc{Scale-Init} and
-$E_{>0}(f) = \{(v, w) \in E_f \mid f(v, w) > 0\}$.
-Then, $|E_{>0}(f)| = 3k$.
-\end{lemma}
-
-\begin{proof}
-By assumption, $f$ is a circulation sending all the supply at $s$ to $t$.
-Thus, $f$ can be decomposed into flows on $k$ $s$-$t$ paths and 0 flow cycles,
-since $H$ is acylic.
-Each $s$-$t$ path has length 3 in $H$, therefore the number of edges in
-$E_{>0}(f)$ is $3k$.
-\end{proof}
-
 \begin{lemma}
 \label{lemma:scale_init}
 In $O(n)$ time, \textsc{Scale-Init} turns a $2\eps$-optimal circulation into an
@@ -908,8 +896,8 @@ For the amount of excess, notice that new excess is only created due to the
 de-saturations of reverse arcs.
 Because the graph is unit-capacity, each de-saturation creates one unit of
 excess.
-There are $|E_{>0}(f)| = 3k$ reverse arcs possible, so the total created excess
-must be $O(k)$.
+By Lemma~\ref{lemma:reduction_count}, there are $|E_{>0}(f)| = O(k)$ reverse
+arcs possible, so the total created excess must be $O(k)$.
 \end{proof}
 
 \subsection{\textsc{Refine}}
@@ -984,20 +972,20 @@ $O(P_1(n, k) + P_2(n, k) + \sqrt{k}[T_1(n, k) + T_2(n, k)] + k\sqrt{k})$ time.
 
 As we will show shortly (Lemmas~\ref{lemma:goldberg_hs_time},
 \ref{lemma:goldberg_dfs_time}), the total running time for \textsc{Refine} is
-$O((n + k\sqrt{k})\polylog(n))$.
+$O((n + k\sqrt{k})\polylog n)$.
 Combining with Lemmas~\ref{lemma:goldberg_scales} and \ref{lemma:scale_init}
 completes the proof of Theorem~\ref{theorem:gmcm}.
 At a high level, our analysis strategy is to charge relaxation events in
 the search to arcs of $E_{>0}(f)$.
-We first extend Lemma~\ref{lemma:support_size_start} to bound the size of
-$E_{>0}(f)$ throughout \textsc{Refine}.
+We first extend Lemma~\ref{lemma:reduction_count} to bound the size of
+$E_{>0}(f)$ throughout \textsc{Refine}, by observing that the amount of excess
+is strictly decreasing throughout \textsc{Refine}.
 
-\begin{lemma}
-\label{lemma:support_size_during}
-Let $f$ be the integer-valued pseudoflow before or after any iteration of
-\textsc{Refine}, and $E_{>0}(f) = \{(v, w) \in E_f \mid f(v, w) > 0\}$.
+\begin{corollary}
+\label{corollary:support_size_during}
+Let $f$ be the pseudoflow before or after any iteration of \textsc{Refine}.
 Then, $|E_{>0}(f)| = O(k)$.
-\end{lemma}
+\end{corollary}
 
 \begin{proof}
 From Lemma~\ref{lemma:support_size_start} and the proof of
@@ -1033,60 +1021,52 @@ It follows that $|X| = O(k)$ and therefore $|E_{>0}(f)| = O(k)$.
 \end{proof}
 
 
-\subsubsection{Hungarian search}
+% \subsubsection{Hungarian search}
+%
+% \begin{figure*}
+% \centering
+% \begin{minipage}{.8\linewidth}
+% \begin{algorithm}[H]
+% \caption{Hungarian Search (cost-scaling)}
+% \begin{algorithmic}[1]
+% \Function{Hungarian-Search2}{$H = (V, E)$, $f$, $\pi$}
+% 	\State $S \gets \{v \in V \mid e_f(v) > 0\}$
+% 	\Repeat
+% 		\State $\Pi \gets \argmin\{c_\pi(\Pi) \mid \text{$\Pi$ non-empty edge or empty 2-/3-path leaving $S$}\}$
+% 			\label{line:hs_relaxation}
+% 		\State $\gamma \gets c_\pi(\Pi)$
+% 		\If{$\gamma > 0$}
+% 			\Comment{make $\Pi$ admissible if it isn't}
+% 			\State $\pi(v) \gets \pi(v) + \gamma\lceil\frac{\gamma}{\eps}\rceil, \forall v \in S$
+% 		\EndIf
+% 		\State $S \gets S \cup \Pi$
+% 		\Statex %newline
+% 		\State Let $\Pi = v_1, \ldots, v_\ell$
+% 		\If{$e_f(v_\ell) < 0$} \Comment{$\Pi$ reached a deficit}
+% 			\State\Return $(f, \pi)$
+% 		\EndIf
+% 	\Until{$S = (A \cup B)$}
+% 	\State\Return failure
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
+% \end{minipage}
+% \end{figure*}
 
-\begin{figure*}
-\centering
-\begin{minipage}{.8\linewidth}
-\begin{algorithm}[H]
-\caption{Hungarian Search (cost-scaling)}
-\begin{algorithmic}[1]
-\Function{Hungarian-Search2}{$H = (V, E)$, $f$, $\pi$}
-	\State $S \gets \{v \in V \mid e_f(v) > 0\}$
-	\Repeat
-		\State $\Pi \gets \argmin\{c_\pi(\Pi) \mid \text{$\Pi$ non-empty edge or empty 2-/3-path leaving $S$}\}$
-			\label{line:hs_relaxation}
-		\State $\gamma \gets c_\pi(\Pi)$
-		\If{$\gamma > 0$}
-			\Comment{make $\Pi$ admissible if it isn't}
-			\State $\pi(v) \gets \pi(v) + \gamma\lceil\frac{\gamma}{\eps}\rceil, \forall v \in S$
-		\EndIf
-		\State $S \gets S \cup \Pi$
-		\Statex %newline
-		\State Let $\Pi = v_1, \ldots, v_\ell$
-		\If{$e_f(v_\ell) < 0$} \Comment{$\Pi$ reached a deficit}
-			\State\Return $(f, \pi)$
-		\EndIf
-	\Until{$S = (A \cup B)$}
-	\State\Return failure
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-\end{minipage}
-\end{figure*}
 
+As it turns out, there are some vertices whose relaxation events we cannot
+charge to the support size.
+However, we can replace $H_f$ with an equivalent graph without them,
+and run \textsc{Hungarian-Search2} and \textsc{DFS} on the resulting graph.
+We describe these vertices and their properties, before describing
+\textsc{Hungarian-Search2} and \textsc{DFS}.
 
-\note{a higher level comment about this section, it feels like we need a formal proof of correctness for relaxing empty paths}
-
-Like \textsc{Hungarian-Search}, \textsc{Hungarian-Search2} includes new
-vertices into $S$ by relaxing minimum-reduced cost arcs.
-Potentials are now raised in intervals of $\eps$, but this still preserves
-$\eps$-optimality on the $S \times V \setminus S$ residual arcs.
-Similar to the previous discussion, \textsc{Hungarian-Search2} computes the
-arcs to relax as the minimum from $O(1)$ candidate categories:
-\begin{enumerate}
-\item Reverse arcs $(v, w)$ with $(w, v) \in E_{>0}(f)$ using a min-heap.
-\item Forward arcs using a BCP data structure between points of $A$ and $B$.
-\item Forward arcs from $s$ to $A$ and from $B$ to $t$, using min-heaps.
-\item A new category of short (length 2, 3) paths called \emph{empty paths},
-	which we describe in the remainder of this section.
-\end{enumerate}
+\subsubsection{Empty vertices and the shortcut graph}
 
 We say $v \in A \cup B$ is an \emph{empty vertex} if $e_f(v) = 0$ and no edges
 of $E_{>0}(f)$ adjoin $v$.
-The analysis from the previous section is unable to charge relaxation steps
-involving empty vertices to $|E_{>0}(f)|$, so the algorithm must deal with them
-separately.
+We are unable to charge relaxation steps involving empty vertices to
+$|E_{>0}(f)|$, so the algorithm must deal with them separately.
 Namely, there is no edge with $f(e) > 0$ adjacent to an empty vertex,
 reaching an empty vertex does not terminate the search, and there may be
 $\Omega(n)$ empty vertices at once (consider $H_{f = 0}$, the residual graph
@@ -1097,145 +1077,232 @@ Vertices that are not empty are called \emph{non-empty vertices}.
 
 For an empty vertex $v$, either residual in-degree ($v \in A_\emptyset$) or
 residual out-degree ($v \in B_\emptyset$) is 1.
-Instead of querying an empty vertex during the search, we shortcut it using the
-length 2 paths to/from non-empty vertices, called \emph{empty 2-paths}.
+Call a length 2 paths through $v$ to/from non-empty vertices an
+\emph{empty 2-path}.
 For example, if $v \in A_\emptyset$ (resp. $v \in B_\emptyset$), then its empty
 2-paths have the form $(s, v, b)$ (resp. $(a, v, t)$) for each
 $b \in B \setminus B_\emptyset$ (resp. $a \in A \setminus A_\emptyset$).
 We say that $(s, v, b)$ is an empty 2-path \emph{surrounding} empty vertex $v$.
-Separately, we consider the length 3 $s$-$t$ paths that pass through two empty
-vertices, called \emph{empty 3-paths}.
+Separately, we define the length 3 $s$-$t$ paths that pass through two empty
+vertices to be \emph{empty 3-paths}.
 As with 2-paths, we say an empty 3-path $(s, v_1, v_2, t)$ \emph{surrounds}
 $v_1 \in A_\emptyset$ and $v_2 \in B_\emptyset$.
 
-Each relaxation step (Line~\ref{line:hs_relaxation} in
-\textsc{Hungarian-Search2}) relaxes either an edge between two non-empty
-vertices (of $S \times V \setminus S$), or an empty 2- or 3-path that starts
-in $S$ and ends in $V \setminus S$.
-Relaxation steps involving an empty 2- or 3-path will relax the entire path
-at once, moving all vertices of the path into $S$.
-Relaxation steps that do not involve an empty 2- or 3-path are called
-\emph{non-empty relaxations}.
-
-Consider an empty 2-path $(s, v, b)$ that surrounds $v$.
-Reduced costs telescope for residual paths, the reduced cost of $(s, v, b)$
-does not depend on the potential of $v$.
+As for the costs of empty paths, consider an empty 2-path $(s, v, b)$ that
+surrounds $v \in A_\emptyset$.
+Because reduced costs telescope for residual paths, the reduced cost of
+$(s, v, b)$ does not depend on the potential of $v$.
 \begin{equation*}
 	c_\pi((s, v, b)) = c_\pi(s, v) + c_\pi(v, b) = c(v, b) - \pi(s) + \pi(b)
 \end{equation*}
-Thus, we can safely ignore the potential of $v$ until it ceases to be
-empty, e.g. after an augmentation across one of its empty paths.
-At that point, we can infer $\pi(v)$ from the potentials of the empty 2-path
-augmented through (this path must be admissible).
-Before we go into the details of updating the sets of empty vertices and their
-potentials, we describe the mechanism for querying the minimum-reduced cost
-empty 2- and 3-paths.
+Something similar holds for empty 2-paths surrounding $B_\emptyset$ vertices,
+and empty 3-paths.
 
-When the search has $s \in S$, we can query the minimum-reduced cost empty
-2-path surrounding $A_\emptyset$ vertices using a data structure
-$D_\emptyset(A)$ maintaining
-$BCP(P = A_\emptyset, Q = (B \setminus B_\emptyset) \setminus S)$ with weights
-$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for all
-$q \in Q$.
-It is simple to verify that if $(p, q)$ is the BCP of $P, Q$ above, then its
-BCP distance is precisely the reduced cost of the 2-path $(s, p, q)$.
-We can build similar query data structures for other empty 2-paths and empty
-3-paths, also reporting a pair whose weighted distance is equal to the reduced
-cost of the corresponding empty 2- or 3-path.
-Empty 2-paths surrounding $B_\emptyset$ vertices can be queried using
-$D_\emptyset(B)$ which maintains
-$BCP(P = (A \setminus A_\emptyset) \cap S, Q = B_\emptyset)$ with weights
-$\omega(p) = \pi(p)$ for all $p \in P$, and $\omega(q) = \pi(t)$ for all
-$q \in Q$.
-We query $D_\emptyset(B)$ so long as $t \not\in S$.
-Lastly, the minimum-reduced cost empty 3-path can be queried using a data
-structure $D_\emptyset(A, B)$ maintaining
-$BCP(P = A_\emptyset \setminus S, Q = B_\emptyset)$ with weights
-$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(t)$ for all
-$q \in Q$.
-We query $D_\emptyset(A, B)$ only while $s \in S$ and $t \not\in S$.
+We construct the \emph{shortcut graph} $\tilde{H}_f$ from $H_f$ by removing all
+empty vertices and their adjacent edges, and then inserting a direct arc
+between the end points of each empty path $\Pi$ of equal cost.
+We call this direct edge the \emph{shortcut} $\short(\Pi)$ of empty path $\Pi$.
+For example, the empty 2-path $(s, v, b)$ for $v \in A_\emptyset$ is replaced
+with a shortcut $(s, b)$ of cost $c(\short(s, v, b)) \coloneqq c(v, b)$.
+Similarly, the empty 3-path $(s, v_1, v_2, t)$ would be replaced with a
+shortcut $(s, t)$ of cost $c(\short((s, v_1, v_2 t))) \coloneqq c(v_1, v_2)$.
 
-To summarize, each relaxation step of \textsc{Hungarian-Search2} takes the
-minimum between:
-\begin{enumerate}
-\item Reverse arcs of $E_{>0}(f)$ edges, maintained in a min-heap as their
-	endpoints arrive in $S$.
-\item Forward arcs of $(A \setminus A_\emptyset) \cap S \times (B \setminus B_\emptyset) \setminus S$,
-	maintained in a BCP data structure with potentials as weights.
-\item Forward arcs between $s$ and $(A \setminus A_\emptyset) \cap S$ if
-	$s \in S$, maintained in a min-heap.
-\item Forward arcs between $(B \setminus B_\emptyset) \cap S$ and $t$ if
-	$t \not\in S$, maintained in a min-heap.
-\item Empty 2-paths from $s$ to vertices of $(B \setminus B_\emptyset) \setminus S$, if
-	$s \in S$, maintained in a BCP data structure $D_\emptyset(A)$.
-\item Empty 2-paths from vertices of $(A \setminus A_\emptyset) \cap S$ to $t$, if
-	$t \not\in S$, maintained in a BCP data structure $D_\emptyset(B)$.
-\item Empty 3-paths, from $s$ to $t$, if $s \in S$ and $t \not\in S$,
-	maintained in a BCP data structure $D_\emptyset(A, B)$.
-\end{enumerate}
-Observe that (1-4) queries all arcs leaving $S$ to non-empty vertices, and
-(5-7) queries the length 2 or 3 paths leaving $S$ through empty vertices.
-In other words, any arc leaving $S$ is accounted for in one of these
-structures.
-Correctness of \textsc{Hungarian-Search2} follows from the following lemma,
-which shows that our special treatment of empty vertices does not change the
-way non-empty vertices are added to $S$.
+The resulting multigraph $\tilde{H}_f$ contains only the non-empty vertices of
+$V$, and has the same connectivity between non-empty vertices as $H_f$.
+Consider a path $\Pi$ from non-empty $v$ to non-empty $w$ in $H_f$.
+Any empty vertex in $\Pi$ is surrounded by an empty 2- or 3-path contained
+in $\Pi$, since the only nontrivial residual paths through an empty vertex are
+its surrounding empty paths.
+Thus, there is a corresponding $v$-to-$w$ path $\tilde{\Pi}$ in $\tilde{H}_f$
+by replacing each empty path contained in $\Pi$ with its shortcut.
+Furthermore, we have $c(\Pi) = c(\tilde{\Pi})$.
+We argue now that $\tilde{H}_f$ is fine as a surrogate for $H_f$, by showing
+that we can recover $\eps$-optimal potentials for the non-empty vertices.
 
 \begin{lemma}
 \label{lemma:empty_correct}
-%TODO what do we want here? empty paths do not cause non-empty vertices to be added to S out of order.
-\note{need a correctness statement here}
+Let $\tilde{\pi}$ be a $\eps$-optimal set of potentials for non-empty
+vertices of $H_f$.
+Construct potentials $\pi$, extending $\tilde{\pi}$ to empty vertices, by
+setting $\pi(a) \gets \tilde{\pi}(s)$ for $a \in A_\emptyset$ and
+$\pi(b) \gets \tilde{\pi}(t)$ for $b \in B_\emptyset$.
+Then,
+\begin{enumerate}
+\item $\pi$ is a set of $\eps$-optimal potentials for $H_f$, and
+\item if a shortcut $\short(\Pi)$ is admissible under $\tilde{\pi}$,
+	then every arc of $\Pi$ is admissible under $\pi$.
+\end{enumerate}
 \end{lemma}
 
 \begin{proof}
-%TODO
+Reduced costs for non-empty to non-empty arcs are unchanged between
+$\tilde{\pi}$ and $\pi$, so $\eps$-optimality are preserved for these.
+Recall that an empty path is comprised of one $A$-to-$B$ arc, and 1 or 2
+zero-cost arcs (connecting the empty vertex/vertices to $s$ and $t$).
+With our choice of empty vertex potentials, we observe that the zero-cost arcs
+have reduced cost 0:
+for an empty $a \in A_\emptyset$, $c_\pi(s, a) = 0$, for an empty
+$b \in B_\emptyset$, $c_\pi(b, t) = 0$.
+These arcs are both $\eps$-optimal ($\geq -\eps$) and admissible ($\leq 0$), so
+it remains to prove $\eps$-optimality and admissibility for arcs $(a, b)$ where
+either $a$ or $b$ is an empty vertex.
+
+Let $(a, b) \in A \times B$ such that at least one of $a$ or $b$ is empty.
+There exists an empty path $\Pi$ that contains $(a, b)$.
+Observe that $c_\pi(a, b) = c_\pi(\Pi)$,
+which we can prove for all varieties of empty paths.
+\begin{itemize}
+\item If $\Pi = (s, a, b)$ for $a \in A_\emptyset$:
+	\begin{equation*}
+	c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b) = c(a, b) - \pi(s) + \pi(b) = c_\pi(\Pi)
+	\end{equation*}
+\item If $\Pi = (a, b, t)$ for $b \in B_\emptyset$:
+	\begin{equation*}
+	c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b) = c(a, b) - \pi(a) + \pi(t) = c_\pi(\Pi)
+	\end{equation*}
+\item If $\Pi = (s, a, b, t)$ for $a \in A_\emptyset$ and $b \in B_\emptyset$:
+	\begin{equation*}
+	c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b) = c(a, b) - \pi(s) + \pi(t) = c_\pi(\Pi)
+	\end{equation*}
+\end{itemize}
+By construction, $c_\pi(\Pi) = c_{\tilde{\pi}}(\short(\Pi))$, so we have
+$c_\pi(a, b) = c_{\tilde{\pi}}(\short(\Pi)) \geq -\eps$ and $(a, b)$ is
+$\eps$-optimal.
+Additionally, if $\short(\Pi)$ is admissible under $\tilde{\pi}$, then so is
+$(a, b)$ under $\pi$.
+Empty paths cover all arcs adjoining empty vertices, so we have proved both
+parts of the lemma for all arcs in $H_f$.
 \end{proof}
 
-%TODO describe/bound the update process for each data structure:
-	% how to find them:
-	% empty both: BCP with all empty vertices, using s/t potentials
-	%	active as long as s reached, t unreached
-	%	updates according to S with deletions
-	% empty a: BCP with empty A to nonempty unreached B, using s/b potentials
-	%	active as long as s reached
-	%	updates according to S with deletions in B
-	% empty b: BCP with with nonempty reached A to empty unreached B, using a/t potentials
-	%	active as long as t unreached
-	%	updates according to S with insertions in A
+In \textsc{Refine}, we do not explicitly construct $\tilde{H}_f$ for running
+\textsc{Hungarian-Search2} or \textsc{DFS}, but query its edges using BCP/NN
+oracles and min/max heaps on elements of $H_f$.
+Potentials for empty vertices are only required at the end of \textsc{Refine}
+(for the next scale), and right before an augmentation sends flow through an
+empty path, making its surrounded vertices non-empty.
+During these occasions, we use the procedure in Lemma~\ref{lemma:empty_correct}
+to find feasible, $\eps$-optimal potentials for empty vertices which
+also preserve the structure of admissibility.
 
-	% ^ the empty sets will only change through empty relaxations
+\begin{lemma}
+\label{lemma:empty_updates}
+The number of end-of-\textsc{Refine} empty vertex potential updates is $O(n)$.
+The number of augmentation-induced empty vertex potential updates in each
+invocation of \textsc{Refine} is $O(\sum_i|N_i|)$ where $N_i$ is the number
+of positive flow arcs in the $i$-th blocking flow.
+\end{lemma}
 
-	% assuming we can find them, how many empty a, b, and both?
-	% only one empty both per h.s., starting at s and adding t.
-	% empty a leads to a non-empty b, charge to adjoining b support or deficit
-	% empty b comes from a non-empty a, charge to adjoining a support or excess
-
-	% how to find empty both? potentials at s, t plus BCP on empty A x empty B
-	% how to find empty a? potential at s, min of potentials of nonempty B
-	% how to find empty b? potential at t, max of potentials of nonempty A
-
-	% empty/nonempty may only change during augmentation, and only on nodes augmented through
-	% charge empty/nonempty d.s. updates to the blocking flow nodes
-	% \eps is fixed at the current scale
-	% potentials MUST be recovered during augmentation and at scale end
-	% seems like fixing them to \pi(s) or \pi(t) is correct; certainly will not violate feas if \pi(s) doesn't
+\begin{proof}
+The number of end-of-\textsc{Refine} potential updates is $O(n)$.
+Each update due to flow augmentation involves a blocking flow sending positive
+flow through an empty path, causing a potential update on the surrounded
+empty vertex.
+We charge this potential update to the edges of that empty path, which are in
+turn arcs with positive flow in the blocking flow.
+For each blocking flow, no positive arc is charged more than twice.
+It follows that the number of augmentation-induced updates is $O(N_i)$ for the
+$i$-th blocking flow, and $O(\sum_i|N_i|)$ over the course of \textsc{Refine}.
+%TODO need to bound the number of blocking flow edges
+\end{proof}
 
 
-In the next few lemmas, we bound the number of relaxations of each type.
-This will provide a time bound for the Hungarian search in terms of the
-number of relaxations, each of which incur $O(1)$ BCP or min-heap queries and
-updates.
-\note{afterwards, need to provide a time bound of potential updates, or otherwise explain that mechanism}
+\subsubsection{Hungarian search}
+
+\begin{figure*}
+\centering
+\begin{minipage}{.8\linewidth}
+\begin{algorithm}[H]
+\caption{Hungarian Search (cost-scaling)}
+\begin{algorithmic}[1]
+\Function{Hungarian-Search2}{$H = (V, E)$, $f$, $\pi$}
+	\State $\tilde{H}_f \gets$ the shortcut graph of $H_f$
+	\State $S \gets \{v \in V \mid e_f(v) > 0\}$
+	\Repeat
+		\State $(v', w') \gets \argmin\{c_\pi(v', w') \mid v' \in S, w' \not\in S, (v', w') \in \tilde{H}_f)\}$
+			\label{line:hs_relaxation}
+		\State $\gamma \gets c_\pi(v', w')$
+		\If{$\gamma > 0$}
+			\Comment{make $(v', w')$ admissible if it isn't}
+			\State $\pi(v) \gets \pi(v) + \gamma\lceil\frac{\gamma}{\eps}\rceil, \forall v \in S$
+		\EndIf
+		\State $S \gets S \cup \{w'\}$
+		\Statex %newline
+		\If{$e_f(w') < 0$} \Comment{reached a deficit}
+			\State\Return $(f, \pi)$
+		\EndIf
+	\Until{$S = (A \setminus A_\emptyset) \cup (B \setminus B_\emptyset)$}
+	\State\Return failure
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+\end{minipage}
+\end{figure*}
+
+Logically, we are executing the Hungarian search (``raise prices'') from
+\cite[Section 3.2]{GHKT17} on the shortcut graph $\tilde{H}_f$.
+We describe how we can query the minimum-reduced cost arc leaving $S$ in
+$O(\polylog n)$ time, for the shortcut graph, without constructing
+$\tilde{H}_f$ explicitly.
+For this purpose, let $S'$ be a set of ``reached'' vertices maintained
+alongside $S$, identical except whenever a shortcut is relaxed, we add its
+surrounded empty vertices to $S'$ in addition to its (non-empty) endpoints.
+Observe that the arcs of $\tilde{H}_f$ leaving $S$ fall into $O(1)$ categories.
+\begin{enumerate}
+\item Non-shortcut reverse arcs $(v, w)$ with $(w, v) \in E_{>0}(f)$.
+	For these, we can maintain a min-heap on $E_{>0}(f)$ arcs as each $v$
+	arrives in $S$.
+\item Non-shortcut forward arcs.
+	For these, we can use a BCP data structure between non-empty points of
+	$A \cap S$ and $B \setminus S$, weighted by potential.
+\item Non-shortcut forward arcs from $s$ to $A$ and from $B$ to $t$.
+	For $s$, we can maintain a min-heap on the potentials of
+	$B \setminus S$, queried while $s \in S$.
+	For $t$, we can maintain a max-heap on the potentials of
+	$A \cap S$, queried while $t \not\in S$.
+
+\item Shortcut arcs $(s, b)$ corresponding to empty 2-paths from $s$ to
+	$b \in (B \setminus B_\emptyset) \setminus S'$.
+	For these, we maintain a BCP data structure with $P = A_\emptyset$,
+	$Q = (B \setminus B_\emptyset) \setminus S')$ with weights
+	$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for
+	all $q \in Q$.
+	A response $(a, b)$ corresponds to th empty 2-path $(s, a, b)$.
+	This is only queried while $s \in S'$.
+\item Shortcut arcs $(a, t)$ corresponding to empty 2-paths from
+	$a \in (A \setminus A_\emptyset) \cap S'$ to $t$.
+	For these, we maintain a BCP data structure with
+	$P = (A \setminus A_\emptyset) \cap S'$,
+	$Q = B_\emptyset \setminus S'$ with weights $\omega(p) = \pi(p)$ for
+	all $p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
+	A response $(a, b)$ corresponds to th empty 2-path $(a, b, t)$.
+	This is only queried while $t \not\in S'$.
+\item Shortcut arcs $(s, t)$ corresponding to empty 3-paths.
+	For these, we maintain in a BCP data structure with
+	$P = A_\emptyset \setminus S'$, $Q = B_\emptyset \setminus S'$ with
+	weights $\omega(p) = \pi(s)$ for all
+	$p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
+	A response $(a, b)$ corresponds to th empty 3-path $(s, a, b, t)$.
+	This is only queried while $t \not\in S'$.
+\end{enumerate}
+
+By construction, the BCP distance of each datastructure in (4-6) is equal to
+the reduced cost of the shortcut, which is equal to the reduced cost of the
+corresponding empty path.
+Each of the above data structures requires one query per relaxation, and an
+insertion/deletion operation whenever a new vertex moves into $S$.
+The data structures above can perform both in $O(\polylog n)$ time each, so the
+running time of \textsc{Hungarian-Search2} outside of potential updates can be
+bounded in the number of relaxation steps.
 
 \begin{lemma}
 \label{lemma:goldberg_hs_length1}
-There are $O(k)$ non-empty relaxations in \textsc{Hungarian-Search2} before a
-deficit vertex is reached.
+There are $O(k)$ non-shortcut relaxations in \textsc{Hungarian-Search2} before
+a deficit vertex is reached.
 \end{lemma}
 
 \begin{proof}
-Let $E_{>0}(f) = \{(v, w) \in E \mid f(v, w) > 0\}$.
-Each edge relaxation adds a new vertex to $S$.
+Each edge relaxation adds a new vertex to $S$, and non-shortcut relaxations
+only add non-empty vertices.
 The vertices of $V \setminus S$ fall into several categories:
 (i) $s$ or $t$, (ii) $A$ or $B$ vertex with 0 imbalance, and (iii) $A$ or $B$
 vertex with deficit ($S$ contains all excess vertices).
@@ -1246,34 +1313,39 @@ An $A$ or $B$ vertex with 0 imbalance must have an even number of $E_{>0}(f)$
 edges.
 There is either only one positive-capacity incoming edge (for $A$) or outgoing
 edge (for $B$), so this quantity is either 0 or 2.
-By the non-emptiness assumption, it must be 2.
+Since the vertex is non-empty, this must be 2.
 We charge 0.5 to each of the two $E_{>0}(f)$ edges; the edges of $E_{>0}(f)$
 have no more than 1 charge each.
 Thus, the number of (ii) vertex relaxations is $O(|E_{>0}(f)|)$.
-By Lemma~\ref{lemma:support_size_during}, $O(|E_{>0}(f)|) = O(k)$.
+By Corollary~\ref{corollary:support_size_during}, $O(|E_{>0}(f)|) = O(k)$.
 \end{proof}
 
 \begin{lemma}
 \label{lemma:goldberg_hs_length2}
-There are $O(k)$ empty 2- and 3-path relaxations in \textsc{Hungarian-Search2}
-before a deficit vertex is reached.
+There are $O(k)$ shortcut relaxations in \textsc{Hungarian-Search2} before a
+deficit vertex is reached.
 \end{lemma}
 
 \begin{proof}
-There is only one empty 3-path relaxation, since $t$ can only be added to $S$
-once.
-This is also the case for the empty 2-paths surrounding a $B_\emptyset$ vertex.
+Recall the categories of shortcuts from the list of datastructures above.
+We have shortcuts corresponding to (i) empty 2-paths surrounding
+$a \in A_\emptyset$, (ii) empty 2-paths surrounding $b \in B_\emptyset$, and
+(iii) empty 3-paths, which go from $s$ to $t$.
 
-On the other hand, each relaxation of an empty 2-path surrounding an
-$A_\emptyset$ vertex adds some non-empty $b \in B \setminus B_\emptyset$ into
-$S$.
-By definition, $b$ must either have deficit or an adjacent edge of $E_{>0}(f)$.
+There is only one relaxation of type (iii), since $t$ can only be added to $S$
+once.
+The same argument holds for type (ii).
+
+Each type (i) relaxation adds some non-empty $b \in B \setminus B_\emptyset$
+into $S$.
+Since $b$ is non-empty, it must either have deficit or an adjacent edge of
+$E_{>0}(f)$.
 We charge this relaxation to $b$ if it is deficit, or the adjacent $E_{>0}(f)$
 edge otherwise.
-No $E_{>0}(f)$ edge is charged more than twice, therefore the total number of
-empty 2-path relaxations surrounding $A_\emptyset$ vertices is
+No vertex is charged more than once, and no $E_{>0}(f)$ edge is charged more
+than twice, therefore the total number of type (i) relaxations is
 $O(|E_{>0}(f)|)$.
-By Lemma~\ref{lemma:support_size_during}, $O(|E_{>0}(f)|) = O(k)$.
+By Corollary~\ref{corollary:support_size_during}, $O(|E_{>0}(f)|) = O(k)$.
 \end{proof}
 
 \begin{corollary}
@@ -1282,22 +1354,27 @@ There are $O(k)$ relaxations in \textsc{Hungarian-Search2} before a deficit
 vertex is reached.
 \end{corollary}
 
-%TODO HERE
-In order to prove that \textsc{Hungarian-Search2} can be
+In the following lemma, we complete the time analysis of
+\textsc{Hungarian-Search2} by proving that potentials can be maintained in
+$O(k)$ time over the course of the search.
 
 \begin{lemma}
 \label{lemma:goldberg_hs_time}
 Using a dynamic BCP, we can implement \textsc{Hungarian-Search2} with
-$T_1(n, k) = O(k\polylog(n))$ and $P_1(n, k) = O(n\polylog(n))$.
+$T_1(n, k) = O(k\polylog n)$ and $P_1(n, k) = O(n\polylog n)$.
 \end{lemma}
 
 \begin{proof}
-Like for matchings, we use a BCP to find the argmin quickly; we maintain
-$P = (S \cap A)$ and $Q = (B \setminus V)$ using weights
-$\omega(v) = \pi(v) - \delta$, and increase $\delta$ in lieu of increasing the
-potential of all $S$ vertices.
+The initial sets for each data structure can be constructed in
+$O(n\polylog n)$ time.
+For each of the $O(1)$ data structures that are queried during a relaxation,
+the new vertex moved into $S$ as a result of the relaxation causes $O(1)$
+insertion/deletion operations.
+For each of the data structures mentioned above, insertions and deletions
+can be performed in $O(\polylog n)$ time.
 Using Lemma~\ref{lemma:hs_time} as a basis, we first analyze the number of BCP
 operations over the course of \textsc{Hungarian-Search2}.
+
 \begin{enumerate}
 \item Let $S^t_0$ denote the initial set $S$ at the beginning of the
 	$t$-th Hungarian search, i.e. the set of $v \in V$ with
@@ -1320,33 +1397,58 @@ operations over the course of \textsc{Hungarian-Search2}.
 	of point additions to $S$, and recover $S^t_0$.
 \end{enumerate}
 
-For each of the $O(1)$ data structures that are queried during a relaxation,
-the new vertex moved into $S$ as a result of the relaxation causes $O(1)$
-insertion/deletion operations.
-For each of the data structures mentioned above, insertions and deletions
-can be performed in $O(\polylog n)$ time.
-
 For potential updates, we use the same trick as in Lemma~\ref{lemma:hs_time} to
 lazily update potentials after vertices leave $S$, but only for non-empty
 vertices.
-To remind, with lazy updates, the number of potential updates on non-empty
-vertices was bounded by the number of relaxations in the Hungarian search,
-which is $O(k)$ by Corllary~\ref{corollary:goldberg_hs_length}.
-
-Potentials for the empty vertices must be updated at the end of a scale and
-whenever they stop being empty, i.e. when an augmentation sends flow through
-one of its surrounding empty paths.
-In both cases, we fix them to $\pi(a) \gets \pi(s)$ for $a \in A_\emptyset$ and
-$\pi(b) \gets \pi(t)$ for $b \in B_\emptyset$.
-This preserves feasibility of the potentials on every empty path, and
-admissibility on the arcs of an empty path that is augmented through.
-\note{move correctness of this choice into its own lemma; ``feasible choice''?}
-The number of empty vertex potential updates is proportional to the size of
-the blocking flows, which is $O(k\sqrt{k})$ in total for the scale.
-\note{point to a lemma for blocking flow sizes}
+Non-empty vertices are stored in each data structure with weight
+$\omega(v) = \pi(v) - \delta$, and $\delta$ is increased in lieu of increasing
+the potential of all $S$ vertices.
+When vertices leave $S$ (through the rewind mechansim above), we restore
+their potentials as $\pi(v) \gets \omega(v) + \delta$.
+With lazy updates, the number of potential updates on non-empty vertices is
+bounded by the number of relaxations in the Hungarian search, which is $O(k)$
+by Corollary~\ref{corollary:goldberg_hs_length}.
+Note that empty vertex potentials are not handled in
+\textsc{Hungarian-Search2}.
 \end{proof}
 
 \subsubsection{Depth-first search}
+
+\begin{algorithm}
+\caption{Depth-first search}
+\begin{algorithmic}[1]
+\Function{DFS}{$H = (V, E)$, $f$, $\pi$}
+	\State $\tilde{H}_f \gets$ the shortcut graph of $H_f$
+	\State $f' \gets 0$.
+	\State $S \gets \{v \in V \mid e_f(v) > 0\}$
+	\State $S_0 \gets \{v \in V \mid e_f(v) > 0\}$
+		\Comment{stack of excess vertices}
+	\State $P \gets$ \Call{Pop}{$S_0$}
+		\Comment{current path; stack}
+	\Repeat
+		\State $v' \gets$ \Call{Peek}{$P$}
+		\If{$e_f(v') < 0$}
+			\Comment{if we reached a deficit, save the path to $f'$}
+			\State add to $f'$ a unit flow on the path $P$
+			\State $P \gets$ \Call{Pop}{$S_0$}
+		\Else
+			\State $w' \gets \argmin\{c_\pi(v', w') \mid w' \not\in S, (v, w) \in \tilde{H}_f\}$
+			\State $\gamma \gets c_\pi(v', w')$
+
+			\Statex %newline
+			\If{$\gamma \leq 0$}
+				\Comment{if $(v', w')$ is admissible, extend the current path}
+				\State $S \gets S \cup \{w'\}$
+				\State $P \gets$ \Call{Push}{$P$, $w'$}
+			\Else
+				\Comment{No admissible arcs leaving $v'$, remove from $P$}
+				\State \Call{Pop}{$P$}
+			\EndIf
+		\EndIf
+	\Until{$S_0 = \emptyset$}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
 
 The depth-first search is similar to \textsc{Hungarian-Search2} in that it
 uses the relaxation of minimum-reduced cost arcs/empty paths, this time to
@@ -1355,50 +1457,11 @@ This requires replacing many of the BCP data structures with nearest-neighbor
 (NN) data structures, to query the minimum reduced-cost path leaving a
 particular $v' \in S$ rather than all vertices of $S$ simultaneously.
 
-\begin{algorithm}
-\caption{Depth-first search}
-\begin{algorithmic}[1]
-\Function{DFS}{$H = (V, E)$, $f$, $\pi$}
-	\State $f' \gets 0$.
-	\State $S \gets \{v \in V \mid e_f(v) > 0\}$
-	\State $P \gets \emptyset$
-	\Repeat
-		\State $v' \gets$ \Call{Pop}{$P$}
-		\If{$e_f(v') < 0$}
-			\Comment{if we reached a deficit, save the path to $f'$}
-			\State add to $f'$ a unit flow on the path $P$
-
-			\State $P \gets \emptyset$
-		\EndIf
-
-		\Statex %newline
-		\State $\Pi \gets \argmin\{c_\pi(\Pi) \mid \text{$\Pi$ non-empty edge or empty 2-/3-path from $v'$ into $V \setminus S$}\}$
-		\State $\gamma \gets c_\pi(\Pi)$
-		\State Let $\Pi = (v', w_1, \ldots, w_\ell)$
-
-		\Statex %newline
-		\If{$\gamma \leq 0$}
-			\Comment{if $\Pi$ is admissible, extend the current path}
-			\State $S \gets S \cup \Pi$
-
-			\State $P \gets$ \Call{Push}{$P$, $w_\ell$}
-		\EndIf
-
-		\If{$e_f(w_\ell) < 0$} \Comment{$w_\ell$ is a deficit}
-			\State\Return $(f, \pi)$
-		\EndIf
-	\Until{$S = \emptyset$}
-	\State\Return failure
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-
-%TODO is this still fine? with the empty path stuff?
 
 \begin{lemma}
 \label{lemma:goldberg_dfs_time}
 Using a dynamic NN, we can implement \textsc{DFS} with
-$T_2(n, k) = O(k\polylog(n))$ and $P_2(n, k) = O(n\polylog(n))$.
+$T_2(n, k) = O(k\polylog n)$ and $P_2(n, k) = O(n\polylog n)$.
 \end{lemma}
 
 \begin{proof}
@@ -1412,7 +1475,7 @@ $T_2(n, k) = O(k\polylog(n))$ and $P_2(n, k) = O(n\polylog(n))$.
 
 
 
-\subsection{Preprocessing for $C = O(n^2)$}
+\subsection{Preprocessing for quadratic spread}
 
 %TODO
 \begin{lemma}[Sharathkumar, Agarwal]
