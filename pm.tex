@@ -711,12 +711,12 @@ Then, $|E_{>0}(f)| = O(k)$.
 \begin{proof}
 By Observation~\ref{observation:dag}, the positive-flow edges of $f$ do not
 contain a cycle.
-Thus, the flow decomposition of $f$ is a series of paths, each of which can
-create a single unit of excess if it does not terminate at $t$.
+Thus, $E_{>0}(f)$ can be decomposed into a set of inclusion-maximal paths of,
+each of which creates a single unit of excess if it does not terminate at $t$.
 A path may also create excess at $t$ if there are at least $k$ other paths
 terminating at $t$.
 By assumption, there are $O(k)$ units of excess to which we can associate
-paths, and at most $k$ paths that we cannot associate to a unit of excess.
+paths, and at most $k$ paths that we cannot associate with a unit of excess.
 The maximum length of any path with positive-flow arcs in $H$ is $3$ by
 construction.
 We conclude that the number of positive flow arcs in $f$ is $O(k)$.
