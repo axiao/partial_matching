@@ -5,7 +5,7 @@
 
 \usepackage[dvipsnames,usenames]{xcolor}
 \usepackage{hyperref}
-\hypersetup{colorlinks=true, urlcolor=Blue, citecolor=Green, linkcolor=BrickRed, breakflinks, unicode}
+\hypersetup{colorlinks=true, urlcolor=Blue, citecolor=Green, linkcolor=BrickRed, breaklinks, unicode}
 
 \usepackage[T1]{fontenc}
 \usepackage{times}
@@ -434,11 +434,6 @@ $\cost(f) \leq \cost(f^*) + m\eps$.
 
 This bound can be improved if we have a better upper bound on the number of
 edges used in the cycles of $f'$.
-Indeed, the algorithm in Section~\ref{section:goldberg} gives a
-bound of $6k$, and converts the statement from an additive approximation to a
-relative approximation. \note{Maybe not here; move to Sec.\ 4.}
-Since our matching algorithm uses a 0-optimal (exact) solution, we do not
-include a proof for approximation quality of $\eps$-optimal matchings. \note{Which means you don't have to explain.}
 
 
 \section{Matching with the Hungarian algorithm}
@@ -467,7 +462,7 @@ finds an admissible augmenting path; we call this subrouotine the \emph{Hungaria
 	\While{$|M| < k$}
 		\State $\Pi \gets$ \Call{Hungarian-Search}{$G$, $M$, $\pi$}
 		\State $M \gets M \oplus \Pi$
-	\EndWhile \note{indentation is enough for scope}
+	\EndWhile
 	\State\Return $M$
 \EndFunction
 \end{algorithmic}
@@ -496,10 +491,11 @@ alternating augmenting path).
 The ``search frontier'' of the Hungarian search is
 $(S \cap A) \times (B \setminus S)$.
 From the frontier, we \emph{relax} the edge with minimum reduced cost, changing
-the duals such that the edge becomes admissible, and adding the opposite $B$
-vertex into $S$.
+the potentials such that the edge becomes admissible, and adding the opposite
+$B$ vertex into $S$.
 
-The dual update uniformly decreases the reduced costs of the frontier edges.
+The potential update uniformly decreases the reduced costs of the frontier
+edges.
 Since $(a', b')$ is the minimum reduced cost frontier edge, the potential
 update in line~\ref{line:hs_update} does not make any reduced cost negative,
 and thus preserves the dual feasibility constraint for all edges.
@@ -518,8 +514,8 @@ The algorithm is shown below as Algorithm~\ref{algorithm:hung_hs}.
 	\State $S \gets a \in (A \setminus V(M))$
 	\Repeat
 		\State $(a', b') \gets \argmin\{c_\pi(a, b) \mid (a, b) \in (S \cap A) \times (B \setminus S)\}$
-		% \State $\gamma \gets c_\pi(a', b')$ \note{$\gamma$ is never used afterwards}
-		\State $\pi(v) \gets \pi(v) + c_\pi(a', b'), \forall v \in S$
+		\State $\gamma \gets c_\pi(a', b')$
+		\State $\pi(v) \gets \pi(v) + \gamma, \forall v \in S$
 			\Comment{make $(a', b')$ admissible}
 			\label{line:hs_update}
 		\State $S \gets S \cup \{b'\}$
@@ -585,12 +581,12 @@ $P(n, k) = O(n\polylog n)$.
 \end{lemma}
 
 \begin{proof}
-We will maintain a BCP data structure between $P = (S \cap A)$ and
+Recall that we maintain a BCP data structure between $P = (S \cap A)$ and
 $Q = (B \setminus S)$.
 Changes to the $P$ and $Q$ are entirely driven by changing $S$; that is,
 updates to $S$ incur BCP insertions/deletions.
-We first analyze the bookkeeping besides the dual updates, and then
-show how dual updates can be implemented efficiently.
+We first analyze the bookkeeping besides the potential updates, and then
+show how potential updates can be implemented efficiently.
 
 \begin{enumerate}
 \item Let $S^t_0$ \note{Is there a reason why you want the subscript?  Do you ever define $S^t$?} denote the initial set $S$ at the beginning of the
@@ -598,7 +594,7 @@ show how dual updates can be implemented efficiently.
 	after $t$ augmentations.
 	At the very beginning of the Hungarian algorithm, we initialize
 	$S^0_0 \gets A$ (meaning that $P = A$ and $Q = B$), which is a
-	one-time insertion of $O(n)$ points into BCP.
+	one-time insertion of $O(n)$ points into BCP, attributed to $P(n, k)$.
 	On each successive Hungarian search, $S^t_0$ shrinks as more
 	and more points in $A$ are matched.
 	Assume for now that, at the beginning of the $(t+1)$-th
@@ -630,30 +626,39 @@ The number of BCP operations associated with each Hungarian search is
 $O(k)$, so the time spent on BCP operations in each Hungarian search
 is $O(k \polylog n)$.
 
-As for the potential updates,
-we modify a trick from Vaidya~\cite{Vaidya89} to batch potential
-updates such that the dual updates we do perform can be charged to a
-BCP insertion or deletion. \note{Mouthful}
-Throughout the course of the Hungarian algorithm, we maintain a value
-$\delta$ (initially 0) which aggregates the dual changes.
-Vertices that are added to $S$ are saved into $P$ \note{I don't understand; do you mean only when vertices in $A$ are added to $S$?} with weight
-$\omega(p) \gets \pi(p) - \delta$.
-When the points of $S$ have their duals \note{Undefined. You mean their potentials?} increased in (2), we instead
-raise $\delta \gets \delta + c_\pi(\hat{a}, \hat{b})$. \note{What is $\hat{a}$ and $\hat{b}$?}
-Thus, the ``true'' potential for any point in $S$ is
-$\omega(p) + \delta$.
-For points outside $S$ (i.e. $B \setminus S$) \note{only point in $B$?}, we simply use the true
-potential as the BCP weight.
-Since all $S \cap A$ BCP weights \note{you mean BCP weights of points in $P$?} are uniformly offsetted by $\delta$, the solution returned by the BCP oracle does not change.
-Once a point is removed from $S$, we update its true potential
-to be $\pi(p) \gets \omega(p) + \delta$.
+As for the potential updates, we modify a trick from Vaidya~\cite{Vaidya89} to
+batch potential updates. 
+Potentials have a \emph{stored value}, i.e. the current value of $\pi(v)$,
+and a \emph{true value}, which may have changed from $\pi(v)$.
+The algorithm uses the true value when dealing with reduced costs and updates
+the stored value rarely; we explain the mechanism shortly.
 
-Obviously \note{Never use this word}, the number of updates to $\delta$ is equal to the number of
-edge relaxations, which is $O(k)$ per Hungarian search.
-The number of times we have to compute the true potential is bounded by
-the number times we remove a point from $S$, which is at most $O(k)$ per Hungarian search as well.
-The total time spent on potential updates per Hungarian search is therefore
-$O(k)$.
+Throughout the course of the algorithm, we maintain a nonnegative value
+$\delta$ (initially 0) which aggregates potential changes.
+Vertices that are added to $S$ are immediately added to a BCP data structure
+with weight $\omega(p) \gets \pi(p) - \delta$, for whatever value $\delta$ is 
+at the time of insertion.
+When the points of $S$ have potentials increased by $\gamma$ in (2), we instead
+raise $\delta \gets \delta + \gamma$.
+Thus, true value for any potential of a point in $S$ is $\omega(p) + \delta$.
+For points of $(A \cup B) \setminus S$, the true potential is equal to the
+stored potential.
+
+Since potentials for $S$ points are uniformly offsetted by $\delta$, the 
+minimum edge returned by the BCP oracle does not change.
+Once a point is removed from $S$, we update its stored potential
+to be $\pi(p) \gets \omega(p) + \delta$, for the current value of $\delta$.
+Importantly, $\delta$ is not reset at the end of a Hungarian search, and
+persists throughout the entire algorithm.
+This way, the unmatched points in each $S^t_0$ have their true potentials
+accurately represented by $\delta$ and $\omega(p)$.
+
+The number of updates to $\delta$ is equal to the number of edge relaxations,
+which is $O(k)$ per Hungarian search.
+We update stored potentials when removing a point from $S$ (by the rewind 
+mechanism, or due to an augmentation) which occurs $O(k)$ times per Hungarian
+search.
+The time spent on potential updates per Hungarian search is therefore $O(k)$.
 Overall, the time spent per Hungarian search is $T(n, k) = O(k\polylog n)$.
 
 \note{The proof gets more handwavy as the paragraph progresses.  Consider a revision after this round.}
@@ -996,47 +1001,13 @@ At a high level, our analysis strategy is to charge relaxation events in
 the search to arcs of $E_{>0}(f)$.
 We first extend Lemma~\ref{lemma:reduction_count} to bound the size of
 $E_{>0}(f)$ throughout \textsc{Refine}, by observing that the amount of excess
-is strictly decreasing throughout \textsc{Refine}.
+decreases in each iteration of \textsc{Refine}.
 
 \begin{corollary}
 \label{corollary:support_size_during}
 Let $f$ be the pseudoflow before or after any iteration of \textsc{Refine}.
 Then, $|E_{>0}(f)| = O(k)$.
 \end{corollary}
-
-\begin{proof}
-From Lemma~\ref{lemma:support_size_start} and the proof of
-Lemma~\ref{lemma:scale_init}, \textsc{Refine} begins with a pseudoflow $f$ that
-has $|E_{>0}(f)| \leq 3k$.
-Each iteration of \textsc{Refine} augments $f$ with an improving flow which
-reduces the sum of excess by at least one.
-Thus, the total excess in $f$ begins as $O(k)$, and only decreases.
-
-Each unit of excess is either on $s$ (part of the supply) or lies at the end of
-a path of $E_{>0}(f)$ edges.
-We say an inclusion-maximal path $\Pi \subseteq E_{>0}(f)$ of length at least
-one \emph{induces} a unit of excess at its end, and a unit of deficit at its
-beginning.
-Even if $\Pi$ induces deficit at $v$ and excess at $w$, $v$ may have
-$e_f(v) \geq 0$ and $w$ may have $e_f(v) \leq 0$, i.e. when $v = s$ and $w = t$
-respectively.
-However, if there are more than $k$ paths inducing deficit at $s$ (resp.
-inducing excess at $t$), then $s$ will be a deficit vertex (resp. $t$ will be
-an excess vertex).
-Barring these (up to) $2k$ paths, each inclusion-maximal path $\Pi$ can be
-uniquely assigned to a unit of excess and a unit of deficit in $e_f()$.
-
-Let $X$ be the set of inclusion-maximal paths of the edges of $E_{>0}(f)$.
-Every edge of $E_{>0}(f)$ is part of some inclusion-maximal path
-(possibly containing only that edge), so $X$ covers $E_{>0}(f)$.
-Since $H$ is acyclic, each $\Pi \in X$ has length at most 3, so we have that
-$|E_{>0}(f)| \leq 3|X|$.
-There is $O(k)$ excess/deficit in $e_f()$ which we can charge to the paths in
-$X$ inducing them, as well as at most $2k$ more which induce excess/deficit
-that are canceled out by the supply at $s$ or demand at $t$.
-It follows that $|X| = O(k)$ and therefore $|E_{>0}(f)| = O(k)$.
-\end{proof}
-
 
 % \subsubsection{Hungarian search}
 %
@@ -1242,7 +1213,6 @@ $i$-th blocking flow, and $O(\sum_i|N_i|)$ over the course of \textsc{Refine}.
 			\State $\pi(v) \gets \pi(v) + \gamma\lceil\frac{\gamma}{\eps}\rceil, \forall v \in S$
 		\EndIf
 		\State $S \gets S \cup \{w'\}$
-		\Statex %newline
 		\If{$e_f(w') < 0$} \Comment{reached a deficit}
 			\State\Return $(f, \pi)$
 		\EndIf
@@ -1448,10 +1418,9 @@ Note that empty vertex potentials are not handled in
 			\State add to $f'$ a unit flow on the path $P$
 			\State $P \gets$ \Call{Pop}{$S_0$}
 		\Else
-			\State $w' \gets \argmin\{c_\pi(v', w') \mid w' \not\in S, (v, w) \in \tilde{H}_f\}$
+			\State $w' \gets \argmin\{c_\pi(v', w') \mid w' \not\in S, (v', w') \in \tilde{H}_f\}$
 			\State $\gamma \gets c_\pi(v', w')$
 
-			\Statex %newline
 			\If{$\gamma \leq 0$}
 				\Comment{if $(v', w')$ is admissible, extend the current path}
 				\State $S \gets S \cup \{w'\}$
@@ -1470,7 +1439,7 @@ The depth-first search is similar to \textsc{Hungarian-Search2} in that it
 uses the relaxation of minimum-reduced cost arcs/empty paths, this time to
 identify admissible arcs/empty paths in a depth-first manner.
 This requires replacing many of the BCP data structures with nearest-neighbor
-(NN) data structures, to query the minimum reduced-cost path leaving a
+(NN) data structures, which query the minimum reduced-cost path leaving a
 particular $v' \in S$ rather than all vertices of $S$ simultaneously.
 
 
