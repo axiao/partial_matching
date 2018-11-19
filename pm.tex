@@ -5,7 +5,7 @@
 
 \usepackage[dvipsnames,usenames]{xcolor}
 \usepackage{hyperref}
-\hypersetup{colorlinks=true, urlcolor=Blue, citecolor=Green, linkcolor=BrickRed, breaklinks, unicode}
+\hypersetup{colorlinks=true, urlcolor=Blue, citecolor=Green, linkcolor=BrickRed, breakflinks, unicode}
 
 \usepackage[T1]{fontenc}
 \usepackage{times}
@@ -668,7 +668,7 @@ Overall, the time spent per Hungarian search is $T(n, k) = O(k\polylog n)$.
 The basis of the algorithm in this section is a \emph{cost-scaling} algorithm \note{try not to repeat words}
 for unit-capacity min-cost flow from \cite{GHKT17} \note{don't use citation as a noun}.
 Before describing the algorithm, we first give a linear-time reduction from
-min-cost matching to unit-capacity min-cost flow, which allows us to apply the
+min-cost partial matching to unit-capacity min-cost flow, which allows us to apply the
 Goldberg~{\etal} algorithm \note{never defined} to partial matching.
 
 \subsection{MPM to unit-capacity MCF reduction}
@@ -695,7 +695,7 @@ Let the resulting graph be $H = (V, E)$. \note{Do you mean network, as you have 
 In other words, there will be no cycles of positive flow in circulations on
 $H$.
 With this, we can show that the number of arcs used by any integer pseudoflow
-in $H$ (with $O(k)$ excess) is $O(k)$.
+in $H$ is asymptotically bounded by the excess of the pseudoflow.
 
 \begin{lemma}
 \label{lemma:reduction_count}
@@ -718,7 +718,7 @@ We conclude that the number of positive flow arcs in $f$ is $O(k)$.
 \end{proof}
 
 It is straightforward to show that any integer circulation on $H$ uses exactly
-$k$ of the $A$-to-$B$ arcs, which correspond to the edges of a size $k$
+$k$ of the $A$-to-$B$ arcs, which correspond to the edges of a size $k$ \note{size-$k$}
 matching.
 For a circulation $f$ in $H$, we use $M_f$ to denote the
 corresponding matching.
@@ -726,8 +726,11 @@ Observe that $\cost(f) = \cost(M_f)$, so an $\alpha$-approximation to the MCF
 problem on $H$ is an $\alpha$-approximation to the matching problem on $G$.
 
 We can improve the additive error bound in Lemma~\ref{lemma:mcf_cost} on $H$.
-Note that for integer-valued (in particular, unit) capacities, there is always an
+Note that for integer-valued capacities (in particular, unit capacity), there is always an
 integer-valued optimal circulation.
+
+\note{Move the definitions of $\eps$-optimality and admissibility for flows here?}
+
 \begin{lemma}
 \label{lemma:goldberg_cost_add}
 Let $f$ an $\eps$-optimal integer circulation in $H$, and $f^*$ an optimal
@@ -736,32 +739,41 @@ Then, $\cost(f) \leq \cost(f^*) + 6k\eps$.
 \end{lemma}
 
 \begin{proof}
-We label the arcs of $H_f$ \note{what is $H_f$? residual network?} as follows: \emph{forward arcs} directed from
-$s \to A$ or $A \to B$ or $B \to t$, and \emph{reverse arcs} in the opposite
+We label the arcs of $H_f$ \note{what is $H_f$? residual network?} as follows:
+\begin{itemize}\itemsep=0pt
+\item \emph{forward arcs}: arcs directed from
+$s \to A$ or $A \to B$ or $B \to t$, and \item \emph{reverse arcs}: arcs point in the opposite
 directions.
-Observe that a residual cycle $\Gamma$ must have exactly half of its edges being
+\end{itemize}
+Observe that a residual cycle $\Gamma$ \note{directed, by definition} must have exactly half of its edges being
 reverse arcs.
-The reverse arcs may either be (i) on one of the $M_f$ edges \note{what does this mean? the underlying edge is in $M_f$?} or else (ii)
-between $s$ and $A$ or (iii) between $B$ and $t$.
+The reverse arcs may either be
+\begin{enumerate}[(i)]\itemsep=0pt
+\item on one of the $M_f$ edges \note{what does this mean? the underlying edge is in $M_f$?},
+\item between $s$ and $A$, or
+\item between $B$ and $t$.
+\end{enumerate}
 If it is of type (ii) or (iii), there is an adjacent type (i) reverse arc.
-Thus, we can charge the reverse arcs of $\Gamma$ to $M_f \cap \Gamma$ edges
+Thus, we can charge the reverse arcs of $\Gamma$ to $M_f \cap \Gamma$ edges \note{now this is notation abuse; $\Gamma$ cannot both be an edge set and an arc set}
 with at most 3 charges per edge in $M_f \cap \Gamma$.
-We can then charge all arcs of $f' = (f^* - f) = \sum \Gamma_i$ \note{cannot parse} to $M_f$ with
-at most 6 charge per $M_f$ edge.
+We can then charge all arcs of $f' = (f^* - f) = \sum \Gamma_i$ \note{cannot parse; just arcs in the difference of $f^*$ and $f$?} to $M_f$ with
+at most 6 charge per edge in $M_f$.
 As $|M_f| = k$, the number of arcs in $f'$ is at most $6k$.
 The rest of the argument proceeds as in Lemma~\ref{lemma:mcf_cost}. \note{State at the start of the lemma what property do you need to prove in order to apply the black box.  Even better, rewrite Lemma 2 the take care of both situation assuming some bounds, and derive two corollaries from it.}
 \end{proof}
 
 Suppose we scaled arc costs (via uniform scaling of the input points) such that
-the minimum cost (closest pair distance) is 1.
+the minimum cost (closest pair distance) is 1. \note{You already made this assumption in Section~2.1; recall preliminaries.}
 Then, $\cost(f^*) \geq k$, and we can turn Lemma~\ref{lemma:goldberg_cost_add}
 into a relative approximation.
+
+\note{I am not sure if you want to state the assumption again in the statements of the corollaries, since this assumption is something you can make when constructing $H$.}
 
 \begin{corollary}
 \label{corollary:flow_approx}
 Let $f$ an $\eps$-optimal integer circulation in $H$, and $f^*$ an optimal
 integer circulation for $H$.
-Suppose costs are scaled such that $\min \|a - b\| = 1$.
+Suppose costs are scaled to be at least $1$ on all arcs.
 Then, $\cost(f) \leq (1 + 6\eps) \cost(f^*)$.
 \end{corollary}
 
@@ -769,7 +781,7 @@ Then, $\cost(f) \leq (1 + 6\eps) \cost(f^*)$.
 \label{corollary:match_approx}
 Let $f$ an $(\eps'/6)$-optimal integer circulation in $H$, and $M^*$ an optimal
 size $k$ matching of $G$.
-Suppose costs are scaled such that $\min \|a - b\| = 1$.
+Suppose costs are scaled to be at least $1$ on all arcs.
 Then, $\cost(M_f) \leq (1 + \eps') \cost(M^*)$.
 \end{corollary}
 
@@ -783,27 +795,27 @@ The Goldberg~{\etal}~\cite{GHKT17} algorithm is based on \emph{cost-scaling} or
 Tarjan~\cite{GT90}.
 The algorithm finds $\eps$-optimal circulations for geometrically shrinking
 values of $\eps$.
-Each period where $\eps$ holds constant is called a \emph{scale}.
+Each period \note{what's a period?} where $\eps$ holds constant is called a \emph{scale}.
 Once $\eps$ is sufficiently small, the $\eps$-optimal flow is a suitable
-approximation or even optimal when costs are integer~\cite{GT90,GHKT17}.
-We present this algorithm as an approximation is because costs in geometric
-partial matching (i.e. Euclidean distances) are generally not integer.
+approximation (or even an optimal flow itself when costs are integers)~\cite{GT90,GHKT17}.
+We present this algorithm as an approximation is because costs in the geometric
+partial matching settings (with respect to Euclidean distances) are generally not integers.
 
-\begin{figure*}
+\begin{figure*}[h]
 \centering
 \begin{minipage}{.5\linewidth}
 \begin{algorithm}[H]
 \caption{Cost-Scaling MCF}
 \begin{algorithmic}[1]
-\Function{MCF}{$H$, $\eps'$}
-	\State $\eps \gets kC$
-	\State $f \gets 0$
-	\State $\pi \gets 0$
-	\Repeat
+\Function{MCF}{$H$, $\eps^*$}
+	\State $\eps \gets kC$,
+	$f \gets 0$,
+	$\pi \gets 0$
+	\While{$\eps > \eps^*/6$}
 		\State $(f, \pi) \gets$ \Call{Scale-Init}{$H$, $f$, $\pi$}
 		\State $(f, \pi) \gets$ \Call{Refine}{$H$, $f$, $\pi$}
 		\State $\eps \gets \eps/2$
-	\Until{$\eps \leq \eps'/6$}
+	\EndWhile
 	\State\Return $f$
 \EndFunction
 \end{algorithmic}
@@ -811,34 +823,38 @@ partial matching (i.e. Euclidean distances) are generally not integer.
 \end{minipage}
 \end{figure*}
 
-Note that the 0 flow is trivially $kC$-optimal for $H$.
-At the beginning of each scale, \textsc{Scale-Init} takes the previous
+Note that the zero flow is trivially $kC$-optimal for $H$.
+At the beginning of each scale, \note{it feels weird to use "scale" this way; "scale" sounds like the manitute of $\eps$.  How about "iteration"?} \textsc{Scale-Init} takes the previous
 circulation (now $2\eps$-optimal) and transforms it into an $\eps$-optimal
 pseudoflow with $O(k)$ excess.
-The rest of the scale, in \textsc{Refine}, reduces the excess in this
-pseudoflow to 0, making an $\eps$-optimal circulation.
-The bulk of this section will describe and analyze \textsc{Scale-Init} and
+For the rest of the scale, in \textsc{Refine} \note{undefined}, reduces the excess in the newly constructed
+pseudoflow to zero, making it an $\eps$-optimal circulation.
+The bulk of this section will be the descriptions and analysis of \textsc{Scale-Init} and
 \textsc{Refine}.
+\note{Mention Algorithm 3 somehow, to justify the placement of the pseudocode.}
 
-For now, we analyze the number of scales (iterations of the outer loop).
-Initially $\eps = kC$, and the algorithm is stopped once $\eps \leq \eps'/6$.
-Thus, the number of scales is $O(\log(kC/\eps'))$.
-For geometric matching problems, there is a simple way to preprocess the point
+First we analyze the number of scales (iterations of the outer loop).
+Initially $\eps = kC$, and the algorithm stops once $\eps$ is at most $\eps^*/6$.
+Thus, the number of scales is $O(\log(kC/\eps^*))$.
+For the geometric matching problem, there is a simple way to preprocess the point
 set such that $C = O(n^2)$, effectively, by Sharathkumar and Agarwal~\cite{SA12}.
-Using this preprocessing gives us $O(\log(n/\eps'))$ scales, instead.
-We briefly describe this preprocessing step at the end of this section.
+\note{With that assumption that the minimum distance is at least $1$?}
+This gives us $O(\log(n/\eps^*))$ scales as a result.
+We briefly describe this preprocessing step at the end of this section. \note{where? do it here if needed.}
 
 \begin{lemma}
 \label{lemma:goldberg_scales}
-The cost-scaling algorithm finds a $(1 + \eps')$-approximate matching after
-$O(\log(n/\eps'))$ scales.
+The cost-scaling algorithm finds a $(1 + \eps^*)$-approximate matching after
+$O(\log(n/\eps^*))$ scales.
 \end{lemma}
 
 \subsection{\textsc{Scale-Init}}
 
-\begin{figure*}
+The procedure is described in Algorithm~\ref{algorithm:scale_init}.
+
+\begin{figure*}[h]
 \centering
-\begin{minipage}{.8\linewidth}
+\begin{minipage}{.5\linewidth}
 \begin{algorithm}[H]
 \caption{Scale Initialization}
 \label{algorithm:scale_init}
@@ -847,7 +863,7 @@ $O(\log(n/\eps'))$ scales.
 	\State $\forall a \in A, \pi(a) \gets \pi(a) + \eps$
 	\State $\forall b \in B, \pi(b) \gets \pi(b) + 2\eps$
 	\State $\pi(t) \gets \pi(t) + 3\eps$
-	\Statex %newline
+	%\Statex %newline
 	\ForAll{$(v, w) \in E_{>0}(f)$}
 		\If{$c_\pi(w, v) < -\eps$}
 			\State $f(v, w) \gets 0$
@@ -860,7 +876,6 @@ $O(\log(n/\eps'))$ scales.
 \end{minipage}
 \end{figure*}
 
-The procedure is described in Algorithm~\ref{algorithm:scale_init}.
 Let the $H_f$ arcs directed from $s \to A$ or $A \to B$ or $B \to t$ be
 \emph{forward arcs}, and let those in the opposite directions be
 \emph{reverse arcs}.
@@ -909,7 +924,7 @@ paths.
 
 \begin{figure*}
 \centering
-\begin{minipage}{.6\linewidth}
+\begin{minipage}{.8\linewidth}
 \begin{algorithm}[H]
 \caption{Refinement}
 \begin{algorithmic}[1]
@@ -1052,7 +1067,6 @@ It follows that $|X| = O(k)$ and therefore $|E_{>0}(f)| = O(k)$.
 % \end{algorithm}
 % \end{minipage}
 % \end{figure*}
-
 
 As it turns out, there are some vertices whose relaxation events we cannot
 charge to the support size.
