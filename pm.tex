@@ -320,7 +320,7 @@ $0 \leq e_{f'}(v) \leq e_f(v)$ for all excess vertices $v$,
 $0 \leq -e_{f'}(v) \leq -e_f(v)$ for all deficit vertices $v$, and
 %\item
 % if $e_f(v) = 0$ then $e_{f'}(v) = 0$, \note{this follows from (1) or (2)} and
-\item $\sum_{v \in V} |e_{f'}(v)| < \sum_{v \in V} |e_f(v)|$ holds. \note{this follows from (1) and (2) too?}
+\item $\sum_{v \in V} |e_{f'}(v)| < \sum_{v \in V} |e_f(v)|$ holds.
 \end{enumerate}
 If improving flow $f'$ is on a simple path (from an excess vertex to a deficit
 vertex), we call it an \emph{augmenting-path flow} \note{path flow for short? only used twice throughout the paper} and its underlying support path \note{support undefined} an
@@ -794,6 +794,8 @@ Then, $\cost(M_f) \leq (1 + \eps') \cost(M^*)$.
 
 In other words, a $(\eps'/6)$-optimal circulation is sufficient for a
 $(1 + \eps')$-approximate matching.
+
+\note{Put the spread reduction here?}
 
 \subsection{Algorithm description}
 
