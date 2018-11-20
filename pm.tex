@@ -329,6 +329,7 @@ If $f'$ saturates at least one residual arc in every augmenting path in $G_f$,
 we call $f'$ a \emph{blocking flow}.
 In other words, for blocking flow $f'$, there is no augmenting-path flow
 $f''$ in $G_f$ for which $f + (f' + f'')$ is a feasible pseudoflow in $G$.
+\note{Move to Section 4.4 where blocking flow is first used.}
 
 \subsection{Primal-dual augmentation algorithms}
 
@@ -474,7 +475,7 @@ finds an admissible augmenting path; we call this subrouotine the \emph{Hungaria
 \begin{theorem}[Time for Hungarian algorithm]
 \label{theorem:hung_orig}
 Let $G = (A \cup B, A \times B)$ be an instance of geometric partial matching
-with $|A| = r \geq |B| = n$, and parameter $k \leq r$.
+with $|A| = r \geq |B| = n$ \note{$r \le n$?}, and parameter $k \leq r$.
 Suppose the Hungarian search finds each augmenting path in $T(n, k)$ time after
 a one-time $P(n, k)$ preprocessing time.
 Then, the Hungarian algorithm finds the optimal size $k$ matching in time
@@ -490,9 +491,8 @@ expanding $S$ until it includes an unmatched $b \in B$ (and thus an admissible
 alternating augmenting path).
 The ``search frontier'' of the Hungarian search is
 $(S \cap A) \times (B \setminus S)$.
-From the frontier, we \emph{relax} the edge with minimum reduced cost, changing
-the potentials such that the edge becomes admissible, and adding the opposite
-$B$ vertex into $S$.
+We \emph{relax} the edge in the frontier with minimum reduced cost, changing
+the potentials of vertices $S$ such that the edge becomes admissible, and adding the head of the edge into $S$. \note{Well, either you add both endpoints into $S$, or an admissible augmenting path is found.}
 
 The potential update uniformly decreases the reduced costs of the frontier
 edges.
@@ -511,7 +511,7 @@ The algorithm is shown below as Algorithm~\ref{algorithm:hung_hs}.
 \Require{$c_\pi(a, b) = 0$ for all $(a, b) \in M$}
 %\Statex %newline
 \Function{Hungarian-Search}{$G = (A \cup B, E)$, $M$, $\pi$}
-	\State $S \gets a \in (A \setminus V(M))$
+	\State $S \gets a \in (A \setminus V(M))$ \note{arbitrary $a$?}
 	\Repeat
 		\State $(a', b') \gets \argmin\{c_\pi(a, b) \mid (a, b) \in (S \cap A) \times (B \setminus S)\}$
 		\State $\gamma \gets c_\pi(a', b')$
@@ -521,7 +521,7 @@ The algorithm is shown below as Algorithm~\ref{algorithm:hung_hs}.
 		\State $S \gets S \cup \{b'\}$
 		% \Statex %newline
 		\If{$b' \not\in V(M)$} \Comment{$b'$ unmatched}
-			\State $\Pi \gets$ alternating augmenting path from $S$ to $b'$
+			\State $\Pi \gets$ alternating augmenting path from $S$ to $b'$ \note{not uniquely defined; do you mean from $a$?}
 			\State\Return $\Pi$
 		\Else \Comment{$b'$ is matched to some $a'' \in A \cap V(M)$}
 			\State $S \gets S \cup \{a''\}$
@@ -928,6 +928,7 @@ By Lemma~\ref{lemma:reduction_count}, there are $|E_{>0}(f)| = O(k)$ reverse
 arcs, so the total excess created must be $O(k)$.
 \end{proof}
 
+
 \subsection{\textsc{Refine}}
 
 \textsc{Refine} is implemented using a primal-dual augmentation algorithm,
@@ -935,7 +936,7 @@ which sends improving flows on admissible edges like the Hungarian algorithm.
 Unlike the Hungarian algorithm, it uses blocking flows instead of augmenting
 paths.
 
-\begin{figure*}
+\begin{figure*}[ht]
 \centering
 \begin{minipage}{.8\linewidth}
 \begin{algorithm}[H]
@@ -956,11 +957,12 @@ paths.
 \end{figure*}
 
 Using the properties of blocking flows and the unit-capacity input graph,
-Goldberg~{\etal} prove that there are $O(\sqrt{k})$ blocking flows before
+Goldberg~{\etal} \cite{xxx} \note{cite} prove that there are $O(\sqrt{k})$ blocking flows before
 excess becomes 0.
 \note{This is not honest, I think. There is a derivation almost identical to theirs, but they are using a slightly different reduction graph.}
+\note{HC: I am not familiar enough with their algorithm; do you think it's a straightforward application of the technique, or are there something subtle that requires a complete proof?}
 
-\begin{lemma}[Goldberg~{\etal}~\cite{GHKT17} Lemma 3.11 and Section 6]
+\begin{lemma}[Goldberg~{\etal}~{\cite[Lemma~3.11 and \S{6}]{GHKT17}}]
 \label{lemma:goldberg_refine_iterations}
 Let $f$ be a pseudoflow in $H$ with $O(k)$ excess.
 There are $O(\sqrt{k})$ blocking flows before excess is 0.
@@ -973,9 +975,9 @@ $O(k\sqrt{k})$.
 Each step of \textsc{Refine} finds an admissible blocking flow in two stages.
 \begin{enumerate}
 \item A \emph{Hungarian search}, which updates duals in a Dijkstra-like
-	manner until there exists an excess-deficit path of admissible edges.
+	manner until there is an excess-deficit path of admissible edges.
 	There are slight differences from the Hungarian algorithm's ``Hungarian
-	search,'' but the final running time is identical.
+	search,'' but the final running time is identical. \note{In your paper there are only two.  So just mention that this one is different from the one for matchings.}
 	We call the procedure \textsc{Hungarian-Search2} to distinguish.
 
 \item A \emph{depth-first search} (\textsc{DFS}) through the set of admissible
@@ -994,19 +996,20 @@ This is applied in a similar way as the BCP is for Hungarian search.
 \begin{lemma}
 \label{lemma:goldberg_refine_time}
 Suppose \textsc{Hungarian-Search2} can be implemented in $T_1(n, k)$ time after
-a once-per-\textsc{Refine} $P_1(n, k)$ time preprocessing, and respectively
-\textsc{DFS} in $T_2(n, k)$ time after $P_2(n, k)$ preprocessing.
-Then, \textsc{Refine} can be implemented in
-$O(P_1(n, k) + P_2(n, k) + \sqrt{k}[T_1(n, k) + T_2(n, k)] + k\sqrt{k})$ time.
+a once-per-\textsc{Refine} $P_1(n, k)$ time preprocessing, and
+\textsc{DFS} can be implemented in $T_2(n, k)$ time after $P_2(n, k)$ preprocessing.
+Then, \textsc{Refine} can be implemented in time
+\[
+O(P_1(n, k) + P_2(n, k) + \sqrt{k}T_1(n, k) + \sqrt{k}T_2(n, k) + k\sqrt{k}).
+\]
 \end{lemma}
 
-As we will show shortly (Lemmas~\ref{lemma:goldberg_hs_time},
-\ref{lemma:goldberg_dfs_time}), the total running time for \textsc{Refine} is
+As we will show shortly (Lemmas~\ref{lemma:goldberg_hs_time} and \ref{lemma:goldberg_dfs_time}), the total running time for \textsc{Refine} is
 $O((n + k\sqrt{k})\polylog n)$.
 Combining with Lemmas~\ref{lemma:goldberg_scales} and \ref{lemma:scale_init}
 completes the proof of Theorem~\ref{theorem:gmcm}.
 At a high level, our analysis strategy is to charge relaxation events in
-the search to arcs of $E_{>0}(f)$.
+the search to the arcs in $E_{>0}(f)$.
 We first extend Lemma~\ref{lemma:reduction_count} to bound the size of
 $E_{>0}(f)$ throughout \textsc{Refine}, by observing that the amount of excess
 decreases in each iteration of \textsc{Refine}.
@@ -1049,9 +1052,10 @@ Then, $|E_{>0}(f)| = O(k)$.
 % \end{minipage}
 % \end{figure*}
 
+\note{Move to the start of next subsubsection?}
 As it turns out, there are some vertices whose relaxation events we cannot
 charge to the support size.
-However, we can replace $H_f$ with an equivalent graph without them,
+However, we can replace $H_f$ with an equivalent graph without them \note{who? the empty vertices of course, but here the readers have yet to see them, so the proof sketch is not super helpful},
 and run \textsc{Hungarian-Search2} and \textsc{DFS} on the resulting graph.
 We describe these vertices and their properties, before describing
 \textsc{Hungarian-Search2} and \textsc{DFS}.
@@ -1059,7 +1063,7 @@ We describe these vertices and their properties, before describing
 \subsubsection{Empty vertices and the shortcut graph}
 
 We say $v \in A \cup B$ is an \emph{empty vertex} if $e_f(v) = 0$ and no edges
-of $E_{>0}(f)$ adjoin $v$.
+of $E_{>0}(f)$ adjoin $v$. \note{Hmm. How do you feel about calling them "irrelavant vertices"?}
 We are unable to charge relaxation steps involving empty vertices to
 $|E_{>0}(f)|$, so the algorithm must deal with them separately.
 Namely, there is no edge with $f(e) > 0$ adjacent to an empty vertex,
@@ -1450,7 +1454,7 @@ Note that empty vertex potentials are not handled in
 The depth-first search is similar to \textsc{Hungarian-Search2} in that it
 uses the relaxation of minimum-reduced cost arcs/empty paths, this time to
 identify admissible arcs/empty paths in a depth-first manner.
-This requires some adjustments to the data structures for finding the 
+This requires some adjustments to the data structures for finding the
 minimum-reduced cost arc leaving $v' \in S$.
 Given $v' \in S$, we would like to query:
 \begin{enumerate}
