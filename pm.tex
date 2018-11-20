@@ -25,6 +25,8 @@
 \usepackage{latexsym,amsmath,amssymb,amsthm}
 \usepackage{algorithm,algorithmicx}
 \usepackage[noend]{algpseudocode}
+\renewcommand{\algorithmicrequire}{\textbf{Requirement:}}
+
 \usepackage{mathtools} % for \coloneqq
 
 \usepackage[title]{appendix}
@@ -47,9 +49,30 @@
 \def\bd{{\partial}}
 \def\reals{\mathbb{R}}
 \def\ints{\mathbb{N}}
-\def\flr#1{{\lfloor #1\rfloor}}
+%\def\flr#1{{\lfloor #1\rfloor}}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
+
+% ---- DELIMITER PAIRS ----
+\def\floor#1{\lfloor #1 \rfloor}
+\def\ceil#1{\lceil #1 \rceil}
+\def\seq#1{\langle #1 \rangle}
+\def\set#1{\{ #1 \}}
+\def\abs#1{\mathopen| #1 \mathclose|}		% use instead of $|x|$
+\def\norm#1{\mathopen\| #1 \mathclose\|}	% use instead of $\|x\|$
+\def\indic#1{\big[#1\big]}			% indicator variable; Iverson notation
+							% e.g., Kronecker delta = [x=0]
+
+% --- Self-scaling delmiter pairs ---
+\def\Floor#1{\left\lfloor #1 \right\rfloor}
+\def\Ceil#1{\left\lceil #1 \right\rceil}
+\def\Seq#1{\left\langle #1 \right\rangle}
+\def\Set#1{\left\{ #1 \right\}}
+\def\Abs#1{\left| #1 \right|}
+\def\Norm#1{\left\| #1 \right\|}
+\def\Paren#1{\left( #1 \right)}		% need better macro name!
+\def\Brack#1{\left[ #1 \right]}		% need better macro name!
+\def\Indic#1{\left[ #1 \right]}		% indicator variable; Iverson notation
 
 \def\tsupply{\lambda}
 \def\fsupply{\phi}
@@ -93,7 +116,8 @@
 \makeatother
 
 % for definitions
-\def\EMPH#1{\textbf{\emph{\boldmath #1}}}
+\def\EMPH#1{\textbf{\boldmath #1}}
+\pdfstringdefDisableCommands{\let\boldmath\relax} % allow \boldmath in section titles
 
 % ----------------------------------------------------------------------
 %  Notes to myself.  The margin flags are broken, thanks to an
@@ -137,13 +161,13 @@ in other words, the minimum-cost bipartite matching problem on the Euclidean
 complete graph $G = (A \cup B, A \times B)$.
 Let $r \coloneqq |A|$ and $n \coloneqq |B|$.
 Without loss of generality, assume that $r \leq n$.
-We consider the problem of \EMPH{partial matching}, where the task is to
+We consider the problem of \emph{partial matching}, where the task is to
 find a minimum-cost matching of size $k \leq r$.
 When $k = r = n$, we say the matching instance is \EMPH{balanced}.
 When $k = r < n$ ($A$ and $B$ have different sizes, but the matching is
 maximal), we say the matching instance is \EMPH{unblanced}.
 We call the geometric problem of finding a size $k$ matching of point sets $A$
-and $B$ \EMPH{geometric partial matching}.
+and $B$ the \EMPH{geometric partial matching problem}.
 
 % \begin{TODO}
 % Previous work
@@ -208,8 +232,8 @@ Our third algorithm solves the transportation problem in the unbalanced
 setting.
 The transportation problem is a weighted generalization of the matching
 problem.
-Each point of $A$ is weighted with an integer \EMPH{supply} and each point of
-$B$ is weighted with integer \EMPH{demand} such that the sum of supply and
+Each point of $A$ is weighted with an integer \emph{supply} and each point of
+$B$ is weighted with integer \emph{demand} such that the sum of supply and
 demand are equal.
 The goal of the transportation problem is to find a minimum-cost mapping of
 all supplies to demands, where the cost of moving a unit of supply at $a \in A$
@@ -273,8 +297,8 @@ matching $M^*$ of minimum cost.
 For minimum-cost flow, let $G_0 = (V, E_0)$ be a directed graph with
 nonnegative arc capacities $u(v, w)$ and costs $c(v, w)$ for each arc
 $(v, w) \in E_0$.
-We say $G_0$ is \EMPH{unit-capacity} if $u(v, w) = 1$ holds for all arc $(v, w)$.
-Let $\fsupply: V \to \ints_{\geq 0}$ be a supply-demand function on $V$, satisfying $\sum_{v \in V} \fsupply(v) = 0$.
+We say $G_0$ has \EMPH{unit-capacity} if $u(v, w)~=~1$ holds for every arc $(v, w)$.
+Let $\fsupply: V \to \ints_{\geq 0}$ be a supply-demand function, satisfying $\sum_{v \in V} \fsupply(v) = 0$.
 The positive values of $\fsupply(v)$ are referred to as \EMPH{supply}, and the negative values of $\fsupply(v)$ as \EMPH{demand}.
 
 We augment $G_0$ to make it \EMPH{symmetric}
@@ -284,11 +308,11 @@ and the costs
 %$c(v, w) = -c(w, v)$).
 by creating an arc $(w, v)$ for each $(v, w) \in E_0$ and define $u(w, v) = 0$
 and $c(w, v) = -c(v, w)$.
-Denote this set of new \EMPH{reverse arcs} by $E^R$.
+Denote this set of new \EMPH{reverse arcs} by \EMPH{$E^R$}.
 \note{How do you feel about using darts and arcs to describe the distinction?}
-Let $E = E_0 \cup E^R$.
+Let $E$ be the union of $E_0$ and $E^R$. \note{Do you need to define $E$?}
 From here forward, we work with the symmetric multigraph $G = (V, E)$.
-A \EMPH{network} $N = (G, c, u, \fsupply)$ is a graph $G$ augmented with arc
+A \EMPH{network $(G, c, u, \fsupply)$} is a graph $G$ augmented with arc
 costs, capacities, and a supply-demand function on vertices of $G$.
 
 \paragraph{Pseudoflows.}
@@ -300,7 +324,7 @@ All our algorithms will handle integer-valued pseudoflows, so in the
 unit-capacity setting an arc is either saturated or has zero flow.
 Given a pseudoflow $f$, we define the \EMPH{imbalance} of a vertex to be
 \[
-e_f(v) \coloneqq \fsupply(v) + \sum_{(w, v) \in E}{f(w, v)} - \sum_{(v, w) \in E}{f(v, w)}.
+\EMPH{$e_f(v)$} \coloneqq \fsupply(v) + \sum_{(w, v) \in E}{f(w, v)} - \sum_{(v, w) \in E}{f(v, w)}.
 \]
 We call positive imbalance \EMPH{excess} and negative imbalance \EMPH{deficit};
 and vertices with positive and negative imbalance \EMPH{excess vertices} and
@@ -309,7 +333,7 @@ A vertex is \EMPH{balanced} if it has zero imbalance.
 If all vertices are balanced, the pseudoflow is a \EMPH{circulation}.
 The cost of a pseudoflow is
 \[
-\cost(f) \coloneqq \sum_{(v, w) \in E} c(v, w) \cdot f(v, w).
+\EMPH{$\cost(f)$} \coloneqq \sum_{(v, w) \in E} c(v, w) \cdot f(v, w).
 \]
 The \EMPH{minimum-cost flow problem (MCF)} asks to find the circulation $f^*$ of
 minimum cost.
@@ -319,21 +343,22 @@ For each arc $(v, w)$, the \EMPH{residual capacity} with respect to
 pseudoflow $f$ is defined to be $u_f(v, w) \coloneqq u(v, w) - f(v, w)$.
 The set of \EMPH{residual arcs} is defined as
 \[
-E_f \coloneqq \{(v, w) \in E \mid u_f(v, w) > 0\}.
+\EMPH{$E_f$} \coloneqq \{(v, w) \in E \mid u_f(v, w) > 0\}.
 \]
-We call $G_f = (V, E_f)$ the \EMPH{residual graph} with respect to pseudoflow $f$.
+Let $G_f = (V, E_f)$.
+We call \EMPH{$G_f$} the \EMPH{residual graph} with respect to pseudoflow $f$.
 A pseudoflow $f'$ in $G_f$ can be ``added'' or ``augmented'' to $f$ to produce
 a new pseudoflow (that is, the arc-wise addition $f + f'$ is a valid pseudoflow
 in $G$).
 A pseudoflow $f'$ in $G_f$ is an \EMPH{improving flow} if
 \begin{enumerate}[(1)]\itemsep=0pt
 \item
-$0 \leq e_{f'}(v) \leq e_f(v)$ for all excess vertices $v$,
+$0 \leq |e_{f'}(v)| \leq |e_f(v)|$ for every vertex $v$,
 \item
-$0 \leq -e_{f'}(v) \leq -e_f(v)$ for all deficit vertices $v$, and
+$e_{f'}(v)$ and $e_f(v)$ share the same sign for every vertex $v$, and
 %\item
 % if $e_f(v) = 0$ then $e_{f'}(v) = 0$, \note{this follows from (1) or (2)} and
-\item $\sum_{v \in V} |e_{f'}(v)| < \sum_{v \in V} |e_f(v)|$ holds.
+\item $\sum_{v \in V} |e_{f'}(v)| < \sum_{v \in V} |e_f(v)|$ holds. \note{emphasize the strict inequality}
 \end{enumerate}
 If improving flow $f'$ is on a simple path (from an excess vertex to a deficit
 vertex), we call it an \EMPH{augmenting-path flow} \note{path flow for short? only used twice throughout the paper} and its underlying support path \note{support undefined} an
@@ -366,10 +391,10 @@ minimum cost.
 
 \paragraph{LP-duality and admissability.}
 Formally, the
-\EMPH{potentials} $\pi(v)$ are the variables of the linear program dual to \note{which primal problem? State the correspodning linear problems explicitly}.
+\EMPH{potentials $\pi(v)$} are the variables of the linear program dual to \note{which primal problem? State the correspodning linear problems explicitly}.
 The \EMPH{reduced cost} of an arc $(v, w)$ in $E_f$ with respect to $\pi$ is
 \[
-c_\pi(v, w) \coloneqq c(v, w) - \pi(v) + \pi(w).
+\EMPH{$c_\pi(v, w)$} \coloneqq c(v, w) - \pi(v) + \pi(w).
 \]
 Note that reduced costs are antisymmetric: $c_\pi(v, w) = -c_\pi(w, v)$.
 The \EMPH{dual feasibility constraint} is that $c_\pi(v, w) \geq 0$ holds for all
@@ -378,7 +403,7 @@ The linear programming \EMPH{optimality conditions} state that, for an optimal
 circulation $f^*$, there are feasible potentials $\pi^*$ which satisfy
 $c_{\pi^*}(v, w) = 0$ on all arcs with $f^*(v, w) > 0$.
 We can similarly define potentials and reduced costs for matchings, using
-$c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b)$ for edges $(a, b) \in A \times B$.
+$c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b)$ for edges $(a, b)$ from $A$ to $B$.
 
 Suppose we relax the dual feasibility constraint to allow for a violation of
 $\eps > 0$.
@@ -428,7 +453,7 @@ In Section~\ref{section:goldberg}, we use $\eps$-optimality to prove the
 approximation quality of an $\eps$-optimal circulation.
 
 
-\section{Matching with the Hungarian algorithm}
+\section{Computing Min-cost Partial Matching using Hungarian algorithm}
 \label{section:hung}
 
 The Hungarian algorithm maintains a 0-optimal (initially empty) matching $M$,
@@ -658,17 +683,17 @@ Overall, the time spent per Hungarian search is $T(n, k) = O(k\polylog n)$.
 \end{proof}
 
 
-\section{Matching with the Goldberg~{\etal} algorithm}
+\section{Approximating Min-cost Partial Matchings}
 \label{section:goldberg}
 
-\note{Remind the readers what you want to achieve in this section.}
-In this section, we describe a $(1+\eps)$-approximation algorithm for geometric
-partial matching which proves Theorem~\ref{theorem:gmcm}.
+%\note{Remind the readers what you want to achieve in this section.}
+In this section, we describe a $(1+\eps)$-approximation algorithm for the geometric
+partial matching problem and prove Theorem~\ref{theorem:gmcm}.
 We build atop a \EMPH{cost-scaling} algorithm for unit-capacity min-cost flow
-from Goldberg~\etal~\cite{GHKT17}.
+from Goldberg, Kaplan, Hed, and Tarjan~\cite{GHKT17}.
 First, we give a cost-preserving near-linear time reduction from geometric
 partial matching to unit-capacity min-cost flow, which allows us to apply the
-cost-scaling algorithm to partial matching.
+cost-scaling algorithm toffind partial matchings.
 
 \subsection{MPM to unit-capacity MCF reduction}
 \label{subsection:mcm_mcf_reduction}
@@ -683,11 +708,11 @@ For each of the above arcs $(v, w)$, we also add a reverse arc $(w, v)$ with
 cost $c(w, v) = -c(v, w)$ and capacity $0$. \note{is this consistent with the other residual graph description?}
 Let the complete set of arcs be $E$, and $V = A \cup B \cup \{s, t\}$.
 Set $\fsupply(s) = k$, $\fsupply(t) = -k$, and $\fsupply(v) = 0$ for all other
-vertices. \note{What is $\phi$?  Undefined in this section.}
-Let the resulting graph be $H = (V, E)$, and the network
-$N_H = ((V, E), c, u, \fsupply)$.
+vertices. \note{What is $\phi$?  You are extending the supply-demand fuction from the \emph{network} on $G$.}
+Let the resulting graph be $H = (V, E)$.  Define the network
+$\EMPH{$N_H$} = ((V, E), c, u, \fsupply)$.
 We call $H$ the \EMPH{reduction graph} of the partial matching instance on
-$A, B$ with parameter $k$, and $N_H$ the \EMPH{reduction network}.
+$A$ and $B$ with parameter $k$, and $N_H$ the \EMPH{reduction network}.
 
 \begin{observation}
 \label{observation:dag}
@@ -722,19 +747,19 @@ We conclude that the number of positive flow arcs in $f$ is $O(k)$.
 It is straightforward to show that any integer circulation on $H$ uses exactly
 $k$ of the $A$-to-$B$ arcs, which correspond to the edges of a size-$k$
 matching.
-For a circulation $f$ in $H$, we use $M_f$ to denote the
+For a circulation $f$ in $H$, we use \EMPH{$M_f$} to denote the
 corresponding matching.
 
 \begin{observation}
 \label{observation:reduction_cost}
 	Let $f$ be an integer circulation on $H$; $f$ uses exactly $k$ of the
-	$A$-to-$B$ arcs which correspond to a size $k$ matching on $A, B$.
+	$A$-to-$B$ arcs which correspond to a size $k$ \note{size-$k$, when used as an adj.} matching on $A, B$.
 	Call this matching $M_f$, then $\cost(f) = \cost(M_f)$
 \end{observation}
 
 Observe that $\cost(f) = \cost(M_f)$, so an $\alpha$-approximation to the MCF
 problem on $H$ is an $\alpha$-approximation to the matching problem on $G$.
-In the next lemma, we show how $\eps$-optimality implies approximation on $H$.
+In the next lemma, we show how $\eps$-optimality \note{adj.} implies an approximation \note{noun} on $H$. \note{The sentece is unparsable.}
 
 \note{Move the definitions of $\eps$-optimality and admissibility for flows here?}
 
@@ -748,10 +773,11 @@ Then, $\cost(f) \leq \cost(f^*) + 6k\eps$.
 \begin{proof}
 We label the arcs of the residual network $H_f$ as follows:
 \begin{itemize}\itemsep=0pt
-\item \EMPH{forward arcs}: arcs directed from $s$-to-$A$ or $A$-to$B$ or
+\item \EMPH{forward arcs}: arcs directed from $s$-to-$A$ or $A$-to-$B$ or
 	$B$-to-$t$, and
 \item \EMPH{reverse arcs}: arcs point in the opposite directions.
 \end{itemize}
+\note{Consider moving the definitions outside the proof.}
 Reverse arcs must be induced by positive flow in the opposite direction
 (forward arc between the same points), since $H$ only has arcs in the forward
 direction.
@@ -760,12 +786,12 @@ $s$ to $t$.
 Each $s$-to-$t$ path in $H$ is length 3, so the total number of reverse arcs
 is $3k$.
 
-There exists a residual flow $g$ in $H_f$ such that $f + g = f^*$.
-Since both $f$ and $f^*$ are both circulations and $H$ is unit-capacity, $g$ is
-comprised of unit flows on a collection edge-disjoint residual cycles,
-$\Gamma_1, \ldots \Gamma_\ell$.
+There exists \note{"there is", for simplicity} a residual flow $g$ in $H_f$ such that $f + g = f^*$.
+Since both $f$ and $f^*$ are both circulations and $H$ is unit-capacity \note{unit-capacity is not an adj.; "has"}, $g$ is
+comprised of unit flows on a collection edge-disjoint residual cycles
+$\Gamma_1, \ldots, \Gamma_\ell$.
 Observe that each residual cycle $\Gamma_i$ must have exactly half of its arcs
-being reverse arcs, thus $\sum_i |\Gamma_i| \leq 6k$.
+being reverse arcs, and therefore we have $\sum_i |\Gamma_i| \leq 6k$.
 
 Let $\pi$ be a set of potentials which certify that $f$ is $\eps$-optimal.
 For residual cycles, we have that $c_\pi(\Gamma_i) = c(\Gamma_i)$, since the
@@ -789,70 +815,68 @@ Let $f$ an $(\eps/6k)$-optimal integer circulation in $H$, and $f^*$ an optimal
 integer circulation for $H$.
 Then, $\cost(f) \leq \cost(f^*) + \eps$.
 \end{corollary}
+\note{This too straightforward that I don't think you need a separate corollary.}
 
-We use a technique from Sharathkumar and Agarwal~\cite{SA12} to transform this
-additive $\eps$ approximation into a relative $(1+\eps)$ approximation
+We use a technique from Sharathkumar and Agarwal~\cite{SA12} to transform the
+additive $\eps$-approximation into a relative $(1+\eps)$ approximation
 for geometric matching.
-Let $\EuScript{T}$ be the minimum spanning tree (MST) of $A \cup B$ and order
+Let $\EuScript{T}$ \note{change font faces only the the objects are of different types; here $\EuScript{T}$ , $T_i$ are both subset of edges} be the minimum spanning tree of $A \cup B$ and order
 its edges by decreasing length as $e_1, \ldots, e_{r+n-1}$.
-Let $T_i$ be the connected components of $\EuScript{T}$ induced by
-$e_{i+1}, \ldots, e_{r+n-1}$, i.e. from removing all MST edges of length at
-least $c(e_i)$.
-For each component $T \in T_i$, let $A_T = T \cap A$ and $B_T = T \cap B$
+Let $T_i$ be the subgraph of $\EuScript{T}$ induced by
+$e_{i+1}, \ldots, e_{r+n-1}$; that is, the graph obtained from removing $e_1,\ldots,e_i$ from $\EuScript{T}$.
+For each component $T$ of $T_i$, let $A_T \coloneqq T \cap A$ and $B_T \coloneqq T \cap B$
 respectively.
 
-Let $j_1$ be minimum index such that there exists a component $T \in T_{j_1}$
-with $|A_T| \neq |B_T|$.
-Choose $j_2$ to be the maximum index such that
-$c(e_{j_2}) \geq n^2 c(e_{j_1})$.
-We partition $A, B$ into the sets $A_T, B_T$ for each $T \in T_{j_2}$.
-Since $j_2 < j_1$, $|A_T| = |B_T|$ for all $T \in T_{j_2}$.
+Let $j_1$ be the minimum index such that there exists a component $T$ of $T_{j_1}$
+satisfying $|A_T| \neq |B_T|$.
+Choose $j_2$ to be the maximum index less than $j_1$ satisfying
+$c(e_{j_2}) \geq n^2 \cdot c(e_{j_1})$.
+We partition $A$ and $B$ into the collection os sets $A_T$ and $B_T$ according to the components $T$ of $T_{j_2}$. \note{double-subscripts, bad.  replace $j_1$ and $j_2$ with $j$ and $k$ or something?}
+Since $j_2 < j_1$, $|A_T| = |B_T|$ for every component $T$ of $T_{j_2}$.
 
-\begin{lemma}[\cite{SA12}, Section 3.5]
+\begin{lemma}[Sharathkumar and Agarwal~{\cite[\S3.5]{SA12}}]
 \label{lemma:sa_partition}
-Consider the partition of $A, B$ into sets $A_T, B_T$ for each $T \in T_{j_2}$.
-Let $M^*$ be the optimal matching on $A, B$ and $M^*_T$ be the optimal matching
-on $T \in T_{j_2}$, and let the diameter of a component $T$ be
+Consider the partition of $A$ and $B$ into collection of sets $A_T$ and $B_T$ using components of $T_{j_2}$.
+Let $M^*$ be the optimal matching between $A$ and $B$, and $M^*_T$ be the optimal matching
+on $T \in T_{j_2}$ \note{ambiguous.  DO you mean between $A_T$ and $B_T$ for all $T$?}, and let the diameter of a component $T$ be
 $C_T \coloneqq \max_{p, q \in A_T \cup B_T} \|p - q\|$.
 Then,
 \begin{enumerate}[(i)]
 \item $M^* = \bigcup_{T \in T_{j_2}} M^*_T$,
-\item $C_T \leq kn^2 c(e_{j_1})$ for all $T \in T_{j_2}$, and
-\item $c(e_{j_1}) \leq \cost(M^*)$.
+\item $C_T \leq kn^2 \cdot c(e_{j_1})$ for all $T \in T_{j_2}$, and
+\item $c(e_{j_1}) \leq \cost(M^*)$. \note{swap order between (ii) and (iii)?}
 \end{enumerate}
 Furthermore, this partition can be constructed in $O(n\polylog n)$ time
 using a dynamic data structure for bichromatic closest pair.
 \end{lemma}
 
 The proof of these properties can be found in the original paper
-\cite[Section 3.5]{SA12}, but we reproduce the rest of their proof below
+\cite[Section 3.5]{SA12}, but we reproduce the rest of proofs below
 (tailored for $\eps$-optimality).
 Given this lemma, we can construct the MCF reduction network $N_H$ for each
 component $T = A_T \cup B_T$, find an $(\eps c(e_{j_1})/6kn)$-optimal
-circulation $f_T$ for each, and then $\bigcup_{T \in T_{j_2}}M_{f_T}$ is a
-$(1+\eps)$-approximate partial matching for $A, B$
+circulation $f_T$ for each, and then $\bigcup_{T \in T_{j_2}}M_{f_T}$ will be a
+$(1+\eps)$-approximate partial matching between $A$ and $B$.
 Let $f^*_T$ be the optimal flow on $H$ for the component $T$.
-By combining Corollary~\ref{corollary:goldberg_cost_add},
-Observation~\ref{observation:reduction_cost}, and
-Lemma~\ref{lemma:sa_partition},
-\begin{equation*}
-\begin{aligned}
+Combining
+Observation~\ref{observation:reduction_cost}, Corollary~\ref{corollary:goldberg_cost_add}, and
+Lemma~\ref{lemma:sa_partition}, one has
+\begin{align*}
 	\cost(\bigcup_{T \in T_{j_2}} M_{f_T})
-		&= \sum_{T \in T_{j_2}} \cost(M_{f_T}) \\
-		&= \sum_{T \in T_{j_2}} \cost(f_T) \\
-		&\leq \sum_{T \in T_{j_2}} \cost(f^*_T) + \eps c(e_{j_1})/n \\
-		&= \sum_{T \in T_{j_2}} \cost(M^*_T) + \eps c(e_{j_1})/n \\
-		&\leq \cost(M^*) + \eps c(e_{j_1}) \\
-		&\leq (1 + \eps) \cost(M^*).
-\end{aligned}
-\end{equation*}
+		&= \sum_{T \in T_{j_2}} \cost(M_{f_T}) & \\
+		&= \sum_{T \in T_{j_2}} \cost(f_T) & \text{\small [Observation~\ref{observation:reduction_cost}]}\\
+		&\leq \sum_{T \in T_{j_2}} (\cost(f^*_T) + \eps c(e_{j_1})/n) & \text{\small [Corollary~\ref{corollary:goldberg_cost_add}]} \\
+		&= \sum_{T \in T_{j_2}} (\cost(M^*_T) + \eps c(e_{j_1})/n) & \text{\small [Observation~\ref{observation:reduction_cost}]} \\
+		&\leq \cost(M^*) + \eps c(e_{j_1}) & \text{\small [Lemma~\ref{lemma:sa_partition}(i)]} \\
+		&\leq (1 + \eps) \cost(M^*). & \text{\small[Lemma~\ref{lemma:sa_partition}(iii)]}
+\end{align*}
 
 \begin{corollary}
 \label{corollary:cost_scale_approx}
 If an algorithm can compute $(\eps c(e_{j_1})/6kn)$-optimal circulation for the
 reduction network $N_H$ of a point set with diameter
 $C \leq kn^2 \cdot c(e_{j_1})$, then we can find a $(1+\eps)$-approximate
-partial matching of $A, B$, after $O(n\polylog n)$ extra preprocessing time.
+partial matching betwen $A$ and $B$, after $O(n\polylog n)$ extra preprocessing time.
 \end{corollary}
 
 \subsection{Algorithm description}
