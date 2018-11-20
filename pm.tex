@@ -1063,12 +1063,12 @@ We describe these vertices and their properties, before describing
 \subsubsection{Empty vertices and the shortcut graph}
 
 We say $v \in A \cup B$ is an \emph{empty vertex} if $e_f(v) = 0$ and no edges
-of $E_{>0}(f)$ adjoin $v$. \note{Hmm. How do you feel about calling them "irrelavant vertices"?}
+of $E_{>0}(f)$ adjoin $v$. \note{Hmm. How do you feel about calling them "irrelavant vertices" or "null vertices"?}
 We are unable to charge relaxation steps involving empty vertices to
 $|E_{>0}(f)|$, so the algorithm must deal with them separately.
 Namely, there is no edge with $f(e) > 0$ adjacent to an empty vertex,
 reaching an empty vertex does not terminate the search, and there may be
-$\Omega(n)$ empty vertices at once (consider $H_{f = 0}$, the residual graph
+$\Omega(n)$ empty vertices at once (consider $H_{f = 0}$ \note{notation overload}, the residual graph
 of the empty flow).
 We use $A_\emptyset$ and $B_\emptyset$ to denote the empty vertices of $A$ and
 $B$ respectively.
