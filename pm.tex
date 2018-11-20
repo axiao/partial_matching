@@ -961,6 +961,7 @@ excess becomes 0.
 \note{This is not honest, I think. There is a derivation almost identical to theirs, but they are using a slightly different reduction graph.}
 
 \begin{lemma}[Goldberg~{\etal}~\cite{GHKT17} Lemma 3.11 and Section 6]
+\label{lemma:goldberg_refine_iterations}
 Let $f$ be a pseudoflow in $H$ with $O(k)$ excess.
 There are $O(\sqrt{k})$ blocking flows before excess is 0.
 \end{lemma}
@@ -991,6 +992,7 @@ admissible edges explicitly.
 This is applied in a similar way as the BCP is for Hungarian search.
 
 \begin{lemma}
+\label{lemma:goldberg_refine_time}
 Suppose \textsc{Hungarian-Search2} can be implemented in $T_1(n, k)$ time after
 a once-per-\textsc{Refine} $P_1(n, k)$ time preprocessing, and respectively
 \textsc{DFS} in $T_2(n, k)$ time after $P_2(n, k)$ preprocessing.
@@ -1181,7 +1183,7 @@ also preserve the structure of admissibility.
 \label{lemma:empty_updates}
 The number of end-of-\textsc{Refine} empty vertex potential updates is $O(n)$.
 The number of augmentation-induced empty vertex potential updates in each
-invocation of \textsc{Refine} is $O(\sum_i|N_i|)$ where $N_i$ is the number
+invocation of \textsc{Refine} is $O(\sum_i N_i)$ where $N_i$ is the number
 of positive flow arcs in the $i$-th blocking flow.
 \end{lemma}
 
@@ -1194,10 +1196,12 @@ We charge this potential update to the edges of that empty path, which are in
 turn arcs with positive flow in the blocking flow.
 For each blocking flow, no positive arc is charged more than twice.
 It follows that the number of augmentation-induced updates is $O(N_i)$ for the
-$i$-th blocking flow, and $O(\sum_i|N_i|)$ over the course of \textsc{Refine}.
-%TODO need to bound the number of blocking flow edges
+$i$-th blocking flow, and $O(\sum_i N_i)$ over the course of \textsc{Refine}.
 \end{proof}
 
+Ultimately, we prove that $\sum_i N_i = O(k\sqrt{k})$, but this requires that
+we explain the process creating each blocking flow.
+We revisit this lemma after analyzing \textsc{DFS}.
 
 \subsubsection{Hungarian search}
 
@@ -1243,10 +1247,11 @@ Observe that the arcs of $\tilde{H}_f$ leaving $S$ fall into $O(1)$ categories.
 \item Non-shortcut reverse arcs $(v, w)$ with $(w, v) \in E_{>0}(f)$.
 	For these, we can maintain a min-heap on $E_{>0}(f)$ arcs as each $v$
 	arrives in $S$.
-\item Non-shortcut forward arcs.
-	For these, we can use a BCP data structure between non-empty points of
-	$A \cap S$ and $B \setminus S$, weighted by potential.
-\item Non-shortcut forward arcs from $s$ to $A$ and from $B$ to $t$.
+\item Non-shortcut $A$-to-$B$ forward arcs.
+	For these, we can use a BCP data structure between
+	$(A \setminus A_\emptyset) \cap S$ and
+	$(B \setminus B_\emptyset) \setminus S$, weighted by potential.
+\item Non-shortcut forward arcs from $s$-to-$A$ and from $B$-to-$t$.
 	For $s$, we can maintain a min-heap on the potentials of
 	$B \setminus S$, queried while $s \in S$.
 	For $t$, we can maintain a max-heap on the potentials of
@@ -1274,7 +1279,7 @@ Observe that the arcs of $\tilde{H}_f$ leaving $S$ fall into $O(1)$ categories.
 	weights $\omega(p) = \pi(s)$ for all
 	$p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
 	A response $(a, b)$ corresponds to th empty 3-path $(s, a, b, t)$.
-	This is only queried while $t \not\in S'$.
+	This is only queried while $s \in S'$ and $t \not\in S'$.
 \end{enumerate}
 
 By construction, the BCP distance of each datastructure in (4-6) is equal to
@@ -1408,6 +1413,7 @@ Note that empty vertex potentials are not handled in
 
 \begin{algorithm}
 \caption{Depth-first search}
+\label{algorithm:goldberg_dfs}
 \begin{algorithmic}[1]
 \Function{DFS}{$H = (V, E)$, $f$, $\pi$}
 	\State $\tilde{H}_f \gets$ the shortcut graph of $H_f$
@@ -1444,10 +1450,80 @@ Note that empty vertex potentials are not handled in
 The depth-first search is similar to \textsc{Hungarian-Search2} in that it
 uses the relaxation of minimum-reduced cost arcs/empty paths, this time to
 identify admissible arcs/empty paths in a depth-first manner.
-This requires replacing many of the BCP data structures with nearest-neighbor
-(NN) data structures, which query the minimum reduced-cost path leaving a
-particular $v' \in S$ rather than all vertices of $S$ simultaneously.
+This requires some adjustments to the data structures for finding the 
+minimum-reduced cost arc leaving $v' \in S$.
+Given $v' \in S$, we would like to query:
+\begin{enumerate}
+\item Non-shortcut reverse arcs $(v', w')$ with $(w', v') \in E_{>0}(f)$.
+	For these, we can maintain a min-heap on $(w', v') \in E_{>0}(f)$ arcs
+	for each non-empty $v' \in V$.
+\item Non-shortcut $A$-to-$B$ forward arcs.
+	For these, we maintain a NN data structure over
+	$P = (B \setminus B_\emptyset) \setminus S$, with weights
+	$\omega(p) = \pi(p)$ for each $p \in P$.
+	We subtract $\pi(v')$ from the NN distance to recover the reduced cost
+	of the arc from $v'$.
+\item Non-shortcut forward arcs from $s$-to-$A$ and from $B$-to-$t$.
+	For $s$, we can maintain a min-heap on the potentials of
+	$B \setminus S$, queried only if $v' = s$.
+	For $B$-to-$t$ arcs, there is only one arc to check if $v' \in B$,
+	which we can examine manually.
 
+\item Shortcut arcs $(s, b)$ corresponding to empty 2-paths from $s$ to
+	$b \in (B \setminus B_\emptyset) \setminus S'$.
+	For these, we maintain a BCP data structure with $P = A_\emptyset$,
+	$Q = (B \setminus B_\emptyset) \setminus S')$ with weights
+	$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for
+	all $q \in Q$.
+	A response $(a, b)$ corresponds to th empty 2-path $(s, a, b)$.
+	This is only queried if $v' = s$.
+\item Shortcut arcs $(a, t)$ corresponding to empty 2-paths from
+	$a \in (A \setminus A_\emptyset) \cap S'$ to $t$.
+	For these, we maintain a NN data structure over
+	$P = B_\emptyset \setminus S'$ with weights $\omega(p) = \pi(t)$ for
+	each $p \in P$.
+	A response $(v', b)$ corresponds to th empty 2-path $(v', b, t)$.
+	We subtract $\pi(v')$ from the NN distance to recover the reduced cost
+	of the arc from $v'$.
+	This is not queried if $t \in S$.
+\item Shortcut arcs $(s, t)$ corresponding to empty 3-paths.
+	For these, we maintain in a BCP data structure with
+	$P = A_\emptyset \setminus S'$, $Q = B_\emptyset \setminus S'$ with
+	weights $\omega(p) = \pi(s)$ for all
+	$p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
+	A response $(a, b)$ corresponds to th empty 3-path $(s, a, b, t)$.
+	This is only queried while $v' = s$ and $t \not\in S'$.
+\end{enumerate}
+
+Each data structure above performs $O(\polylog n)$ time worth of query and
+insertion/deletion per relaxation, so the running time is again bounded by
+$O(\polylog n)$ times the number of relaxations.
+Since the pseudoflow is not changed within \textsc{DFS} (since the end of
+\textsc{Hungarian-Search2}), the proofs from
+Lemmas~\ref{lemma:goldberg_hs_length1} and \ref{lemma:goldberg_hs_length2} can
+be recycled for \textsc{DFS}.
+
+\begin{lemma}
+\label{lemma:goldberg_dfs_length1}
+There are $O(k)$ non-shortcut relaxations in \textsc{DFS} before a deficit
+vertex is reached.
+\end{lemma}
+
+\begin{lemma}
+\label{lemma:goldberg_dfs_length2}
+There are $O(k)$ shortcut relaxations in \textsc{DFS} before a deficit vertex
+is reached.
+\end{lemma}
+
+\begin{corollary}
+\label{corollary:goldberg_dfs_length}
+There are $O(k)$ relaxations in \textsc{DFS} before a deficit vertex is
+reached.
+\end{corollary}
+
+There are no potentials to update within \textsc{DFS}, so the running time of
+\textsc{DFS} boils down to the time spent to querying and updating the data
+structures.
 
 \begin{lemma}
 \label{lemma:goldberg_dfs_time}
@@ -1456,36 +1532,71 @@ $T_2(n, k) = O(k\polylog n)$ and $P_2(n, k) = O(n\polylog n)$.
 \end{lemma}
 
 \begin{proof}
-%TODO
+At the beginning of \textsc{Refine}, we can initialize the $O(1)$ data
+structures used in \textsc{DFS} in $P_2(n, k) = O(n\polylog n)$ time.
+We use the same rewinding mechanism as \textsc{Hungarian-Search2}
+(Lemma~\ref{lemma:goldberg_hs_time}) to avoid reconstructing the data
+structures across iterations of \textsc{Refine}, so the total time spent
+is bounded by the $O(\polylog n)$ times the number of relaxations.
+By Corollary~\ref{corollary:goldberg_dfs_length}, we obtain
+$T_2(n, k) = O(k\polylog n)$.
 \end{proof}
 
+\subsubsection{Size of the blocking flow and completing time analysis}
 
+With Lemmas~\ref{lemma:goldberg_hs_time} and \ref{lemma:goldberg_dfs_time},
+we can complete the proof of Lemma~\ref{lemma:goldberg_refine_time}
+(time per \textsc{Refine}) by bounding the total number of arcs whose flow is
+updated by a blocking flow during \textsc{Refine}.
+This bounds both the time spent updating the flow value of these arcs, and
+also the time spent on empty vertex potential updates
+(Lemma~\ref{lemma:empty_updates}).
 
-
-
-
-
-
-\subsection{Preprocessing for quadratic spread}
-
-%TODO
-\begin{lemma}[Sharathkumar, Agarwal]
-	In $O(n\log n)$ time, we can preprocess $A, B$ by partitioning into
-	$(A_1, B_1), \ldots, (A_\ell, B_\ell)$ such that
-	\begin{enumerate}
-	\item each $(A_i, B_i)$ has $|A_i| = |B_i|$,
-	\item the union of optimal matching solutions on $(A_i, B_i)$
-		is an optimal matching for $A, B$, and
-	\item the spread of $(A_i, B_i)$ is $O(n^2)$.
-	\end{enumerate}
+\begin{lemma}
+\label{lemma:goldberg_bf_size}
+Let $N_i$ be the number of positive flow arcs in the $i$-ith blocking flow
+of \textsc{Refine}.
+Then, $\sum_i N_i = O(k\sqrt{k})$.
 \end{lemma}
 
+\begin{proof}
+Let $i$ be fixed and consider the invocation of \textsc{DFS} which produces the
+$i$-th blocking flow $f_i$.
+\textsc{DFS} constructs $f_i$ as a sequence of admissible excess-deficit paths,
+which appear as path $P$ in Algorithm~\ref{algorithm:goldberg_dfs}.
+Every arc in $P$ is an arc relaxed by \textsc{DFS}, so $N_i$ is bounded by the
+number of relaxations performed in \textsc{DFS}.
+Using Corollary~\ref{corollary:goldberg_dfs_length}, we have $N_i = O(k)$.
+
+By Lemma~\ref{lemma:goldberg_refine_iterations}, there are $O(\sqrt{k})$
+iterations of \textsc{Refine} before it terminates.
+Summing, we see that $\sum_i N_i = O(k\sqrt{k})$.
+\end{proof}
+
+We now complete the proof of Lemma~\ref{lemma:goldberg_refine_time}.
+There $O(\sqrt{k})$ iterations of \textsc{Refine}, each of which executes
+\textsc{Hungarian-Search2} and \textsc{DFS}.
+By Lemmas~\ref{lemma:goldberg_hs_time} and \ref{lemma:goldberg_dfs_time},
+these calls take $O(T_1(n, k) + T_2(n, k)) = O(k\polylog n)$ time per
+iteration.
+\textsc{Hungarian-Search2} and \textsc{DFS} require some
+once-per-\textsc{Refine} preprocessing to initialize data structures
+in $P_1(n, k) + P_2(n, k) = O(n\polylog n)$ time.
+Outside of these, we need to account for the time spent on flow value updates
+and augmentation-induced empty vertex potential updates.
+By Lemma~\ref{lemma:goldberg_bf_size}, the former is $O(k\sqrt{k})$ over the
+course of \textsc{Refine}.
+Combining Lemmas~\ref{lemma:goldberg_bf_size} and \ref{lemma:empty_updates},
+the time for the latter is also $O(k\sqrt{k})$.
+
+Filling in the values of $P_1(n, k)$, $P_2(n, k)$, $T_1(n, k)$, and
+$T_2(n, k)$, the total time for \textsc{Refine} is
+$O((n + k\sqrt{k})\polylog n)$.
+Together with Lemmas~\ref{lemma:goldberg_scales} and \ref{lemma:scale_init},
+this completes the proof of Theorem~\ref{theorem:gmcm}.
 
 
-
-
-
-\section{Unbalanced Transportation}
+\section{Unbalanced transportation}
 
 % definitions
 % introduce the excess scaling algorithm/Orlin's
