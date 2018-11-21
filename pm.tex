@@ -871,15 +871,14 @@ component $T = A_T \cup B_T$, find an $(\eps c(e_{j_1})/6kn)$-optimal
 circulation $f_T$ for each, and then $\bigcup_{T \in T_{j_2}}M_{f_T}$ will be a
 $(1+\eps)$-approximate partial matching between $A$ and $B$.
 Let $f^*_T$ be the optimal flow on $H$ for the component $T$.
-Combining
-Observation~\ref{observation:reduction_cost}, Lemma~\ref{lemma:goldberg_cost_add}, and
+Combining Lemma~\ref{lemma:goldberg_cost_add} and
 Lemma~\ref{lemma:sa_partition}, one has
 \begin{align*}
 	\cost(\bigcup_{T \in T_{j_2}} M_{f_T})
 		&= \sum_{T \in T_{j_2}} \cost(M_{f_T}) & \\
-		&= \sum_{T \in T_{j_2}} \cost(f_T) & \text{\small [Observation~\ref{observation:reduction_cost}]}\\
+		&= \sum_{T \in T_{j_2}} \cost(f_T) & \\
 		&\leq \sum_{T \in T_{j_2}} (\cost(f^*_T) + \eps c(e_{j_1})/n) & \text{\small [Lemma~\ref{lemma:goldberg_cost_add}]} \\
-		&= \sum_{T \in T_{j_2}} (\cost(M^*_T) + \eps c(e_{j_1})/n) & \text{\small [Observation~\ref{observation:reduction_cost}]} \\
+		&= \sum_{T \in T_{j_2}} (\cost(M^*_T) + \eps c(e_{j_1})/n) & \\
 		&\leq \cost(M^*) + \eps c(e_{j_1}) & \text{\small [Lemma~\ref{lemma:sa_partition}(i)]} \\
 		&\leq (1 + \eps) \cost(M^*). & \text{\small[Lemma~\ref{lemma:sa_partition}(iii)]}
 \end{align*}
@@ -1388,19 +1387,19 @@ a deficit vertex is reached.
 Each edge relaxation adds a new vertex to $S$, and non-shortcut relaxations
 only add non-empty vertices.
 The vertices of $V \setminus S$ fall into several categories:
-(i) $s$ or $t$, (ii) $A$ or $B$ vertex with 0 imbalance, and (iii) $A$ or $B$
-vertex with deficit ($S$ contains all excess vertices).
+(i) $s$ or $t$, (ii) vertices of $A$ or $B$ with 0 imbalance, and (iii)
+deficit vertices of $A$ or $B$ ($S$ contains all excess vertices).
 The number of vertices in (i) and (iii) is $O(k)$, leaving us to bound the
 number of (ii) vertices.
 
 An $A$ or $B$ vertex with 0 imbalance must have an even number of $E_{>0}(f)$
 edges.
-There is either only one positive-capacity incoming edge (for $A$) or outgoing
-edge (for $B$), so this quantity is either 0 or 2.
+There is either only one positive-capacity incoming arc (for $A$) or outgoing
+arc (for $B$), so this quantity is either 0 or 2.
 Since the vertex is non-empty, this must be 2.
-We charge 0.5 to each of the two $E_{>0}(f)$ edges; the edges of $E_{>0}(f)$
+We charge 0.5 to each of the two $E_{>0}(f)$ arcs; the arcs of $E_{>0}(f)$
 have no more than 1 charge each.
-Thus, the number of (ii) vertex relaxations is $O(|E_{>0}(f)|)$.
+Thus, the number of type (ii) vertex relaxations is $O(|E_{>0}(f)|)$.
 By Corollary~\ref{corollary:support_size_during}, $O(|E_{>0}(f)|) = O(k)$.
 \end{proof}
 
@@ -1422,10 +1421,10 @@ The same argument holds for type (ii).
 
 Each type (i) relaxation adds some non-empty $b \in B \setminus B_\emptyset$
 into $S$.
-Since $b$ is non-empty, it must either have deficit or an adjacent edge of
+Since $b$ is non-empty, it must either have deficit or an adjacent arc of
 $E_{>0}(f)$.
-We charge this relaxation to $b$ if it is deficit, or the adjacent $E_{>0}(f)$
-edge otherwise.
+We charge this relaxation to $b$ if it is deficit, or the adjacent arc of
+$E_{>0}(f)$ otherwise.
 No vertex is charged more than once, and no $E_{>0}(f)$ edge is charged more
 than twice, therefore the total number of type (i) relaxations is
 $O(|E_{>0}(f)|)$.
@@ -1586,21 +1585,17 @@ Given $v' \in S$, we would like to query:
 Each data structure above performs $O(\polylog n)$ time worth of query and
 insertion/deletion per relaxation, so the running time is again bounded by
 $O(\polylog n)$ times the number of relaxations.
-Since the pseudoflow is not changed within \textsc{DFS} (since the end of
-\textsc{Hungarian-Search2}), the proofs from
-Lemmas~\ref{lemma:goldberg_hs_length1} and \ref{lemma:goldberg_hs_length2} can
-be recycled for \textsc{DFS}.
+%Since the pseudoflow is not changed within \textsc{DFS} we can bound the number
+%of relaxation events in a similar way as \textsc{Hungarian-Search2}.
 
 \begin{lemma}
 \label{lemma:goldberg_dfs_length1}
-There are $O(k)$ non-shortcut relaxations in \textsc{DFS} before a deficit
-vertex is reached.
+There are $O(k)$ non-shortcut relaxations in \textsc{DFS}.
 \end{lemma}
 
 \begin{lemma}
 \label{lemma:goldberg_dfs_length2}
-There are $O(k)$ shortcut relaxations in \textsc{DFS} before a deficit vertex
-is reached.
+There are $O(k)$ shortcut relaxations in \textsc{DFS}.
 \end{lemma}
 
 \begin{corollary}
@@ -1640,8 +1635,6 @@ This bounds both the time spent updating the flow value of these arcs, and
 also the time spent on empty vertex potential updates
 (Lemma~\ref{lemma:empty_updates}).
 
-%TODO this is bugged. right now the DFS relaxation bound suggests that there are O(k^2) LOL
-\note{TODO bugged}
 \begin{lemma}
 \label{lemma:goldberg_bf_size}
 Let $N_i$ be the number of positive flow arcs in the $i$-ith blocking flow
