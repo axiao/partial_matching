@@ -258,7 +258,7 @@ Let $A$ and $B$ be two point sets in the plane with $|A| = r$ and $|B| = n$
 satisfying $r \le n$, with supplies and demands given by the function
 $\tsupply: (A \cup B) \to \ints$ such that
 $\sum_{a \in A} \tsupply(a) = \sum_{b \in B} \tsupply(b)$.
-An optimal transportation map can be computed in $O(n^{3/2}r\polylog n)$ time.
+An optimal transportation map can be computed in $O(rn^{3/2}\polylog n)$ time.
 \end{theorem}
 
 %TODO STILL IN PROGRESS, WE DON'T HAVE A SOLUTION YET. REMOVE IF FAILS.
@@ -1898,6 +1898,149 @@ this completes the proof of Theorem~\ref{theorem:gmcm}.
 % introduce the excess scaling algorithm/Orlin's
 % time per hungarian search
 % handling problem cases (stars, singletons)
+
+In this section, we give an exact algorithm which solves the transportation
+problem in $O(rn^{3/2}\polylog n)$ time, proving Theorem~\ref{theorem:orlin}.
+This algorithm is a geometric implementation of the uncapacitated min-cost flow
+algorithm due to Orlin~\cite{O93}, combined with some of the tools developed
+in Sections~\ref{hung} and \ref{section:goldberg} (e.g. rewinding relaxation
+updates).
+
+Let $A$ and $B$ be points in the plane with $r \coloneqq \abs{A}$ and
+$n \coloneqq \abs{B}$.
+Let $\tsupply:A \cup B \to \ints$ be a \EMPH{supply-demand function} with
+positive value on points of $A$, negative value on points of $B$, and
+$\sum_{a \in A} \tsupply(a) = - \sum_{b \in B} \tsupply(b)$.
+We use $U \coloneqq max_{p \in A \cup B} \abs{\tsupply(p)}$.
+A \EMPH{transportation map} is a function
+$\tau: A \times B \to \reals_{\geq 0}$.
+A transportation map $\tau$ is \EMPH{feasible} if
+$\sum_{b \in B} \tau(a, b) = \tsupply(a)$ for all $a \in A$, and
+$\sum_{a \in A} \tau(a, b) = -\tsupply(b)$ for all $b \in B$.
+In other words, the value $\tau(a, b)$ describes how much supply at $a$ should
+be sent to meet demands at $b$, and we require that all supplies are sent
+and all demands are met.
+We define the cost of $\tau$ to be
+\[
+	\cost(\tau) \coloneqq \sum_{a, b \in A \times B} \norm{a-b} \tau(a, b).
+\]
+Given $A$, $B$, and $\tsupply$, the \EMPH{transportation problem} asks to find 
+a feasible transportation map of minimum cost.
+Using terminology from matchings, we focus on analyzing the \EMPH{unbalanced}
+setting where $r \leq n$.
+
+There is a simple reduction from the transportation problem to uncapacitated
+min-cost flow.
+Consider the complete bipartite graph $G$ between $A$ and $B$ (with all edges
+directed $A$-to-$B$), set the costs $c(a, b) = \norm{a-b}$, all capacities to
+infinity, and use $\fsupply = \tsupply$.
+Any circulation $f$ in the network $N = (G, c, u, \fsupply)$ can be converted
+into a feasible transportation map $\tau_f$ by taking
+$\tau_f(a, b) \gets f(a, b)$.
+Furthermore, $\cost(f) = \cost(\tau_f)$.
+
+\subsection{Uncapacitated MCF by excess scaling}
+
+We give an outline of the strongly polynomial algorithm for uncapacited MCF
+from Orlin~\cite{O93}.
+Orlin's algorithm follows an \EMPH{excess-scaling} paradigm originally due to
+Edmonds and Karp~\cite{EK72}.
+Recall that we can compute an optimal flow by beginning with $f = 0$, $\pi = 0$
+and repeatedly augmenting $f$ with improving flows on 0-admissible arcs.
+The excess-scaling algorithm maintain a parameter $\Delta$, and uses for its
+improving flow an augmenting path between an excess vertex with
+$e_f(v) \geq \Delta$, and a deficit vertex with $e_f(v) \leq -\Delta$.
+Vertices with $\abs{e_f(v)} \geq \Delta$ are called \EMPH{active}.
+Once there are either no more active excess or no more active deficit vertices,
+$\Delta$ is halved.
+Each sequence of augmentations where $\Delta$ holds a constant value is called
+an \EMPH{excess scale}.
+The algorithm initializes $\Delta = U$, so there are $O(\log U)$ excess scales
+before $\Delta < 1$ and, by integrality of supplies/demands, $f$ is a
+circulation.
+
+With some modifications to the excess-scaling algorithm, Orlin~\cite{O93}
+obtains an algorithm with a strongly polynomial bound on the number of
+augmentations and excess scales.
+First, an \EMPH{active} vertex is redefined to be one where
+$\abs{e_f(v)} \geq \alpha\Delta$, for a parameter $\alpha \in (1/2, 1)$.
+Second, arcs which have $f(v, w) \geq 3n\Delta$ are \EMPH{contracted},
+creating a new vertex $\hat{v}$ which inherits all the arcs of $v$ and $w$,
+and has $\fsupply(\hat{v}) \gets \fsupply(\hat{v}) + \fsupply(\hat{w})$.
+We use $\hat{G} = (\hat{V}, \hat{E})$ to denote the resulting
+\EMPH{contracted graph}, where each $\hat{v} \in \hat{V}$ is a contracted
+component of vertices from $V$.
+Third, $\Delta$ is aggressively lowered to $\max_{v \in V} e_f(v)$ if there are
+no active excess vertices, and $f(v, w) = 0$ on all non-contracted arcs
+$(v, w) \in \hat{E}$.
+Finally, flow values are not tracked within contracted components, but once an
+optimal circulation is found on $\hat{G}$, optimal potentials $\pi^*$ can be
+\EMPH{recovered} for $G$ by sequentially undoing contractions.
+The algorithm performs a post-processing step which finds the optimal
+circulation $f^*$ on $G$ by solving a max-flow problem on the set of admissible
+arcs under $\pi^*$.
+
+\begin{theorem}[Orlin~\cite{O93}, Theorems 2 and 3]
+\label{theorem:orlin_old}
+Orlin's algorithm finds optimal potentials after $O(n\log n)$ scaling phases,
+and $O(n\log n)$ total augmentations.
+\end{theorem}
+
+\subsection{Dead vertices and support stars}
+
+Given Theorem~\ref{theorem:orlin_old}, our goal is to implement each
+augmentation in $O(rn^{1/2}\polylog n)$ time.
+To find an augmenting path, we again use some form of Hungarian search with
+geometric data structures to perform relaxations quickly.
+
+Like in Section~\ref{section:goldberg}, there are vertices which cannot charge
+to the flow support.
+Even worse, the size of the flow support have size $\Omega(n)$ for the
+transportation map (consider an instance with $r=1$, and the demand uniformly
+distributed among vertices of $B$).
+Still, by classifying vertices carefully, we can do better than an $O(n)$ bound
+on the number of relaxations.
+%Ultimately, we substitute $G$ with a new graph $\tilde{G}$ with only $O(r)$
+%vertices (thus, $O(r)$ relaxations), and where each relaxation can be performed
+%in $O(\sqrt{n}\polylog n)$ time.
+
+\paragraph{Dead vertices.}
+We call a vertex $b \in B$ \EMPH{dead} if it has no adjoining
+$E_{>0}(f)$ arcs and is not an active excess or deficit.
+These are essentially equivalent to the \emph{empty vertices} of
+Section~\ref{section:goldberg}.
+Since the reduction in this section does not use a super-source/super-sink,
+we can simply remove these from consideration during a Hungarian search ---
+they will not terminate the search, and have no outgoing residual arcs.
+Dead vertices may only stop being dead after $\Delta$ decreases, i.e. in a
+subsequent excess scale, as no augmenting path will cross a dead vertex.
+When this happens, we must add it back into a number of data structures.
+
+\paragraph{Support stars.}
+Let the \EMPH{support degree} of a vertex be the number of adjoining arcs in
+$E_{>0}(f)$.
+The vertices of $B$ with support degree 1 are partitioned into subsets
+$\Sigma_a \subset B$ by the $a \in A$ lying on the other end of their single
+support arc.
+We call $\Sigma_a$ the \EMPH{support star} centered around $a \in A$.
+The number of support stars is $O(r)$.
+
+%TODO i don't think we're really making a substitute graph this time. need to keep individual potentials for \Sigma_a
+%\paragraph{Compressed graph.}
+%We now construct $\tilde{G}$ from $G$.
+%First, remove all dead vertices and their adjacent arcs from $G$.
+%Next, for each support star $\Sigma_a$ and its center $a$, we replace 
+
+
+\subsection{Implementation details}
+
+%Agarwal~\etal~\cite{AFPVX17} provide a geometric implementation of Orlin's
+%algorithm to solve transportation problem between point sets $A$, $B$ lying in
+%the plane, using $L_p$ distances as costs.
+%As a result, they are able to compute each augmenting path in $O(n\polylog n)$
+%time and recover the optimal flow in $O(n^2\polylog n)$ time.
+
+
 
 
 {
