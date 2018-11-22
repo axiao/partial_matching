@@ -22,7 +22,8 @@
 \usepackage{xspace}
 \usepackage[shortlabels, inline]{enumitem}
 
-\usepackage{latexsym,amsmath,amssymb,amsthm}
+\usepackage{latexsym,amsmath,amsthm}
+\usepackage{amssymb,stmaryrd}
 \usepackage{algorithm,algorithmicx}
 \usepackage[noend]{algpseudocode}
 \renewcommand{\algorithmicrequire}{\textbf{Requirement:}}
@@ -77,8 +78,12 @@
 \def\tsupply{\lambda}
 \def\fsupply{\phi}
 
+\def\arcto{\mathord\shortrightarrow}
+\def\arc#1#2{#1\arcto#2}
+
 \def\Refine{\textsc{Refine}}
 \def\Update{\textsc{Update}}
+
 
 \theoremstyle{plain}
 \newtheorem{lemma}{Lemma}[section]
@@ -706,24 +711,25 @@ The goal of section is to prove Theorem~\ref{theorem:gmcm}; that is, to compute 
 \subsection{Preliminaries on Network Flows}
 
 \paragraph{Network.}
-A \EMPH{network $N(G)$} is a graph $G$ augmented with edge
+A \EMPH{network $(G,c,u,\fsupply)$} is a graph $G$ augmented with edge
 costs $c$, edge capacities $u$, and a supply-demand function $\fsupply$ defined on the vertices of $G$.
 The positive values of $\fsupply(v)$ are referred to as \EMPH{supply}, and the negative values of $\fsupply(v)$ as \EMPH{demand}.
 We assume that all capacities are nonnegative, all supplies and demands are integers, and the sum of supplies and demands is equal to zero; in other words,
 \[
 \sum_{v \in V(G)} \fsupply(v) = 0.
 \]
-By inserting a directed edge $(w, v)$ with capacity $0$ and cost $-c(v, w)$ for each directed edge $(v, w)$ in $G$, we also ensure that the graph $G$ is \emph{symmetric} and the cost function on $G$ is \emph{antisymmetric} (assuming that the original graph $G$ does not have bidirectional edges).
-
-A \EMPH{unit-capacity} network $N(G)$ has all its edge capacityies equal to $1$. \note{Do we every have non-unit-capacity network in the section? Residual ones?}
+%By inserting a directed edge $(w, v)$ with capacity $0$ and cost $-c(v, w)$ for each directed edge $(v, w)$ in $G$, we also ensure that the graph $G$ is \emph{symmetric} and the cost function on $G$ is \emph{antisymmetric} (assuming that the original graph $G$ does not have bidirectional edges).
+%
+A \EMPH{unit-capacity} network has all its edge capacities equal to $1$. \note{Do we every have non-unit-capacity network in the section? Residual ones?}
 
 \paragraph{Pseudoflows.}
 A \EMPH{pseudoflow} $f\colon E(G) \to \ints$ is a function on the edges of $G$
-satisfying $f(v, w) \leq u(v, w)$ for every edges$(v, w)$.
-We say that $f$ \EMPH{saturates} an arc $(v, w)$ if $f(v, w) = u(v, w)$.
-The \EMPH{support} of $f$, denoted as \EMPH{$E_{>0}(f)$}, is the set of edges with positive flows:
+satisfying $f(v, w) \leq u(v, w)$ for every edges $(v, w)$.%
+\footnote{In general the pseudoflows are allowed to take real-values.  Here under the unit-capacity assumption all the flows are integer-valued.}
+We say that $f$ \EMPH{saturates} an edge $(v, w)$ if $f(v, w) = u(v, w)$.
+The \EMPH{support} of $f$ in $G$, denoted as \EMPH{$E_{>0}(f)$}, is the set of edges with positive flows:
 \[
-E_{>0}(f) \coloneqq \{(v, w) \mid f(v, w) > 0\}.
+E_{>0}(f) \coloneqq \{(v, w) \in E(G) \mid f(v, w) > 0\}.
 \]
 % In this section algorithms will handle only integer-valued pseudoflows, so in the
 % unit-capacity setting an arc is either saturated or has zero flow.
@@ -737,110 +743,114 @@ and vertices with positive and negative imbalance \EMPH{excess vertices} and
 \EMPH{deficit vertices}, respectively.
 A vertex is \EMPH{balanced} if it has zero imbalance.
 If all vertices are balanced, the pseudoflow is a \EMPH{circulation}.
-The \EMPH{cost} of a pseudoflow, denoted \EMPH{$\cost(f)$}, is defined to be
+The \EMPH{cost} of a pseudoflow
+%denoted \EMPH{$\cost(f)$},
+is defined to be
 \[
- \cost(f) \coloneqq \coloneqq \sum_{(v, w) \in E(G)} c(v, w) \cdot f(v, w).
+ \EMPH{$\cost(f)$} \coloneqq \sum_{(v, w) \in E(G)} c(v, w) \cdot f(v, w).
 \]
-Given a network $N(G)$,
-the \EMPH{minimum-cost flow problem (MCF)} asks to find a circulation of minimum cost inside $N(G)$.
+The \EMPH{minimum-cost flow problem (MCF)} asks to find a circulation of minimum cost inside a given network.
 
 \paragraph{Residual network.}
-For each edge $(v, w)$, the \EMPH{residual capacity $u_f$} with respect to
-pseudoflow $f$ is defined to be $u_f(v, w) \coloneqq u(v, w) - f(v, w)$.
+
+For each edge $(v, w)$ in $G$, we refer to the two \EMPH{arcs} of $(v, w)$ as $\arc vw$ and $\arc wv$.
+The \EMPH{residual capacity $u_f$} with respect to
+pseudoflow $f$ is defined to be $u_f(\arc vw) \coloneqq u(v, w) - f(v, w)$ if $(v, w)$ is an edge, and $u_f(\arc vw) \coloneqq f(v, w)$ if $(w, v)$ is an edge.
+Observe that the residual capacity is always nonnegative.
 The set of \EMPH{residual arcs} is defined as
 \[
-\EMPH{$E(G)_f$} \coloneqq \{(v, w) \in E(G) \mid u_f(v, w) > 0\}.
+\EMPH{$E_f$} \coloneqq \{v \arcto w \mid u_f(v \arcto w) > 0\}.
 \]
-Define \EMPH{$N(G)_f$} to be the \EMPH{residual newwork} with respect to pseudoflow $f$, consisting of the \EMPH{residual graph $G_f$} on vertex set $V(G)$ and edge set $E(G)_f$, together with the antisymmetric cost function $c$, residual capacities $u_f$, and the supply-demand function $e_f$. \note{Is this how the function should change? We should rename $e_f$ to $\fsupply_f$?}
+The \EMPH{residual graph $G_f$} consists of vertex set $V(G)$ and arc set $E_f$.
+We emphasize that edges with reduced capacity zero is not in the residual graph; in other words, if $f$ saturates an edge $(v, w)$ then $\arc vw$ is not in $G_f$.  (However, arc $\arc wv$ might still be in $G_f$.)
+%
+\note{Do we ever need the residual \emph{network}?}
+Define \EMPH{$N_f$} to be the \EMPH{residual network} with respect to pseudoflow $f$, consisting of the \EMPH{residual graph $G_f$} on vertex set $V(G)$ and arc set $E_f$, together with the antisymmetric cost function $c$ \note{Hmm, we need reduced costs}, residual capacities $u_f$, and the supply-demand function $e_f$. \note{Is this how the function should change? We should rename $e_f$ to $\fsupply_f$?}
 
-A pseudoflow $f'$ in $G_f$ can be ''added'' to $f$ to produce
-a new pseudoflow in $G$ (that is, the edge-wise addition $f + f'$ is a valid pseudoflow in $G$).
-A pseudoflow $f'$ in $G_f$ is an \EMPH{improving flow} if
-\begin{enumerate}[(1)]\itemsep=0pt
-\item
-$0 \leq |e_{f'}(v)| \leq |e_f(v)|$ for every vertex $v$,
-\item
-$e_{f'}(v)$ and $e_f(v)$ share the same sign on every vertex $v$, and
-%\item
-% if $e_f(v) = 0$ then $e_{f'}(v) = 0$, \note{this follows from (1) or (2)} and
-\item $\sum_{v \in V} |e_{f'}(v)|$ is strictly less than $\sum_{v \in V} |e_f(v)|$.
-\end{enumerate}
-\note{Why do we need this definition?}
-\note{Define \EMPH{augmenting path}.}
+
+% A pseudoflow $f'$ in $G_f$ can be ''added'' to $f$ to produce
+% a new pseudoflow in $G$ (that is, the edge-wise addition $f + f'$ is a valid pseudoflow in $G$).
+% A pseudoflow $f'$ in $G_f$ is an \EMPH{improving flow} if
+% \begin{enumerate}[(1)]\itemsep=0pt
+% \item
+% $0 \leq |e_{f'}(v)| \leq |e_f(v)|$ for every vertex $v$,
+% \item
+% $e_{f'}(v)$ and $e_f(v)$ share the same sign on every vertex $v$ \note{This is false, some imbalanced vertex might become balanced}, and
+% %\item
+% % if $e_f(v) = 0$ then $e_{f'}(v) = 0$, \note{this follows from (1) or (2)} and
+% \item $\sum_{v \in V} |e_{f'}(v)|$ is strictly less than $\sum_{v \in V} |e_f(v)|$.
+% \end{enumerate}
+% \note{Why do we need this definition?}
+% \note{Define \EMPH{augmenting path}.}
+%
 % If improving flow $f'$ is on a simple path (from an excess vertex to a deficit
 % vertex), we call it an \EMPH{augmenting-path flow} \note{path flow for short? only used twice throughout the paper} and its underlying support path \note{support undefined} an
 % \EMPH{augmenting path}.
-If $f'$ saturates at least one residual arc in every augmenting path in $G_f$,
-we call $f'$ a \EMPH{blocking flow}.
-In other words, for a blocking flow $f'$, there is no augmenting-path flow
-$f''$ in $G_f$ for which $f + (f' + f'')$ is a feasible pseudoflow in $G$.
-\note{Move to where blocking flows are first used.}
+%
+% If $f'$ saturates at least one residual arc in every augmenting path in $G_f$,
+% we call $f'$ a \EMPH{blocking flow}.
+% In other words, for a blocking flow $f'$, there is no augmenting-path flow
+% $f''$ in $G_f$ for which $f + (f' + f'')$ is a feasible pseudoflow in $G$.
+% \note{Move to where blocking flows are first used.}
+%
+% \note{TO be honest, we never need the notion of improving flows?  Just need to prove that an augmenting path or a blocking flow does not change the $\eps$-optimality.}
 
-\note{HC: I AM HERE.}
-
-
-\subsubsection{Primal-dual augmentation algorithms}
-
-The Hungarian algorithm begins with an empty matching and gradually increases its size to $k$ using \EMPH{alternating augmenting paths}.
-Given a non-maximal matching $M$, an alternating augmenting path $P$ is a path
-between an unmatched vertex $a \in A$ and unmatched $b \in B$.
-\note{What is $A$ and $B$? Remind the readers about the bipartite graph again.}
-Then, $M' = M \oplus P$ is a matching of size 1 greater.
-\note{$\oplus$ undefined.  Personally I believe it's easier to define in words; using notation is fine too.}
-By restricting alternating augmenting paths to edges \note{when do you use edges and when do you use arcs?}
-which satisfy a certain cost condition, we can prove that each intermediate matching of size $j \leq k$ is of minimum-cost among matchings of size $j$.
-
-There is a similar augmentation procedure for flows, which sends improving
-flows to gradually reduce the imbalance for all vertices to 0, making it a
-circulation.
-By restricting augmentations to residual arcs satisfying a certain cost
-condition (admissibility), one can prove that the resulting circulation is
-minimum cost.
-
-\note{The above paragraph might be clearer if you put it after the definition of admissibility; because you can actually provide a formal proof.  Sketch of ideas are not that useful because for experts they don't need to read it, for beginners they won't understand without former definitions.}
+% \subsubsection{Primal-dual augmentation algorithms}
+%
+%\note{Not sure why this section is needed; removed until discovering its use.}
+%
+% The Hungarian algorithm begins with an empty matching and gradually increases its size to $k$ using \EMPH{alternating augmenting paths}.
+% Given a non-maximal matching $M$, an alternating augmenting path $P$ is a path
+% between an unmatched vertex $a \in A$ and unmatched $b \in B$.
+% \note{What is $A$ and $B$? Remind the readers about the bipartite graph again.}
+% Then, $M' = M \oplus P$ is a matching of size 1 greater.
+% \note{$\oplus$ undefined.  Personally I believe it's easier to define in words; using notation is fine too.}
+% By restricting alternating augmenting paths to edges \note{when do you use edges and when do you use arcs?}
+% which satisfy a certain cost condition, we can prove that each intermediate matching of size $j \leq k$ is of minimum-cost among matchings of size $j$.
+%
+% There is a similar augmentation procedure for flows, which sends improving
+% flows to gradually reduce the imbalance for all vertices to 0, making it a
+% circulation.
+% By restricting augmentations to residual arcs satisfying a certain cost
+% condition (admissibility), one can prove that the resulting circulation is
+% minimum cost.
+%
+% \note{The above paragraph might be clearer if you put it after the definition of admissibility; because you can actually provide a formal proof.  Sketch of ideas are not that useful because for experts they don't need to read it, for beginners they won't understand without former definitions.}
 
 \paragraph{LP-duality and admissability.}
 Formally, the
-\EMPH{potentials $\pi(v)$} are the variables of the linear program dual to \note{which primal problem? State the correspodning linear problems explicitly}.
-The \EMPH{reduced cost} of an arc $(v, w)$ in $E_f$ with respect to $\pi$ is
+\EMPH{potentials $\pi(v)$} are the variables of the linear program dual to the standard LP for the minimum-cost flow problem.
+\note{which primal problem? State the correspodning linear problems explicitly}.
+The \EMPH{reduced cost} of an arc $\arc vw$ in $E_f$ with respect to $\pi$ is defined as
 \[
-\EMPH{$c_\pi(v, w)$} \coloneqq c(v, w) - \pi(v) + \pi(w).
+\EMPH{$c_\pi(\arc vw)$} \coloneqq c(v, w) - \pi(v) + \pi(w)
 \]
-Note that reduced costs are antisymmetric: $c_\pi(v, w) = -c_\pi(w, v)$.
-The \EMPH{dual feasibility constraint} is that $c_\pi(v, w) \geq 0$ holds for all
-residual arcs \note{naturally, not the reverse arcs; thus the distinction between arcs and darts}; potentials which satisfy this constraint are said to be \EMPH{feasible}.
-The linear programming \EMPH{optimality conditions} state that, for an optimal
-circulation $f^*$, there are feasible potentials $\pi^*$ which satisfy
-$c_{\pi^*}(v, w) = 0$ on all arcs with $f^*(v, w) > 0$.
-We can similarly define potentials and reduced costs for matchings, using
-$c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b)$ for edges $(a, b)$ from $A$ to $B$.
+when $(v, w)$ is an edge.  The reduced cost of the reverse arc $\arc wv$ is then set to $-c_\pi(\arc wv)$ so that the cost function $c_\pi$ is made antisymmetric.
+%
+The \EMPH{dual feasibility constraint} says that $c_\pi(\arc vw) \geq 0$ holds for every edge $(v, w)$; potentials $\pi$ which satisfy this constraint are said to be \EMPH{feasible}.
+%
+The linear programming \EMPH{optimality condition} states that, for an optimal
+circulation $f^*$, there are feasible potentials $\pi^*$ satisfying
+$c_{\pi^*}(\arc vw) = 0$ for every edge $(v, w)$ in the support of $f^*$.
 
-Suppose we relax the dual feasibility constraint to allow for a violation of
-$\eps > 0$.
-We say that a pseudoflow $f$ is \EMPH{$\eps$-optimal} \note{with respect to $\pi$} if
-$c_\pi(v, w) \geq -\eps$ for all arcs $(v, w)$ in $E_f$ with $u_f(v, w) > 0$.
-We say that a residual arc $(v ,w)$ satisfying $c_\pi(v, w) \leq 0$ is
-\EMPH{admissible}.
-We say that an improving flow $f'$ is \EMPH{admissible} if $f'(v, w) > 0$
+Suppose we relax the dual feasibility constraint to allow some small violation in the value of $c_\pi(\arc vw)$.
+We say that a pseudoflow $f$ is \EMPH{$\eps$-optimal} with respect to $\pi$ if
+$c_\pi(\arc vw) \geq -\eps$ for every edge $(v, w)$.
+%\note{It was \emph{residual arcs} here, which is incorrect.}
+A residual arc $\arc vw$ is
+\EMPH{admissible} if $c_\pi(\arc vw) \leq 0$.
+We say that a flow $f'$ in $G_f$ is \EMPH{admissible} if all edges in the support of $f'$ on $G_f$ are admissible \note{wrong type}; in other words, $f'(v, w) > 0$ holds
 only on admissible arcs $(v, w)$.
+%
+A $0$-optimal admissible pseudoflow $f$ must have zero reduced cost on all its support edges.
 
-For matchings, we say that matching $M$ is \EMPH{$\eps$-optimal} if $c_\pi(a, b) \leq \eps$ for
-$(a, b) \in M$ and $c_\pi(a, b) \geq -\eps$ $(a, b) \in E \setminus M$.
-\note{This definition is never used.}
-Matching edges (resp.\ nonmatching edges) are \EMPH{admissible} if $c_\pi(a, b) \geq 0$ (resp.\ $c_\pi(a, b) \leq 0$); and an alternating augmenting path is \EMPH{admissible}
-if all its edges are.
-For both matching and flows, 0-optimal $f$ implies the admissibility condition
-is with equality, instead ($c_\pi(v, w) = 0$).
-
-\note{I got the sense that it might be helpful to define admissibility at the start of the flow section and the matching section separately.}
 
 %Now, we can concretely state how admissible augmentations lead to a correct algorithm for $\eps > 0$.
 \begin{lemma}
 Let $f$ be an $\eps$-optimal pseudoflow in $G$ and let $f'$ be an
-admissible improving flow in $G_f$.
-Then $g = f + f'$ is also $\eps$-optimal.
+admissible flow in $G_f$.
+Then $f + f'$ is also $\eps$-optimal.
 \end{lemma}
-\note{This must have been known.  Citations.}
 \begin{proof}
 Augmentation by $f'$ will not change the potentials, so any previously
 $\eps$-optimal arcs remain $\eps$-optimal.
@@ -861,9 +871,14 @@ Thus, all arcs with $u_g(v, w) > 0$ respect the $\eps$-optimality condition,
 and $g$ is $\eps$-optimal.
 \end{proof}
 
-In Section~\ref{section:goldberg}, we use $\eps$-optimality to prove the
-approximation quality of an $\eps$-optimal circulation.
+%In Section~\ref{section:goldberg}, we use $\eps$-optimality to prove the approximation quality of an $\eps$-optimal circulation.
 
+% There is a similar augmentation procedure for flows, which sends improving
+% flows to gradually reduce the imbalance for all vertices to 0, making it a
+% circulation.
+% By restricting augmentations to residual arcs satisfying a certain cost
+% condition (admissibility), one can prove that the resulting circulation is
+% minimum cost.
 
 \subsection{Reduction to unit-capacity Min-Cost Flow Problem}
 
