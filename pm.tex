@@ -332,7 +332,7 @@ matching $M^*$ of minimum cost.
 % unit-capacity setting an arc is either saturated or has zero flow.
 % Given a pseudoflow $f$, we define the \EMPH{imbalance} of a vertex to be
 % \[
-% \EMPH{$e_f(v)$} \coloneqq \fsupply(v) + \sum_{(w, v) \in E}{f(w, v)} - \sum_{(v, w) \in E}{f(v, w)}.
+% \EMPH{$\fsupply_f(v)$} \coloneqq \fsupply(v) + \sum_{(w, v) \in E}{f(w, v)} - \sum_{(v, w) \in E}{f(v, w)}.
 % \]
 % We call positive imbalance \EMPH{excess} and negative imbalance \EMPH{deficit};
 % and vertices with positive and negative imbalance \EMPH{excess vertices} and
@@ -361,12 +361,12 @@ matching $M^*$ of minimum cost.
 % A pseudoflow $f'$ in $G_f$ is an \EMPH{improving flow} if
 % \begin{enumerate}[(1)]\itemsep=0pt
 % \item
-% $0 \leq |e_{f'}(v)| \leq |e_f(v)|$ for every vertex $v$,
+% $0 \leq |\fsupply_{f'}(v)| \leq |\fsupply_f(v)|$ for every vertex $v$,
 % \item
-% $e_{f'}(v)$ and $e_f(v)$ share the same sign for every vertex $v$, and
+% $\fsupply_{f'}(v)$ and $\fsupply_f(v)$ share the same sign for every vertex $v$, and
 % %\item
-% % if $e_f(v) = 0$ then $e_{f'}(v) = 0$, \note{this follows from (1) or (2)} and
-% \item $\sum_{v \in V} |e_{f'}(v)| < \sum_{v \in V} |e_f(v)|$ holds. \note{emphasize the strict inequality}
+% % if $\fsupply_f(v) = 0$ then $\fsupply_{f'}(v) = 0$, \note{this follows from (1) or (2)} and
+% \item $\sum_{v \in V} |\fsupply_{f'}(v)| < \sum_{v \in V} |\fsupply_f(v)|$ holds. \note{emphasize the strict inequality}
 % \end{enumerate}
 % If improving flow $f'$ is on a simple path (from an excess vertex to a deficit
 % vertex), we call it an \EMPH{augmenting-path flow} \note{path flow for short? only used twice throughout the paper} and its underlying support path \note{support undefined} an
@@ -712,10 +712,10 @@ The goal of section is to prove Theorem~\ref{theorem:gmcm}; that is, to compute 
 \subsection{Preliminaries on Network Flows}
 
 \paragraph{Network.}
-Let $G=(V,E)$ be a directed graph.
-One can augmented $G$ into a \EMPH{network $(V,A,c,u,\fsupply)$}, consisting of vertex set $V$, arc set $A$, arc costs $c$, arc capacities $u$, and a supply-demand function $\fsupply$ defined on the vertices.
+Let $G=(V,E)$ be a directed graph, augemtned by edge costs $c$ and capacities $u$, and a supply-demand function $\fsupply$ defined on the vertices.
 %
-For each directed edge $(v,w)$ in $E$, insert two \EMPH{arcs} $\arc vw$ and $\arc wv$ into the arc set $A$, satisfying $u(\arc wv) = 0$ and $c(\arc wv) = -c(\arc vw)$.  This we ensure that the graph $(V,A)$ is \emph{symmetric} and the cost function $c$ is \emph{antisymmetric}.
+One can turn the graph $G$ into a \EMPH{network $N = (V, A)$}:
+For each directed edge $(v,w)$ in $E$, insert two \EMPH{arcs} $\arc vw$ and $\arc wv$ into the arc set $A$, satisfying $u(\arc wv) = 0$ and $c(\arc wv) = -c(\arc vw)$.  This we ensure that the graph $(V,A)$ is \emph{symmetric} and the cost function $c$ is \emph{antisymmetric} on $N$.
 %
 The positive values of $\fsupply(v)$ are referred to as \EMPH{supply}, and the negative values of $\fsupply(v)$ as \EMPH{demand}.
 We assume that all capacities are nonnegative, all supplies and demands are integers, and the sum of supplies and demands is equal to zero; in other words,
@@ -727,9 +727,12 @@ A \EMPH{unit-capacity} network has all its edge capacities equal to $1$. \note{D
 
 \paragraph{Pseudoflows.}
 Given a network $N \coloneqq (V,A,c,u,\fsupply)$,
-a \EMPH{pseudoflow} $f\colon A \to \ints$ on $N$ is a function on the arcs of $N$
+a \EMPH{pseudoflow} $f\colon A \to \ints$ on $N$ is an antisymmetric function on the arcs of $N$
 satisfying $f(\arc vw) \leq u(\arc vw)$ for every arc $\arc vw$.%
 \footnote{In general the pseudoflows are allowed to take real-values.  Here under the unit-capacity assumption all the flows are integer-valued.}
+%
+We sometimes abuse the terminology by allowing pseudoflow to be defined on a directed graph, in which case we are actually refering to the pseudoflow on the corresponding network by extending the flow values antisymmetrically to the arcs.
+%
 We say that $f$ \EMPH{saturates} an arc $\arc vw$ if $f(\arc vw) = u(\arc vw)$; an arc $\arc vw$ is \EMPH{residual} if $f(\arc vw) < u(\arc vw)$.
 The \EMPH{support} of $f$ in $N$, denoted as \EMPH{$\supp(f)$}, is the set of arcs with positive flows:
 \[
@@ -738,9 +741,10 @@ The \EMPH{support} of $f$ in $N$, denoted as \EMPH{$\supp(f)$}, is the set of ar
 % In this section algorithms will handle only integer-valued pseudoflows, so in the
 % unit-capacity setting an arc is either saturated or has zero flow.
 % \note{Hmm, do we have unit-capacity after Corollary 5.4?}
+%
 Given a pseudoflow $f$, we define the \EMPH{imbalance} of a vertex (with respect to $f$) to be
 \[
-\EMPH{$e_f(v)$} \coloneqq \fsupply(v) + \sum_{(w, v) \in E(G)}{f(w, v)} - \sum_{(v, w) \in E(G)}{f(v, w)}.
+\EMPH{$\fsupply_f(v)$} \coloneqq \fsupply(v) + \sum_{\arc wv \in A}{f(\arc wv)} - \sum_{\arc vw \in A}{f(\arc vw)}.
 \]
 We call positive imbalance \EMPH{excess} and negative imbalance \EMPH{deficit};
 and vertices with positive and negative imbalance \EMPH{excess vertices} and
@@ -751,38 +755,48 @@ The \EMPH{cost} of a pseudoflow
 %denoted \EMPH{$\cost(f)$},
 is defined to be
 \[
- \EMPH{$\cost(f)$} \coloneqq \sum_{(v, w) \in E(G)} c(v, w) \cdot f(v, w).
+ \EMPH{$\cost(f)$} \coloneqq \sum_{\arc vw \in \supp(f)} c(\arc vw) \cdot f(\arc vw).
 \]
-The \EMPH{minimum-cost flow problem (MCF)} asks to find a circulation of minimum cost inside a given network.
+%
+The \EMPH{minimum-cost flow problem (MCF)} asks to find a circulation of minimum cost inside a given directed graph.
 
 \paragraph{Residual network.}
-
-For each edge $(v, w)$ in $G$, we refer to the two \EMPH{arcs} of $(v, w)$ as $\arc vw$ and $\arc wv$.
-The \EMPH{residual capacity $u_f$} with respect to
-pseudoflow $f$ is defined to be $u_f(\arc vw) \coloneqq u(v, w) - f(v, w)$ if $(v, w)$ is an edge, and $u_f(\arc vw) \coloneqq f(v, w)$ if $(w, v)$ is an edge.
-Observe that the residual capacity is always nonnegative.
-The set of \EMPH{residual arcs} is defined as
-\[
-\EMPH{$E_f$} \coloneqq \{v \arcto w \mid u_f(v \arcto w) > 0\}.
-\]
-The \EMPH{residual graph $G_f$} consists of vertex set $V(G)$ and arc set $E_f$.
-We emphasize that edges with reduced capacity zero is not in the residual graph; in other words, if $f$ saturates an edge $(v, w)$ then $\arc vw$ is not in $G_f$.  (However, arc $\arc wv$ might still be in $G_f$.)
+Given a pseudoflow $f$, one can defined the \emph{residual network} as follows.
 %
-\note{Do we ever need the residual \emph{network}?}
-Define \EMPH{$N_f$} to be the \EMPH{residual network} with respect to pseudoflow $f$, consisting of the \EMPH{residual graph $G_f$} on vertex set $V(G)$ and arc set $E_f$, together with the antisymmetric cost function $c$ \note{Hmm, we need reduced costs}, residual capacities $u_f$, and the supply-demand function $e_f$. \note{Is this how the function should change? We should rename $e_f$ to $\fsupply_f$?}
+Recall that the set of \emph{residual arcs $A_f$} under $f$ are those arcs $\arc vw$ satisfying $f(\arc vw) < u(\arc vw)$.  In other words, an arc that is not saturated by $f$ is a residual arc; similarly, given an arc $\arc vw$ with positive flow value, the reverse arc $\arc wv$ is a residual arc.
 
+Let $N = (V,A,c,u,\fsupply)$ be a network with a pseudoflow $f$.
+The \EMPH{residual graph} has $V$ as its vertex set and $A_f$ as its arc set.
+%
+The \EMPH{residual capacity $u_f$} with respect to
+pseudoflow $f$ is defined to be $u_f(\arc vw) \coloneqq u(\arc vw) - f(\arc vw)$.
+Observe that the residual capacity is always nonnegative.
+We can define residual arcs differently using residual capacities:
+\[
+A_f = \{\arc vw \mid u_f(\arc vw) > 0\}.
+\]
+In other words, the set of residual arcs  are precisely those arcs in the residual graph, each of which has nonzero residual capacity.
+%
+%Notice that the network defined that naturally corresponds to a given directed graph is in fact the residual network with respect to the zero flow.
+%
+%We emphasize that edges with reduced capacity zero is not in the residual graph; in other words, if $f$ saturates an edge $(v, w)$ then $\arc vw$ is not in $G_f$.  (However, arc $\arc wv$ might still be in $G_f$.)
+%
+% \note{Well, the cost function changes; do we want to define residual network then?}
+% Define \EMPH{$N_f$} to be the \EMPH{residual network} with respect to pseudoflow $f$, consisting of residual graph $(V,A_f)$, together with antisymmetric cost function $c$ \note{Hmm, we need reduced costs}, residual capacities $u_f$, and the supply-demand function $\fsupply_f$.
+%\note{Maybe I want to define costs later, so the definition of residual network can be done?}
 
+%%% improving flows, omit for now
 % A pseudoflow $f'$ in $G_f$ can be ''added'' to $f$ to produce
 % a new pseudoflow in $G$ (that is, the edge-wise addition $f + f'$ is a valid pseudoflow in $G$).
 % A pseudoflow $f'$ in $G_f$ is an \EMPH{improving flow} if
 % \begin{enumerate}[(1)]\itemsep=0pt
 % \item
-% $0 \leq |e_{f'}(v)| \leq |e_f(v)|$ for every vertex $v$,
+% $0 \leq |\fsupply_{f'}(v)| \leq |\fsupply_f(v)|$ for every vertex $v$,
 % \item
-% $e_{f'}(v)$ and $e_f(v)$ share the same sign on every vertex $v$ \note{This is false, some imbalanced vertex might become balanced}, and
+% $\fsupply_{f'}(v)$ and $\fsupply_f(v)$ share the same sign on every vertex $v$ \note{This is false, some imbalanced vertex might become balanced}, and
 % %\item
-% % if $e_f(v) = 0$ then $e_{f'}(v) = 0$, \note{this follows from (1) or (2)} and
-% \item $\sum_{v \in V} |e_{f'}(v)|$ is strictly less than $\sum_{v \in V} |e_f(v)|$.
+% % if $\fsupply_f(v) = 0$ then $\fsupply_{f'}(v) = 0$, \note{this follows from (1) or (2)} and
+% \item $\sum_{v \in V} |\fsupply_{f'}(v)|$ is strictly less than $\sum_{v \in V} |\fsupply_f(v)|$.
 % \end{enumerate}
 % \note{Why do we need this definition?}
 % \note{Define \EMPH{augmenting path}.}
@@ -821,33 +835,36 @@ Define \EMPH{$N_f$} to be the \EMPH{residual network} with respect to pseudoflow
 %
 % \note{The above paragraph might be clearer if you put it after the definition of admissibility; because you can actually provide a formal proof.  Sketch of ideas are not that useful because for experts they don't need to read it, for beginners they won't understand without former definitions.}
 
+
 \paragraph{LP-duality and admissibility.}
+To solve the minimum-cost flow problem, we focus on the primal-dual algorithms using linear programming.
+Let $G = (V,E)$ be a given directed graph with the corresponding network $N = (V,A,c,u,\fsupply)$.
 Formally, the
-\EMPH{potentials $\pi(v)$} are the variables of the linear program dual to the standard LP for the minimum-cost flow problem.
-\note{which primal problem? State the correspodning linear problems explicitly}.
-The \EMPH{reduced cost} of an arc $\arc vw$ in $E_f$ with respect to $\pi$ is defined as
+\EMPH{potentials $\pi(v)$} are the variables of the linear program dual to the standard linear program for the minimum-cost flow problem, with variables $f(v,w)$ for each directed edge in $E$.
+Assignments to the primal variables satisfying the capacity constraints extend natually into a pseudoflow on the network $N$.
+%\note{which primal problem? State the correspodning linear problems explicitly}.
+Let $(V,A_f)$ be the residual graph under pseudoflow $f$.
+The \EMPH{reduced cost} of an arc $\arc vw$ in $A_f$ with respect to $\pi$ is defined as
 \[
-\EMPH{$c_\pi(\arc vw)$} \coloneqq c(v, w) - \pi(v) + \pi(w)
+\EMPH{$c_\pi(\arc vw)$} \coloneqq c(\arc vw) - \pi(v) + \pi(w).
 \]
-when $(v, w)$ is an edge.  The reduced cost of the reverse arc $\arc wv$ (when exists) is then set to $-c_\pi(\arc vw)$ so that the cost function $c_\pi$ is made antisymmetric.
-%
-The \EMPH{dual feasibility constraint} says that $c_\pi(\arc vw) \geq 0$ holds for every edge $(v, w)$; potentials $\pi$ which satisfy this constraint are said to be \EMPH{feasible}.
+Notice that the cost function $c_\pi$ is also antisymmetric.
+
+The \EMPH{dual feasibility constraint} says that $c_\pi(\arc vw) \geq 0$ holds for every directed edge $(v,w)$ in $E$; potentials $\pi$ which satisfy this constraint are said to be \EMPH{feasible}.
 %
 The linear programming \EMPH{optimality condition} states that, for an optimal
 circulation $f^*$, there are feasible potentials $\pi^*$ satisfying
-$c_{\pi^*}(\arc vw) = 0$ for every edge $(v, w)$ in the support of $f^*$.
+$c_{\pi^*}(\arc vw) = 0$ for every arc $\arc vw$ in the support of $f^*$.
+\note{Why do we need optimality condition here? What does strong duality theorem tells us?}
 
 Suppose we relax the dual feasibility constraint to allow some small violation in the value of $c_\pi(\arc vw)$.
 We say that a pseudoflow $f$ is \EMPH{$\eps$-optimal} with respect to $\pi$ if
-$c_\pi(\arc vw) \geq -\eps$ for every nonsaturated support edge $(v, w)$ of $f$.
+$c_\pi(\arc vw) \geq -\eps$ for every residual arc $\arc vw$ in $A_f$; pseudoflow $f$ is \EMPH{$\eps$-optimal} if it is $\eps$-optimal with respect to some potentials $\pi$.
 %
-A residual arc $\arc vw$ is
+Given a pseudoflow $f$ and potentials $\pi$, a residual arc $\arc vw$ in $A_f$ is
 \EMPH{admissible} if $c_\pi(\arc vw) \leq 0$.
-We say that a flow $f'$ in $G_f$ is \EMPH{admissible} if all arcs in the support of $f'$ on $G_f$ are admissible; in other words, $f'(v, w) > 0$ holds
-only on admissible arcs $(v, w)$.
-%
-A $0$-optimal admissible pseudoflow $f$ must have zero reduced cost on all its support edges.
-
+We say that a pseudoflow $f'$ in $G_f$ is \EMPH{admissible} if all support arcs of $f'$ on $G_f$ are admissible; in other words, $f'(\arc vw) > 0$ holds
+only on admissible arcs $\arc vw$.
 
 %Now, we can concretely state how admissible augmentations lead to a correct algorithm for $\eps > 0$.
 \begin{lemma}
@@ -1263,7 +1280,7 @@ paths.
 \label{algorithm:refine}
 \begin{algorithmic}[1]
 \Function{Refine}{$H = (V, E)$, $f$, $\pi$}
-	\While{$\sum_{v \in V} |e_f(v)| > 0$}
+	\While{$\sum_{v \in V} |\fsupply_f(v)| > 0$}
 		\State $\pi \gets$ \Call{Hungarian-Search2}{$H$, $f$, $\pi$}
 		\State $f' \gets$ \Call{DFS}{$H$, $f$, $\pi$}
 			\Comment{$f'$ is an admissible blocking flow}
@@ -1359,7 +1376,7 @@ charge to the support size.
 However, we can replace $H_f$ with an equivalent graph that excludes them,
 and run \textsc{Hungarian-Search2} and \textsc{DFS} on the resulting graph.
 
-We say $v \in A \cup B$ is an \EMPH{empty vertex} if $e_f(v) = 0$ and no edges
+We say $v \in A \cup B$ is an \EMPH{empty vertex} if $\fsupply_f(v) = 0$ and no edges
 of $\supp(f)$ adjoin $v$.
 \note{Hmm. How do you feel about calling them "irrelavant vertices" or "null vertices"?}
 We are unable to charge relaxation steps involving empty vertices to
@@ -1515,7 +1532,7 @@ We revisit this lemma after analyzing \textsc{DFS}.
 \begin{algorithmic}[1]
 \Function{Hungarian-Search2}{$H = (V, E)$, $f$, $\pi$}
 	\State $\tilde{H}_f \gets$ the shortcut graph of $H_f$
-	\State $S \gets \{v \in V \mid e_f(v) > 0\}$
+	\State $S \gets \{v \in V \mid \fsupply_f(v) > 0\}$
 	\Repeat
 		\State $(v', w') \gets \argmin\{c_\pi(v', w') \mid v' \in S, w' \not\in S, (v', w') \in \tilde{H}_f)\}$
 			\label{line:hs_relaxation}
@@ -1525,7 +1542,7 @@ We revisit this lemma after analyzing \textsc{DFS}.
 			\State $\pi(v) \gets \pi(v) + \gamma\lceil\frac{\gamma}{\eps}\rceil, \forall v \in S$
 		\EndIf
 		\State $S \gets S \cup \{w'\}$
-		\If{$e_f(w') < 0$} \Comment{reached a deficit}
+		\If{$\fsupply_f(w') < 0$} \Comment{reached a deficit}
 			\State\Return $\pi$
 		\EndIf
 	\Until{$S = (A \setminus A_\emptyset) \cup (B \setminus B_\emptyset)$}
@@ -1677,7 +1694,7 @@ operations over the course of \textsc{Hungarian-Search2}.
 \begin{enumerate}
 \item Let $S^t_0$ denote the initial set $S$ at the beginning of the
 	$t$-th Hungarian search, i.e. the set of $v \in V$ with
-	$e_f(v) > 0$ after $t$ blocking flows.
+	$\fsupply_f(v) > 0$ after $t$ blocking flows.
 	Assume for now that, at the beginning of the $(t+1)$-th
 	Hungarian search, we have on hand the $S^t_0$ from the
 	previous iteration.
@@ -1720,14 +1737,14 @@ Note that empty vertex potentials are not handled in
 \Function{DFS}{$H = (V, E)$, $f$, $\pi$}
 	\State $\tilde{H}_f \gets$ the shortcut graph of $H_f$
 	\State $f' \gets 0$.
-	\State $S \gets \{v \in V \mid e_f(v) > 0\}$
-	\State $S_0 \gets \{v \in V \mid e_f(v) > 0\}$
+	\State $S \gets \{v \in V \mid \fsupply_f(v) > 0\}$
+	\State $S_0 \gets \{v \in V \mid \fsupply_f(v) > 0\}$
 		\Comment{stack of excess vertices}
 	\State $P \gets$ \Call{Pop}{$S_0$}
 		\Comment{current path; stack}
 	\Repeat
 		\State $v' \gets$ \Call{Peek}{$P$}
-		\If{$e_f(v') < 0$}
+		\If{$\fsupply_f(v') < 0$}
 			\Comment{if we reached a deficit, save the path to $f'$}
 			\State add to $f'$ a unit flow on the path $P$
 			\State $P \gets$ \Call{Pop}{$S_0$}
@@ -1952,8 +1969,8 @@ Recall that we can compute an optimal flow by beginning with $f = 0$, $\pi = 0$
 and repeatedly augmenting $f$ with improving flows on 0-admissible arcs.
 The excess-scaling algorithm maintain a parameter $\Delta$, and uses for its
 improving flow an augmenting path between an excess vertex with
-$e_f(v) \geq \Delta$, and a deficit vertex with $e_f(v) \leq -\Delta$.
-Vertices with $\abs{e_f(v)} \geq \Delta$ are called \EMPH{active}.
+$\fsupply_f(v) \geq \Delta$, and a deficit vertex with $\fsupply_f(v) \leq -\Delta$.
+Vertices with $\abs{\fsupply_f(v)} \geq \Delta$ are called \EMPH{active}.
 Once there are either no more active excess or no more active deficit vertices,
 $\Delta$ is halved.
 Each sequence of augmentations where $\Delta$ holds a constant value is called
@@ -1966,14 +1983,14 @@ With some modifications to the excess-scaling algorithm, Orlin~\cite{O93}
 obtains an algorithm with a strongly polynomial bound on the number of
 augmentations and excess scales.
 First, an \EMPH{active} vertex is redefined to be one where
-$\abs{e_f(v)} \geq \alpha\Delta$, for a parameter $\alpha \in (1/2, 1)$.
+$\abs{\fsupply_f(v)} \geq \alpha\Delta$, for a parameter $\alpha \in (1/2, 1)$.
 Second, arcs which have $f(v, w) \geq 3n\Delta$ are \EMPH{contracted},
 creating a new vertex $\hat{v}$ which inherits all the arcs of $v$ and $w$,
 and has $\fsupply(\hat{v}) \gets \fsupply(\hat{v}) + \fsupply(\hat{w})$.
 We use $\hat{G} = (\hat{V}, \hat{E})$ to denote the resulting
 \EMPH{contracted graph}, where each $\hat{v} \in \hat{V}$ is a contracted
 component of vertices from $V$.
-Third, $\Delta$ is aggressively lowered to $\max_{v \in V} e_f(v)$ if there are
+Third, $\Delta$ is aggressively lowered to $\max_{v \in V} \fsupply_f(v)$ if there are
 no active excess vertices, and $f(v, w) = 0$ on all non-contracted arcs
 $(v, w) \in \hat{E}$.
 Finally, flow values are not tracked within contracted components, but once an
