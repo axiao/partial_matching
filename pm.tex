@@ -84,6 +84,11 @@
 \def\Refine{\textsc{Refine}}
 \def\Update{\textsc{Update}}
 
+\def\cost{\operatorname{cost}}
+\def\parent{\operatorname{par}}
+\def\short{\operatorname{short}}
+\def\supp{\operatorname{supp}}
+
 
 \theoremstyle{plain}
 \newtheorem{lemma}{Lemma}[section]
@@ -102,10 +107,6 @@
 \def\theoref#1{Theorem~\ref{theo:#1}}
 \def\corref#1{Corollary~\ref{cor:#1}}
 \def\figref#1{Figure~\ref{fig:#1}} \def\secref#1{Section~\ref{sec:#1}}
-
-\def\cost{\operatorname{cost}}
-\def\parent{\operatorname{par}}
-\def\short{\operatorname{short}}
 
 \makeatletter
 \long\def\@makecaption#1#2{
@@ -326,7 +327,7 @@ matching $M^*$ of minimum cost.
 % A \EMPH{pseudoflow} $f:E \to \ints$ is an antisymmetric function on arcs
 % satisfying $f(v, w) \leq u(v, w)$ for all arcs $(v, w)$.
 % We say that $f$ \EMPH{saturates} an arc $e$ if $f(v, w) = u(v, w)$.
-% The \EMPH{support} of $f$ is $\EMPH{$E_{>0}(f)$} \coloneqq \{(v, w) \mid f(v, w) > 0\}$.
+% The \EMPH{support} of $f$ is $\EMPH{$\supp(f)$} \coloneqq \{(v, w) \mid f(v, w) > 0\}$.
 % All our algorithms will handle integer-valued pseudoflows, so in the
 % unit-capacity setting an arc is either saturated or has zero flow.
 % Given a pseudoflow $f$, we define the \EMPH{imbalance} of a vertex to be
@@ -450,7 +451,7 @@ matching $M^*$ of minimum cost.
 % At the same time, $u_g(v, w) > 0$ implies that $g(v, w) < u(v, w)$.
 % This means that $f'$ augmented flow in the reverse direction of $(v, w)$
 % ($f'(w, v) > 0$).
-% By assumption, the arcs of $E_{>0}(f')$ are admissible, so $(w, v)$ was an
+% By assumption, the arcs of $\supp(f')$ are admissible, so $(w, v)$ was an
 % admissible arc ($c_\pi(w, v) \leq 0$).
 % By antisymmetry of reduced costs, this implies $c_\pi(v, w) \geq 0$.
 % Finally, $c_\pi(v, w) \geq 0 \geq -\eps$.
@@ -711,25 +712,28 @@ The goal of section is to prove Theorem~\ref{theorem:gmcm}; that is, to compute 
 \subsection{Preliminaries on Network Flows}
 
 \paragraph{Network.}
-A \EMPH{network $(G,c,u,\fsupply)$} is a graph $G$ augmented with edge
-costs $c$, edge capacities $u$, and a supply-demand function $\fsupply$ defined on the vertices of $G$.
+Let $G=(V,E)$ be a directed graph.
+One can augmented $G$ into a \EMPH{network $(V,A,c,u,\fsupply)$}, consisting of vertex set $V$, arc set $A$, arc costs $c$, arc capacities $u$, and a supply-demand function $\fsupply$ defined on the vertices.
+%
+For each directed edge $(v,w)$ in $E$, insert two \EMPH{arcs} $\arc vw$ and $\arc wv$ into the arc set $A$, satisfying $u(\arc wv) = 0$ and $c(\arc wv) = -c(\arc vw)$.  This we ensure that the graph $(V,A)$ is \emph{symmetric} and the cost function $c$ is \emph{antisymmetric}.
+%
 The positive values of $\fsupply(v)$ are referred to as \EMPH{supply}, and the negative values of $\fsupply(v)$ as \EMPH{demand}.
 We assume that all capacities are nonnegative, all supplies and demands are integers, and the sum of supplies and demands is equal to zero; in other words,
 \[
 \sum_{v \in V(G)} \fsupply(v) = 0.
 \]
-%By inserting a directed edge $(w, v)$ with capacity $0$ and cost $-c(v, w)$ for each directed edge $(v, w)$ in $G$, we also ensure that the graph $G$ is \emph{symmetric} and the cost function on $G$ is \emph{antisymmetric} (assuming that the original graph $G$ does not have bidirectional edges).
 %
 A \EMPH{unit-capacity} network has all its edge capacities equal to $1$. \note{Do we every have non-unit-capacity network in the section? Residual ones?}
 
 \paragraph{Pseudoflows.}
-A \EMPH{pseudoflow} $f\colon E(G) \to \ints$ is a function on the edges of $G$
-satisfying $f(v, w) \leq u(v, w)$ for every edges $(v, w)$.%
+Given a network $N \coloneqq (V,A,c,u,\fsupply)$,
+a \EMPH{pseudoflow} $f\colon A \to \ints$ on $N$ is a function on the arcs of $N$
+satisfying $f(\arc vw) \leq u(\arc vw)$ for every arc $\arc vw$.%
 \footnote{In general the pseudoflows are allowed to take real-values.  Here under the unit-capacity assumption all the flows are integer-valued.}
-We say that $f$ \EMPH{saturates} an edge $(v, w)$ if $f(v, w) = u(v, w)$.
-The \EMPH{support} of $f$ in $G$, denoted as \EMPH{$E_{>0}(f)$}, is the set of edges with positive flows:
+We say that $f$ \EMPH{saturates} an arc $\arc vw$ if $f(\arc vw) = u(\arc vw)$; an arc $\arc vw$ is \EMPH{residual} if $f(\arc vw) < u(\arc vw)$.
+The \EMPH{support} of $f$ in $N$, denoted as \EMPH{$\supp(f)$}, is the set of arcs with positive flows:
 \[
-E_{>0}(f) \coloneqq \{(v, w) \in E(G) \mid f(v, w) > 0\}.
+\supp(f) \coloneqq \{\arc vw \in A \mid f(\arc vw) > 0\}.
 \]
 % In this section algorithms will handle only integer-valued pseudoflows, so in the
 % unit-capacity setting an arc is either saturated or has zero flow.
@@ -817,7 +821,7 @@ Define \EMPH{$N_f$} to be the \EMPH{residual network} with respect to pseudoflow
 %
 % \note{The above paragraph might be clearer if you put it after the definition of admissibility; because you can actually provide a formal proof.  Sketch of ideas are not that useful because for experts they don't need to read it, for beginners they won't understand without former definitions.}
 
-\paragraph{LP-duality and admissability.}
+\paragraph{LP-duality and admissibility.}
 Formally, the
 \EMPH{potentials $\pi(v)$} are the variables of the linear program dual to the standard LP for the minimum-cost flow problem.
 \note{which primal problem? State the correspodning linear problems explicitly}.
@@ -825,7 +829,7 @@ The \EMPH{reduced cost} of an arc $\arc vw$ in $E_f$ with respect to $\pi$ is de
 \[
 \EMPH{$c_\pi(\arc vw)$} \coloneqq c(v, w) - \pi(v) + \pi(w)
 \]
-when $(v, w)$ is an edge.  The reduced cost of the reverse arc $\arc wv$ is then set to $-c_\pi(\arc wv)$ so that the cost function $c_\pi$ is made antisymmetric.
+when $(v, w)$ is an edge.  The reduced cost of the reverse arc $\arc wv$ (when exists) is then set to $-c_\pi(\arc vw)$ so that the cost function $c_\pi$ is made antisymmetric.
 %
 The \EMPH{dual feasibility constraint} says that $c_\pi(\arc vw) \geq 0$ holds for every edge $(v, w)$; potentials $\pi$ which satisfy this constraint are said to be \EMPH{feasible}.
 %
@@ -835,11 +839,11 @@ $c_{\pi^*}(\arc vw) = 0$ for every edge $(v, w)$ in the support of $f^*$.
 
 Suppose we relax the dual feasibility constraint to allow some small violation in the value of $c_\pi(\arc vw)$.
 We say that a pseudoflow $f$ is \EMPH{$\eps$-optimal} with respect to $\pi$ if
-$c_\pi(\arc vw) \geq -\eps$ for every edge $(v, w)$.
-%\note{It was \emph{residual arcs} here, which is incorrect.}
+$c_\pi(\arc vw) \geq -\eps$ for every nonsaturated support edge $(v, w)$ of $f$.
+%
 A residual arc $\arc vw$ is
 \EMPH{admissible} if $c_\pi(\arc vw) \leq 0$.
-We say that a flow $f'$ in $G_f$ is \EMPH{admissible} if all edges in the support of $f'$ on $G_f$ are admissible \note{wrong type}; in other words, $f'(v, w) > 0$ holds
+We say that a flow $f'$ in $G_f$ is \EMPH{admissible} if all arcs in the support of $f'$ on $G_f$ are admissible; in other words, $f'(v, w) > 0$ holds
 only on admissible arcs $(v, w)$.
 %
 A $0$-optimal admissible pseudoflow $f$ must have zero reduced cost on all its support edges.
@@ -854,21 +858,20 @@ Then $f + f'$ is also $\eps$-optimal.
 \begin{proof}
 Augmentation by $f'$ will not change the potentials, so any previously
 $\eps$-optimal arcs remain $\eps$-optimal.
-However, it may introduce new arcs with $u_g(v, w) > 0$, that previously had
+However, it may introduce new arcs with $u_{f+f'}(v, w) > 0$, that previously had
 $u_f(v, w) = 0$.
 We will verify that these arcs satisfy the $\eps$-optimality condition.
 
 If an arc $(v, w)$ is newly introduced this way, then by defintion of residual
 capacities $f(v, w) = u(v, w)$.
-At the same time, $u_g(v, w) > 0$ implies that $g(v, w) < u(v, w)$.
+At the same time, $u_{f+f'}(v, w) > 0$ implies that $(f+f')(v, w) < u(v, w)$.
 This means that $f'$ augmented flow in the reverse direction of $(v, w)$
 ($f'(w, v) > 0$).
-By assumption, the arcs of $E_{>0}(f')$ are admissible, so $(w, v)$ was an
+By assumption, the arcs of $\supp(f')$ are admissible, so $(w, v)$ was an
 admissible arc ($c_\pi(w, v) \leq 0$).
-By antisymmetry of reduced costs, this implies $c_\pi(v, w) \geq 0$.
-Finally, $c_\pi(v, w) \geq 0 \geq -\eps$.
-Thus, all arcs with $u_g(v, w) > 0$ respect the $\eps$-optimality condition,
-and $g$ is $\eps$-optimal.
+By antisymmetry of reduced costs, this implies $c_\pi(v, w) \geq 0 \geq -\eps$.
+Therefore, all arcs with $u_{f+f'}(v, w) > 0$ respect the $\eps$-optimality condition,
+and thus $f+f'$ is $\eps$-optimal.
 \end{proof}
 
 %In Section~\ref{section:goldberg}, we use $\eps$-optimality to prove the approximation quality of an $\eps$-optimal circulation.
@@ -949,13 +952,13 @@ in $H$ is asymptotically bounded by the excess of the pseudoflow.
 \begin{lemma}
 \label{lemma:reduction_count}
 Let $f$ be an integer pseudoflow in $H$ with $O(k)$ excess.
-Then, $|E_{>0}(f)| = O(k)$.
+Then, $|\supp(f)| = O(k)$.
 \end{lemma}
 
 \begin{proof}
 Observe that the arcs of $H$ with positive capacity form a directed acyclic graph, and thus the positive-flow edges of $f$ do not
 contain a cycle.
-Thus, $E_{>0}(f)$ can be decomposed into a set of inclusion-maximal paths,
+Thus, $\supp(f)$ can be decomposed into a set of inclusion-maximal paths,
 each of which creates a single unit of excess if it does not terminate at $t$.
 A path may also create excess at $t$ if there are at least $k$ other paths
 terminating at $t$.
@@ -1005,7 +1008,7 @@ We label the arcs of the residual network $H_f$ as follows:
 Reverse arcs must be induced by positive flow in the opposite direction
 (forward arc between the same points), since $H$ only has arcs in the forward
 direction.
-Since $f$ is a circulation, $E_{>0}(f)$ can be decomposed into $k$ paths from
+Since $f$ is a circulation, $\supp(f)$ can be decomposed into $k$ paths from
 $s$ to $t$.
 Each $s$-to-$t$ path in $H$ is length 3, so the total number of reverse arcs
 is $3k$.
@@ -1189,7 +1192,7 @@ The procedure is described in Algorithm~\ref{algorithm:scale_init}.
 	\State $\forall b \in B, \pi(b) \gets \pi(b) + 2\eps$
 	\State $\pi(t) \gets \pi(t) + 3\eps$
 	%\Statex %newline
-	\ForAll{$(v, w) \in E_{>0}(f)$}
+	\ForAll{$(v, w) \in \supp(f)$}
 		\If{$c_\pi(w, v) < -\eps$}
 			\State $f(v, w) \gets 0$
 		\EndIf
@@ -1240,7 +1243,7 @@ Notice that new excess vertex is only created due to the
 de-saturation of reverse arcs.
 Because the arcs in the graph has unit capacity, each de-saturation creates one unit of
 excess.
-By Lemma~\ref{lemma:reduction_count}, there are $|E_{>0}(f)| = O(k)$ reverse
+By Lemma~\ref{lemma:reduction_count}, there are $|\supp(f)| = O(k)$ reverse
 arcs, so the total excess created must be $O(k)$.
 \end{proof}
 
@@ -1333,15 +1336,15 @@ $O((n + k\sqrt{k})\polylog n)$.
 Combining with Lemmas~\ref{lemma:goldberg_scales} and \ref{lemma:scale_init}
 completes the proof of Theorem~\ref{theorem:gmcm}.
 At a high level, our analysis strategy is to charge relaxation events in
-the search to arcs of $E_{>0}(f)$.
+the search to arcs of $\supp(f)$.
 We first extend Lemma~\ref{lemma:reduction_count} to bound the size of
-$E_{>0}(f)$ throughout \textsc{Refine}, by observing that the amount of excess
+$\supp(f)$ throughout \textsc{Refine}, by observing that the amount of excess
 decreases in each iteration of \textsc{Refine}.
 
 \begin{corollary}
 \label{corollary:support_size_during}
 Let $f$ be the pseudoflow before or after any iteration of \textsc{Refine}.
-Then, $|E_{>0}(f)| = O(k)$.
+Then, $|\supp(f)| = O(k)$.
 \end{corollary}
 
 We discuss some challenges of our analysis and resolve them, before giving
@@ -1357,10 +1360,10 @@ However, we can replace $H_f$ with an equivalent graph that excludes them,
 and run \textsc{Hungarian-Search2} and \textsc{DFS} on the resulting graph.
 
 We say $v \in A \cup B$ is an \EMPH{empty vertex} if $e_f(v) = 0$ and no edges
-of $E_{>0}(f)$ adjoin $v$.
+of $\supp(f)$ adjoin $v$.
 \note{Hmm. How do you feel about calling them "irrelavant vertices" or "null vertices"?}
 We are unable to charge relaxation steps involving empty vertices to
-$|E_{>0}(f)|$, so the algorithm must deal with them separately.
+$|\supp(f)|$, so the algorithm must deal with them separately.
 Namely, there is no edge with $f(e) > 0$ adjacent to an empty vertex,
 reaching an empty vertex does not terminate the search, and there may be
 $\Omega(n)$ empty vertices at once (consider $H_{f = 0}$ \note{notation overload}, the residual graph
@@ -1543,8 +1546,8 @@ alongside $S$, identical except whenever a shortcut is relaxed, we add its
 surrounded empty vertices to $S'$ in addition to its (non-empty) endpoints.
 Observe that the arcs of $\tilde{H}_f$ leaving $S$ fall into $O(1)$ categories.
 \begin{enumerate}
-\item Non-shortcut reverse arcs $(v, w)$ with $(w, v) \in E_{>0}(f)$.
-	For these, we can maintain a min-heap on $E_{>0}(f)$ arcs as each $v$
+\item Non-shortcut reverse arcs $(v, w)$ with $(w, v) \in \supp(f)$.
+	For these, we can maintain a min-heap on $\supp(f)$ arcs as each $v$
 	arrives in $S$.
 \item Non-shortcut $A$-to-$B$ forward arcs.
 	For these, we can use a BCP data structure between
@@ -1605,15 +1608,15 @@ deficit vertices of $A$ or $B$ ($S$ contains all excess vertices).
 The number of vertices in (i) and (iii) is $O(k)$, leaving us to bound the
 number of (ii) vertices.
 
-An $A$ or $B$ vertex with 0 imbalance must have an even number of $E_{>0}(f)$
+An $A$ or $B$ vertex with 0 imbalance must have an even number of $\supp(f)$
 edges.
 There is either only one positive-capacity incoming arc (for $A$) or outgoing
 arc (for $B$), so this quantity is either 0 or 2.
 Since the vertex is non-empty, this must be 2.
-We charge 0.5 to each of the two $E_{>0}(f)$ arcs; the arcs of $E_{>0}(f)$
+We charge 0.5 to each of the two $\supp(f)$ arcs; the arcs of $\supp(f)$
 have no more than 1 charge each.
-Thus, the number of type (ii) vertex relaxations is $O(|E_{>0}(f)|)$.
-By Corollary~\ref{corollary:support_size_during}, $O(|E_{>0}(f)|) = O(k)$.
+Thus, the number of type (ii) vertex relaxations is $O(|\supp(f)|)$.
+By Corollary~\ref{corollary:support_size_during}, $O(|\supp(f)|) = O(k)$.
 \end{proof}
 
 \begin{lemma}
@@ -1635,13 +1638,13 @@ The same argument holds for type (ii).
 Each type (i) relaxation adds some non-empty $b \in B \setminus B_\emptyset$
 into $S$.
 Since $b$ is non-empty, it must either have deficit or an adjacent arc of
-$E_{>0}(f)$.
+$\supp(f)$.
 We charge this relaxation to $b$ if it is deficit, or the adjacent arc of
-$E_{>0}(f)$ otherwise.
-No vertex is charged more than once, and no $E_{>0}(f)$ edge is charged more
+$\supp(f)$ otherwise.
+No vertex is charged more than once, and no $\supp(f)$ edge is charged more
 than twice, therefore the total number of type (i) relaxations is
-$O(|E_{>0}(f)|)$.
-By Corollary~\ref{corollary:support_size_during}, $O(|E_{>0}(f)|) = O(k)$.
+$O(|\supp(f)|)$.
+By Corollary~\ref{corollary:support_size_during}, $O(|\supp(f)|) = O(k)$.
 \end{proof}
 
 \begin{corollary}
@@ -1754,8 +1757,8 @@ This requires some adjustments to the data structures for finding the
 minimum-reduced cost arc leaving $v' \in S$.
 Given $v' \in S$, we would like to query:
 \begin{enumerate}
-\item Non-shortcut reverse arcs $(v', w')$ with $(w', v') \in E_{>0}(f)$.
-	For these, we can maintain a min-heap on $(w', v') \in E_{>0}(f)$ arcs
+\item Non-shortcut reverse arcs $(v', w')$ with $(w', v') \in \supp(f)$.
+	For these, we can maintain a min-heap on $(w', v') \in \supp(f)$ arcs
 	for each non-empty $v' \in V$.
 \item Non-shortcut $A$-to-$B$ forward arcs.
 	For these, we maintain a NN data structure over
@@ -1924,7 +1927,7 @@ We define the cost of $\tau$ to be
 \[
 	\cost(\tau) \coloneqq \sum_{a, b \in A \times B} \norm{a-b} \tau(a, b).
 \]
-Given $A$, $B$, and $\tsupply$, the \EMPH{transportation problem} asks to find 
+Given $A$, $B$, and $\tsupply$, the \EMPH{transportation problem} asks to find
 a feasible transportation map of minimum cost.
 Using terminology from matchings, we focus on analyzing the \EMPH{unbalanced}
 setting where $r \leq n$.
@@ -2006,7 +2009,7 @@ on the number of relaxations.
 
 \paragraph{Dead vertices.}
 We call a vertex $b \in B$ \EMPH{dead} if it has no adjoining
-$E_{>0}(f)$ arcs and is not an active excess or deficit.
+$\supp(f)$ arcs and is not an active excess or deficit.
 These are essentially equivalent to the \emph{empty vertices} of
 Section~\ref{section:goldberg}.
 Since the reduction in this section does not use a super-source/super-sink,
@@ -2018,7 +2021,7 @@ When this happens, we must add it back into a number of data structures.
 
 \paragraph{Support stars.}
 Let the \EMPH{support degree} of a vertex be the number of adjoining arcs in
-$E_{>0}(f)$.
+$\supp(f)$.
 The vertices of $B$ with support degree 1 are partitioned into subsets
 $\Sigma_a \subset B$ by the $a \in A$ lying on the other end of their single
 support arc.
@@ -2029,7 +2032,7 @@ The number of support stars is $O(r)$.
 %\paragraph{Compressed graph.}
 %We now construct $\tilde{G}$ from $G$.
 %First, remove all dead vertices and their adjacent arcs from $G$.
-%Next, for each support star $\Sigma_a$ and its center $a$, we replace 
+%Next, for each support star $\Sigma_a$ and its center $a$, we replace
 
 
 \subsection{Implementation details}
