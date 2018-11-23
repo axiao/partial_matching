@@ -31,7 +31,7 @@
 \usepackage{mathtools} % for \coloneqq
 
 \usepackage[title]{appendix}
-\usepackage{apxproof}
+\usepackage[inline]{apxproof}
 \renewcommand{\appendixsectionformat}[2]{Proofs from Section~#1}
 
 \usepackage{ifpdf}
@@ -914,7 +914,7 @@ To this end we first provide an upper bound on the size of support of an integra
 Next we employ a technique by Sharathkumar and Agarwal~\cite{SA12} to transform an additive $\eps$-approximate solution into a multiplicative $(1+\eps)$-approximation for the geometric partial matching problem.  The reduction does not work out of the box, as Sharathkumar and Agarwal were tackling a similar but different problem on geometric transportations.
 
 \begin{lemma}
-%\label{corollary:cost_scale_approx}
+\label{lemma:cost_scale_approx}
 Computing a $(1+\eps)$-approximate geometric partial matching can be reduced to the following problem in $O(n \polylog n)$ time:
 Given a reduction network $N$ over a point set with diameter at most $C \le kn^2 \cdot K$ for some constant $K$, compute an $(\eps\cdot K/6kn)$-optimal circulation on $N$.
 \end{lemma}
@@ -991,6 +991,65 @@ Rearranging the terms we have that $\cost(f) \leq \cost(f^*) + 6k\eps$.
 
 
 \paragraph{Multiplicative approximation.}
+Now we empoly a technique from Sharathkumar and Agarwal~\cite{SA12} to convert the additive approximation into a multiplicative one.
+
+Let $T$ be the minimum spanning tree on input graph $G$ and order
+its edges by increasing length as $e_1, \ldots, e_{r+n-1}$.
+Let $T_\ell$ denote the subgraph of $T$ obtained by removing the heaviest $\ell$ edges in $T$.
+
+Let $i$ be the largest index so that
+the optimal solution to the MPM problem has edges between components of $T_i$.
+Choose $j$ to be the smallest index larger than $i$ satisfying
+$c(e_j) \geq kn \cdot c(e_i)$.
+For each component $K$ of $T_j$, let
+$G_K$ be the subgraph of $G$ induced on vertices of $K$;
+let $\EMPH{$A_K$} \coloneqq K \cap A$ and $\EMPH{$B_K$} \coloneqq K \cap B$, respectively.
+We partition $A$ and $B$ into the collection of sets $A_K$ and $B_K$ according to the components $K$ of $T_j$.
+Since $j < i$, the optimal partial matching in $G$ can be partitioned into edges between $A_K$ and $B_K$ within $G_K$; no optimal matching edges lie between components.
+
+\begin{lemma}[Sharathkumar and Agarwal~{\cite[\S3.5]{SA12}}]
+\label{lemma:sa_partition}
+%
+Let $G = (A,B,E_0)$ be the input to MPM problem, and consider the partitions $A_K$ and $B_K$ defined as above.
+Let $M^*$ be the optimal matching in $G$, and $M^*_K$ be the optimal matching
+in $G_K$ \note{with which parameter $k_K$?}.
+%and let the diameter of a component $K$ be $C_K \coloneqq \max_{p, q \in A_K \cup B_K} \|p - q\|$.
+Then,
+\begin{enumerate}[(i)]
+\item $M^* = \bigcup_{K \in K_j} M^*_K$,
+\item $c(e_i) \leq \cost(M^*)$, and
+\item the diameter of $K$ is at most $kn^2 \cdot c(e_i)$ for every $K \in T_j$,
+\end{enumerate}
+Furthermore, such partition can be constructed in $O(n\polylog n)$ time.
+%using a dynamic data structure for bichromatic closest pair.
+\end{lemma}
+
+Using this lemma, one can prove Lemma~\ref{lemma:cost_scale_approx} by computing an $(\eps c(e_i)/6kn)$-optimal
+circulation $f_K$ for each component $K$ in $T_j$; the union of the matchings $M_{f_K}$ will be a $(1+\eps)$-approximate partial matching on $G$.
+A detailed proof of Lemma~\ref{lemma:cost_scale_approx} can be found in the Appendix.
+
+\begin{appendixproof}
+%[of Lemma~\ref{lemma:cost_scale_approx}]
+Let $f^*_K$ be the optimal flow on the reduction graph $H_K$ for the component $K$.
+Combining Lemma~\ref{lemma:goldberg_cost_add} and
+Lemma~\ref{lemma:sa_partition}, one has
+\begin{align*}
+	\cost(\bigcup_{K \in T_j} M_{f_K})
+		&= \sum_{K \in T_j} \cost(M_{f_K}) & \\
+		&= \sum_{K \in T_j} \cost(f_K) & \\
+		&\leq \sum_{K \in T_j} (\cost(f^*_K) + \eps c(e_i)/n) & \text{\small [Lemma~\ref{lemma:goldberg_cost_add}]} \\
+		&= \sum_{K \in T_j} (\cost(M^*_K) + \eps c(e_i)/n) & \\
+		&\leq \cost(M^*) + \eps c(e_{ji_1}) & \text{\small [Lemma~\ref{lemma:sa_partition}(i)]} \\
+		&\leq (1 + \eps) \cost(M^*). & \text{\small[Lemma~\ref{lemma:sa_partition}(ii)]}
+\end{align*}
+\end{appendixproof}
+
+%The proof of these properties can be found in the original paper \cite[Section 3.5]{SA12}, but we reproduce the rest of proofs below
+%(tailored for $\eps$-optimality).
+% Given this lemma, we can construct the MCF reduction network $N_H$ for each
+% component $T = A_T \cup B_T$, find an $(\eps c(e_{j_1})/6kn)$-optimal
+% circulation $f_T$ for each, and then $\bigcup_{T \in T_{j_2}}M_{f_T}$ will be a
+% $(1+\eps)$-approximate partial matching between $A$ and $B$.
 
 
 \subsection{High-Level Description of Cost-Scaling Algorithm}
@@ -1006,206 +1065,206 @@ Rearranging the terms we have that $\cost(f) \leq \cost(f^*) + 6k\eps$.
 
 \note{THIS IS THE OLD SECTION}
 
-%\note{Remind the readers what you want to achieve in this section.}
-In this section, we describe a $(1+\eps)$-approximation algorithm for the geometric
-partial matching problem and prove Theorem~\ref{theorem:gmcm}.
-We build atop a \EMPH{cost-scaling} algorithm for unit-capacity min-cost flow
-from Goldberg, Hed, Kaplan, and Tarjan~\cite{GHKT17}.
-First, we give a cost-preserving near-linear time reduction from geometric
-partial matching to unit-capacity min-cost flow, which allows us to apply the
-cost-scaling algorithm toffind partial matchings.
-\note{reduction-algorithm-implementation}
-
-
-\subsection{MPM to unit-capacity MCF reduction}
-\label{subsection:mcm_mcf_reduction}
-
-For a partial matching problem on a bipartite graph $G = (A \cup B, E_0)$ with parameter $k$, we
-direct each bipartite edge in $E_0$ from $A$ to $B$, with cost equal to the
-original cost $c(a, b)$ and capacity $1$.
-Next, we add a dummy vertex $s$ with arcs $(s, a)$ to every vertex $a$ in $A$,
-and a dummy vertex $t$ with arcs $(b, t)$ for every vertex $b$ in $B$,
-all with cost $0$ and capacity $1$.
-For each of the above arcs $(v, w)$, we also add a reverse arc $(w, v)$ with
-cost $c(w, v) = -c(v, w)$ and capacity $0$. \note{is this consistent with the other residual graph description?}
-Let the complete set of arcs be $E$, and $V = A \cup B \cup \{s, t\}$.
-Set $\fsupply(s) = k$, $\fsupply(t) = -k$, and $\fsupply(v) = 0$ for all other
-vertices. \note{What is $\phi$?  You are extending the supply-demand fuction from the \emph{network} on $G$.}
-Let the resulting graph be $H = (V, E)$.  Define the network
-$\EMPH{$N_H$} = ((V, E), c, u, \fsupply)$.
-We call $H$ the \emph{reduction graph} \note{ever used?} of the partial matching instance on
-$A$ and $B$ with parameter $k$, and $N_H$ the \EMPH{reduction network}.
-
-\note{Describe everything using networks.}
-
-% \begin{observation}
-% \label{observation:dag}
-% 	The arcs of $H$ with positive capacity form a directed acyclic graph.
-% \end{observation}
-
-% In other words, there will be no cycles of positive flow in circulations on
-% $H$.
-%With this,
-First we show that the number of arcs used by any integer pseudoflow
-in $H$ is asymptotically bounded by the excess of the pseudoflow.
-
-\begin{lemma}
-\label{lemma:reduction_count}
-Let $f$ be an integer pseudoflow in $H$ with $O(k)$ excess.
-Then, $|\supp(f)| = O(k)$.
-\end{lemma}
-
-\begin{proof}
-Observe that the arcs of $H$ with positive capacity form a directed acyclic graph, and thus the positive-flow edges of $f$ do not
-contain a cycle.
-Thus, $\supp(f)$ can be decomposed into a set of inclusion-maximal paths,
-each of which creates a single unit of excess if it does not terminate at $t$.
-A path may also create excess at $t$ if there are at least $k$ other paths
-terminating at $t$.
-By assumption, there are $O(k)$ units of excess to which we can associate
-paths, and at most $k$ paths that we cannot associate with a unit of excess.
-The maximum length of any path with positive-flow arcs in $H$ is $3$ by
-construction.
-We conclude that the number of positive flow arcs in $f$ is $O(k)$.
-\end{proof}
-
-It is straightforward to show that any integer circulation on $H$ uses exactly
-$k$ of the $A$-to-$B$ arcs, which correspond to the edges of a size-$k$
-matching.
-For a circulation $f$ in $H$, we use \EMPH{$M_f$} to denote the
-corresponding matching.
-Notice that the cost of the circulation $f$ is equal to the cost of the corresponding matching $M_f$.
+% %\note{Remind the readers what you want to achieve in this section.}
+% In this section, we describe a $(1+\eps)$-approximation algorithm for the geometric
+% partial matching problem and prove Theorem~\ref{theorem:gmcm}.
+% We build atop a \EMPH{cost-scaling} algorithm for unit-capacity min-cost flow
+% from Goldberg, Hed, Kaplan, and Tarjan~\cite{GHKT17}.
+% First, we give a cost-preserving near-linear time reduction from geometric
+% partial matching to unit-capacity min-cost flow, which allows us to apply the
+% cost-scaling algorithm toffind partial matchings.
+% \note{reduction-algorithm-implementation}
 %
-% \begin{observation}
-% \label{observation:reduction_cost}
-% 	Let $f$ be an integer circulation on $H$; $f$ uses exactly $k$ of the
-% 	$A$-to-$B$ arcs which correspond to a size $k$ \note{size-$k$, when used as an adj.} matching on $A, B$.
-% 	Call this matching $M_f$, then $\cost(f) = \cost(M_f)$
-% \end{observation}
 %
-In other words, an $\alpha$-approximation to the MCF
-problem on $H$ is an $\alpha$-approximation to the matching problem on $G$.
-
-In the next lemma, we show how $\eps$-optimality \note{adj.} implies an approximation \note{noun} on $H$. \note{The sentece is unparsable.}
-
-\note{Move the definitions of $\eps$-optimality and admissibility for flows here?}
-
-\begin{lemma}
-\label{lemma:goldberg_cost_add}
-Let $f$ an $\eps$-optimal integer circulation in $H$, and $f^*$ an optimal
-integer circulation for $H$.
-Then, $\cost(f) \leq \cost(f^*) + 6k\eps$.
-\end{lemma}
-
-\begin{proof}
-We label the arcs of the residual network $H_f$ as follows:
-\begin{itemize}\itemsep=0pt
-\item \EMPH{forward arcs}: arcs directed from $s$-to-$A$ or $A$-to-$B$ or
-	$B$-to-$t$, and
-\item \EMPH{reverse arcs}: arcs point in the opposite directions.
-\end{itemize}
-\note{Consider moving the definitions outside the proof.}
-Reverse arcs must be induced by positive flow in the opposite direction
-(forward arc between the same points), since $H$ only has arcs in the forward
-direction.
-Since $f$ is a circulation, $\supp(f)$ can be decomposed into $k$ paths from
-$s$ to $t$.
-Each $s$-to-$t$ path in $H$ is length 3, so the total number of reverse arcs
-is $3k$.
-
-There exists \note{"there is", for simplicity} a residual flow $g$ in $H_f$ such that $f + g = f^*$.
-Since both $f$ and $f^*$ are both circulations and $H$ is unit-capacity \note{unit-capacity is not an adj.; "has"}, $g$ is
-comprised of unit flows on a collection edge-disjoint residual cycles
-$\Gamma_1, \ldots, \Gamma_\ell$.
-Observe that each residual cycle $\Gamma_i$ must have exactly half of its arcs
-being reverse arcs, and therefore we have $\sum_i |\Gamma_i| \leq 6k$.
-
-Let $\pi$ be a set of potentials which certify that $f$ is $\eps$-optimal.
-For residual cycles, we have that $c_\pi(\Gamma_i) = c(\Gamma_i)$, since the
-potential terms telescope.
-We then see that
-\begin{equation*}
-	\cost(f) - \cost(f^*)
-	= \sum_i c(\Gamma_i)
-	= \sum_i c_\pi(\Gamma_i)
-	\geq \sum_i |\Gamma_i|(-\eps)
-	\geq -6k\eps,
-\end{equation*}
-where the second-to-last inequality follows from the $\eps$-optimality of $f$
-with respect to $\pi$.
-Rearranging, we have that $\cost(f) \leq \cost(f^*) + 6k\eps$.
-\end{proof}
-
-% \begin{corollary}
-% \label{corollary:goldberg_cost_add}
-% Let $f$ an $(\eps/6k)$-optimal integer circulation in $H$, and $f^*$ an optimal
+% \subsection{MPM to unit-capacity MCF reduction}
+% \label{subsection:mcm_mcf_reduction}
+%
+% For a partial matching problem on a bipartite graph $G = (A \cup B, E_0)$ with parameter $k$, we
+% direct each bipartite edge in $E_0$ from $A$ to $B$, with cost equal to the
+% original cost $c(a, b)$ and capacity $1$.
+% Next, we add a dummy vertex $s$ with arcs $(s, a)$ to every vertex $a$ in $A$,
+% and a dummy vertex $t$ with arcs $(b, t)$ for every vertex $b$ in $B$,
+% all with cost $0$ and capacity $1$.
+% For each of the above arcs $(v, w)$, we also add a reverse arc $(w, v)$ with
+% cost $c(w, v) = -c(v, w)$ and capacity $0$. \note{is this consistent with the other residual graph description?}
+% Let the complete set of arcs be $E$, and $V = A \cup B \cup \{s, t\}$.
+% Set $\fsupply(s) = k$, $\fsupply(t) = -k$, and $\fsupply(v) = 0$ for all other
+% vertices. \note{What is $\phi$?  You are extending the supply-demand fuction from the \emph{network} on $G$.}
+% Let the resulting graph be $H = (V, E)$.  Define the network
+% $\EMPH{$N_H$} = ((V, E), c, u, \fsupply)$.
+% We call $H$ the \emph{reduction graph} \note{ever used?} of the partial matching instance on
+% $A$ and $B$ with parameter $k$, and $N_H$ the \EMPH{reduction network}.
+%
+% \note{Describe everything using networks.}
+%
+% % \begin{observation}
+% % \label{observation:dag}
+% % 	The arcs of $H$ with positive capacity form a directed acyclic graph.
+% % \end{observation}
+%
+% % In other words, there will be no cycles of positive flow in circulations on
+% % $H$.
+% %With this,
+% First we show that the number of arcs used by any integer pseudoflow
+% in $H$ is asymptotically bounded by the excess of the pseudoflow.
+%
+% \begin{lemma}
+% \label{lemma:reduction_count}
+% Let $f$ be an integer pseudoflow in $H$ with $O(k)$ excess.
+% Then, $|\supp(f)| = O(k)$.
+% \end{lemma}
+%
+% \begin{proof}
+% Observe that the arcs of $H$ with positive capacity form a directed acyclic graph, and thus the positive-flow edges of $f$ do not
+% contain a cycle.
+% Thus, $\supp(f)$ can be decomposed into a set of inclusion-maximal paths,
+% each of which creates a single unit of excess if it does not terminate at $t$.
+% A path may also create excess at $t$ if there are at least $k$ other paths
+% terminating at $t$.
+% By assumption, there are $O(k)$ units of excess to which we can associate
+% paths, and at most $k$ paths that we cannot associate with a unit of excess.
+% The maximum length of any path with positive-flow arcs in $H$ is $3$ by
+% construction.
+% We conclude that the number of positive flow arcs in $f$ is $O(k)$.
+% \end{proof}
+%
+% It is straightforward to show that any integer circulation on $H$ uses exactly
+% $k$ of the $A$-to-$B$ arcs, which correspond to the edges of a size-$k$
+% matching.
+% For a circulation $f$ in $H$, we use \EMPH{$M_f$} to denote the
+% corresponding matching.
+% Notice that the cost of the circulation $f$ is equal to the cost of the corresponding matching $M_f$.
+% %
+% % \begin{observation}
+% % \label{observation:reduction_cost}
+% % 	Let $f$ be an integer circulation on $H$; $f$ uses exactly $k$ of the
+% % 	$A$-to-$B$ arcs which correspond to a size $k$ \note{size-$k$, when used as an adj.} matching on $A, B$.
+% % 	Call this matching $M_f$, then $\cost(f) = \cost(M_f)$
+% % \end{observation}
+% %
+% In other words, an $\alpha$-approximation to the MCF
+% problem on $H$ is an $\alpha$-approximation to the matching problem on $G$.
+%
+% In the next lemma, we show how $\eps$-optimality \note{adj.} implies an approximation \note{noun} on $H$. \note{The sentece is unparsable.}
+%
+% \note{Move the definitions of $\eps$-optimality and admissibility for flows here?}
+%
+% \begin{lemma}
+% \label{lemma:goldberg_cost_add}
+% Let $f$ an $\eps$-optimal integer circulation in $H$, and $f^*$ an optimal
 % integer circulation for $H$.
-% Then, $\cost(f) \leq \cost(f^*) + \eps$.
+% Then, $\cost(f) \leq \cost(f^*) + 6k\eps$.
+% \end{lemma}
+%
+% \begin{proof}
+% We label the arcs of the residual network $H_f$ as follows:
+% \begin{itemize}\itemsep=0pt
+% \item \EMPH{forward arcs}: arcs directed from $s$-to-$A$ or $A$-to-$B$ or
+% 	$B$-to-$t$, and
+% \item \EMPH{reverse arcs}: arcs point in the opposite directions.
+% \end{itemize}
+% \note{Consider moving the definitions outside the proof.}
+% Reverse arcs must be induced by positive flow in the opposite direction
+% (forward arc between the same points), since $H$ only has arcs in the forward
+% direction.
+% Since $f$ is a circulation, $\supp(f)$ can be decomposed into $k$ paths from
+% $s$ to $t$.
+% Each $s$-to-$t$ path in $H$ is length 3, so the total number of reverse arcs
+% is $3k$.
+%
+% There exists \note{"there is", for simplicity} a residual flow $g$ in $H_f$ such that $f + g = f^*$.
+% Since both $f$ and $f^*$ are both circulations and $H$ is unit-capacity \note{unit-capacity is not an adj.; "has"}, $g$ is
+% comprised of unit flows on a collection edge-disjoint residual cycles
+% $\Gamma_1, \ldots, \Gamma_\ell$.
+% Observe that each residual cycle $\Gamma_i$ must have exactly half of its arcs
+% being reverse arcs, and therefore we have $\sum_i |\Gamma_i| \leq 6k$.
+%
+% Let $\pi$ be a set of potentials which certify that $f$ is $\eps$-optimal.
+% For residual cycles, we have that $c_\pi(\Gamma_i) = c(\Gamma_i)$, since the
+% potential terms telescope.
+% We then see that
+% \begin{equation*}
+% 	\cost(f) - \cost(f^*)
+% 	= \sum_i c(\Gamma_i)
+% 	= \sum_i c_\pi(\Gamma_i)
+% 	\geq \sum_i |\Gamma_i|(-\eps)
+% 	\geq -6k\eps,
+% \end{equation*}
+% where the second-to-last inequality follows from the $\eps$-optimality of $f$
+% with respect to $\pi$.
+% Rearranging, we have that $\cost(f) \leq \cost(f^*) + 6k\eps$.
+% \end{proof}
+%
+% % \begin{corollary}
+% % \label{corollary:goldberg_cost_add}
+% % Let $f$ an $(\eps/6k)$-optimal integer circulation in $H$, and $f^*$ an optimal
+% % integer circulation for $H$.
+% % Then, $\cost(f) \leq \cost(f^*) + \eps$.
+% % \end{corollary}
+% % \note{This too straightforward that I don't think you need a separate corollary.}
+%
+% We use a technique from Sharathkumar and Agarwal~\cite{SA12} to transform the
+% additive $\eps$-approximation into a relative $(1+\eps)$-approximation
+% for geometric matching.
+% Let $\EuScript{T}$ \note{change font faces only the the objects are of different types; here $\EuScript{T}$ , $T_i$ are both subset of edges} be the minimum spanning tree of $A \cup B$ and order
+% its edges by decreasing length as $e_1, \ldots, e_{r+n-1}$.
+% Let $T_i$ be the subgraph of $\EuScript{T}$ induced by
+% $e_{i+1}, \ldots, e_{r+n-1}$; that is, the graph obtained from removing $e_1,\ldots,e_i$ from $\EuScript{T}$.
+% For each component $T$ of $T_i$, let $A_T \coloneqq T \cap A$ and $B_T \coloneqq T \cap B$
+% respectively.
+%
+% Let $j_1$ be the minimum index such that there exists a component $T$ of $T_{j_1}$
+% satisfying $|A_T| \neq |B_T|$.
+% Choose $j_2$ to be the maximum index less than $j_1$ satisfying
+% $c(e_{j_2}) \geq n^2 \cdot c(e_{j_1})$.
+% We partition $A$ and $B$ into the collection os sets $A_T$ and $B_T$ according to the components $T$ of $T_{j_2}$. \note{double-subscripts, bad.  replace $j_1$ and $j_2$ with $j$ and $k$ or something?}
+% Since $j_2 < j_1$, $|A_T| = |B_T|$ for every component $T$ of $T_{j_2}$.
+%
+% \note{Move the proof to the appendix and summarize the assumptions in a paragraph.}
+%
+% \begin{lemma}[Sharathkumar and Agarwal~{\cite[\S3.5]{SA12}}]
+% \label{lemma:sa_partition}
+% Consider the partition of $A$ and $B$ into collection of sets $A_T$ and $B_T$ using components of $T_{j_2}$.
+% Let $M^*$ be the optimal matching between $A$ and $B$, and $M^*_T$ be the optimal matching
+% on $T \in T_{j_2}$ \note{ambiguous.  DO you mean between $A_T$ and $B_T$ for all $T$?}, and let the diameter of a component $T$ be
+% $C_T \coloneqq \max_{p, q \in A_T \cup B_T} \|p - q\|$.
+% Then,
+% \begin{enumerate}[(i)]
+% \item $M^* = \bigcup_{T \in T_{j_2}} M^*_T$,
+% \item $C_T \leq kn^2 \cdot c(e_{j_1})$ for all $T \in T_{j_2}$, and
+% \item $c(e_{j_1}) \leq \cost(M^*)$. \note{swap order between (ii) and (iii)?}
+% \end{enumerate}
+% Furthermore, this partition can be constructed in $O(n\polylog n)$ time.
+% %using a dynamic data structure for bichromatic closest pair.
+% \end{lemma}
+%
+% The proof of these properties can be found in the original paper
+% \cite[Section 3.5]{SA12}, but we reproduce the rest of proofs below
+% (tailored for $\eps$-optimality).
+% Given this lemma, we can construct the MCF reduction network $N_H$ for each
+% component $T = A_T \cup B_T$, find an $(\eps c(e_{j_1})/6kn)$-optimal
+% circulation $f_T$ for each, and then $\bigcup_{T \in T_{j_2}}M_{f_T}$ will be a
+% $(1+\eps)$-approximate partial matching between $A$ and $B$.
+% Let $f^*_T$ be the optimal flow on $H$ for the component $T$.
+% Combining Lemma~\ref{lemma:goldberg_cost_add} and
+% Lemma~\ref{lemma:sa_partition}, one has
+% \begin{align*}
+% 	\cost(\bigcup_{T \in T_{j_2}} M_{f_T})
+% 		&= \sum_{T \in T_{j_2}} \cost(M_{f_T}) & \\
+% 		&= \sum_{T \in T_{j_2}} \cost(f_T) & \\
+% 		&\leq \sum_{T \in T_{j_2}} (\cost(f^*_T) + \eps c(e_{j_1})/n) & \text{\small [Lemma~\ref{lemma:goldberg_cost_add}]} \\
+% 		&= \sum_{T \in T_{j_2}} (\cost(M^*_T) + \eps c(e_{j_1})/n) & \\
+% 		&\leq \cost(M^*) + \eps c(e_{j_1}) & \text{\small [Lemma~\ref{lemma:sa_partition}(i)]} \\
+% 		&\leq (1 + \eps) \cost(M^*). & \text{\small[Lemma~\ref{lemma:sa_partition}(iii)]}
+% \end{align*}
+%
+% \begin{corollary}
+% \label{corollary:cost_scale_approx}
+% If an algorithm can compute $(\eps c(e_{j_1})/6kn)$-optimal circulation for the
+% reduction network $N_H$ of a point set with diameter
+% $C \leq kn^2 \cdot c(e_{j_1})$, then we can find a $(1+\eps)$-approximate
+% partial matching betwen $A$ and $B$, after $O(n\polylog n)$ extra preprocessing time. \note{Consider to remove dependency on $c(e_{j_i})$.}
 % \end{corollary}
-% \note{This too straightforward that I don't think you need a separate corollary.}
-
-We use a technique from Sharathkumar and Agarwal~\cite{SA12} to transform the
-additive $\eps$-approximation into a relative $(1+\eps)$-approximation
-for geometric matching.
-Let $\EuScript{T}$ \note{change font faces only the the objects are of different types; here $\EuScript{T}$ , $T_i$ are both subset of edges} be the minimum spanning tree of $A \cup B$ and order
-its edges by decreasing length as $e_1, \ldots, e_{r+n-1}$.
-Let $T_i$ be the subgraph of $\EuScript{T}$ induced by
-$e_{i+1}, \ldots, e_{r+n-1}$; that is, the graph obtained from removing $e_1,\ldots,e_i$ from $\EuScript{T}$.
-For each component $T$ of $T_i$, let $A_T \coloneqq T \cap A$ and $B_T \coloneqq T \cap B$
-respectively.
-
-Let $j_1$ be the minimum index such that there exists a component $T$ of $T_{j_1}$
-satisfying $|A_T| \neq |B_T|$.
-Choose $j_2$ to be the maximum index less than $j_1$ satisfying
-$c(e_{j_2}) \geq n^2 \cdot c(e_{j_1})$.
-We partition $A$ and $B$ into the collection os sets $A_T$ and $B_T$ according to the components $T$ of $T_{j_2}$. \note{double-subscripts, bad.  replace $j_1$ and $j_2$ with $j$ and $k$ or something?}
-Since $j_2 < j_1$, $|A_T| = |B_T|$ for every component $T$ of $T_{j_2}$.
-
-\note{Move the proof to the appendix and summarize the assumptions in a paragraph.}
-
-\begin{lemma}[Sharathkumar and Agarwal~{\cite[\S3.5]{SA12}}]
-\label{lemma:sa_partition}
-Consider the partition of $A$ and $B$ into collection of sets $A_T$ and $B_T$ using components of $T_{j_2}$.
-Let $M^*$ be the optimal matching between $A$ and $B$, and $M^*_T$ be the optimal matching
-on $T \in T_{j_2}$ \note{ambiguous.  DO you mean between $A_T$ and $B_T$ for all $T$?}, and let the diameter of a component $T$ be
-$C_T \coloneqq \max_{p, q \in A_T \cup B_T} \|p - q\|$.
-Then,
-\begin{enumerate}[(i)]
-\item $M^* = \bigcup_{T \in T_{j_2}} M^*_T$,
-\item $C_T \leq kn^2 \cdot c(e_{j_1})$ for all $T \in T_{j_2}$, and
-\item $c(e_{j_1}) \leq \cost(M^*)$. \note{swap order between (ii) and (iii)?}
-\end{enumerate}
-Furthermore, this partition can be constructed in $O(n\polylog n)$ time.
-%using a dynamic data structure for bichromatic closest pair.
-\end{lemma}
-
-The proof of these properties can be found in the original paper
-\cite[Section 3.5]{SA12}, but we reproduce the rest of proofs below
-(tailored for $\eps$-optimality).
-Given this lemma, we can construct the MCF reduction network $N_H$ for each
-component $T = A_T \cup B_T$, find an $(\eps c(e_{j_1})/6kn)$-optimal
-circulation $f_T$ for each, and then $\bigcup_{T \in T_{j_2}}M_{f_T}$ will be a
-$(1+\eps)$-approximate partial matching between $A$ and $B$.
-Let $f^*_T$ be the optimal flow on $H$ for the component $T$.
-Combining Lemma~\ref{lemma:goldberg_cost_add} and
-Lemma~\ref{lemma:sa_partition}, one has
-\begin{align*}
-	\cost(\bigcup_{T \in T_{j_2}} M_{f_T})
-		&= \sum_{T \in T_{j_2}} \cost(M_{f_T}) & \\
-		&= \sum_{T \in T_{j_2}} \cost(f_T) & \\
-		&\leq \sum_{T \in T_{j_2}} (\cost(f^*_T) + \eps c(e_{j_1})/n) & \text{\small [Lemma~\ref{lemma:goldberg_cost_add}]} \\
-		&= \sum_{T \in T_{j_2}} (\cost(M^*_T) + \eps c(e_{j_1})/n) & \\
-		&\leq \cost(M^*) + \eps c(e_{j_1}) & \text{\small [Lemma~\ref{lemma:sa_partition}(i)]} \\
-		&\leq (1 + \eps) \cost(M^*). & \text{\small[Lemma~\ref{lemma:sa_partition}(iii)]}
-\end{align*}
-
-\begin{corollary}
-\label{corollary:cost_scale_approx}
-If an algorithm can compute $(\eps c(e_{j_1})/6kn)$-optimal circulation for the
-reduction network $N_H$ of a point set with diameter
-$C \leq kn^2 \cdot c(e_{j_1})$, then we can find a $(1+\eps)$-approximate
-partial matching betwen $A$ and $B$, after $O(n\polylog n)$ extra preprocessing time. \note{Consider to remove dependency on $c(e_{j_i})$.}
-\end{corollary}
 
 \subsection{Algorithm description}
 
