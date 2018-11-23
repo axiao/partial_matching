@@ -297,6 +297,8 @@ The \EMPH{size} of a matching is the number of edges in the set, and the
 The \EMPH{minimum-cost partial matching problem (MPM)} asks to find a size-$k$
 matching $M^*$ of minimum cost.
 
+\note{Define LP-duality and admissibility for matchings}
+
 % \subsection{Minimum-cost flow}
 %
 % \note{Move to \S4.}
@@ -715,7 +717,7 @@ The goal of section is to prove Theorem~\ref{theorem:gmcm}; that is, to compute 
 Let $G=(V,E)$ be a directed graph, augemtned by edge costs $c$ and capacities $u$, and a supply-demand function $\fsupply$ defined on the vertices.
 %
 One can turn the graph $G$ into a \EMPH{network $N = (V, A)$}:
-For each directed edge $(v,w)$ in $E$, insert two \EMPH{arcs} $\arc vw$ and $\arc wv$ into the arc set $A$, satisfying $u(\arc wv) = 0$ and $c(\arc wv) = -c(\arc vw)$.  This we ensure that the graph $(V,A)$ is \emph{symmetric} and the cost function $c$ is \emph{antisymmetric} on $N$.
+For each directed edge $(v,w)$ in $E$, insert two \EMPH{arcs} $\arc vw$ and $\arc wv$ into the arc set $A$ \note{better notation?}; the \EMPH{forward arc} $\arc vw$ inherits the capacity and cost from the directed graph $G$ (that is, $u(\arc vw) = u(v,w)$ and $c(\arc vw) = c(v,w)$), while the \EMPH{backward arc} $\arc wv$ satisfies $u(\arc wv) = 0$ and $c(\arc wv) = -c(\arc vw)$.  This we ensure that the graph $(V,A)$ is \emph{symmetric} and the cost function $c$ is \emph{antisymmetric} on $N$.
 %
 The positive values of $\fsupply(v)$ are referred to as \EMPH{supply}, and the negative values of $\fsupply(v)$ as \EMPH{demand}.
 We assume that all capacities are nonnegative, all supplies and demands are integers, and the sum of supplies and demands is equal to zero; in other words,
@@ -723,13 +725,14 @@ We assume that all capacities are nonnegative, all supplies and demands are inte
 \sum_{v \in V(G)} \fsupply(v) = 0.
 \]
 %
-A \EMPH{unit-capacity} network has all its edge capacities equal to $1$. \note{Do we every have non-unit-capacity network in the section? Residual ones?}
+A \EMPH{unit-capacity} network has all its edge capacities equal to $1$.
+In this section assume all networks are of unit-capacity. \note{correct?}
 
 \paragraph{Pseudoflows.}
 Given a network $N \coloneqq (V,A,c,u,\fsupply)$,
-a \EMPH{pseudoflow} $f\colon A \to \ints$ on $N$ is an antisymmetric function on the arcs of $N$
+a \EMPH{pseudoflow} (or \EMPH{flow} to be short) $f\colon A \to \ints$ on $N$ is an antisymmetric function on the arcs of $N$
 satisfying $f(\arc vw) \leq u(\arc vw)$ for every arc $\arc vw$.%
-\footnote{In general the pseudoflows are allowed to take real-values.  Here under the unit-capacity assumption all the flows are integer-valued.}
+\footnote{In general the pseudoflows are allowed to take real-values.  Here under the unit-capacity assumption any optimal flows are integer-valued. \note{cite integrality theorem?}}
 %
 We sometimes abuse the terminology by allowing pseudoflow to be defined on a directed graph, in which case we are actually refering to the pseudoflow on the corresponding network by extending the flow values antisymmetrically to the arcs.
 %
@@ -855,7 +858,7 @@ The \EMPH{dual feasibility constraint} says that $c_\pi(\arc vw) \geq 0$ holds f
 The linear programming \EMPH{optimality condition} states that, for an optimal
 circulation $f^*$, there are feasible potentials $\pi^*$ satisfying
 $c_{\pi^*}(\arc vw) = 0$ for every arc $\arc vw$ in the support of $f^*$.
-\note{Why do we need optimality condition here? What does strong duality theorem tells us?}
+\note{Move optimality conditino to Last section maybe.}
 
 Suppose we relax the dual feasibility constraint to allow some small violation in the value of $c_\pi(\arc vw)$.
 We say that a pseudoflow $f$ is \EMPH{$\eps$-optimal} with respect to $\pi$ if
