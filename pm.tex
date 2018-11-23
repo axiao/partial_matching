@@ -31,6 +31,8 @@
 \usepackage{mathtools} % for \coloneqq
 
 \usepackage[title]{appendix}
+\usepackage{apxproof}
+\renewcommand{\appendixsectionformat}[2]{Proofs from Section~#1}
 
 \usepackage{ifpdf}
 
@@ -855,11 +857,11 @@ Notice that the cost function $c_\pi$ is also antisymmetric.
 
 The \EMPH{dual feasibility constraint} says that $c_\pi(\arc vw) \geq 0$ holds for every directed edge $(v,w)$ in $E$; potentials $\pi$ which satisfy this constraint are said to be \EMPH{feasible}.
 %
-The linear programming \EMPH{optimality condition} states that, for an optimal
-circulation $f^*$, there are feasible potentials $\pi^*$ satisfying
-$c_{\pi^*}(\arc vw) = 0$ for every arc $\arc vw$ in the support of $f^*$.
-\note{Move optimality conditino to Last section maybe.}
-
+% The linear programming \EMPH{optimality condition} states that, for an optimal
+% circulation $f^*$, there are feasible potentials $\pi^*$ satisfying
+% $c_{\pi^*}(\arc vw) = 0$ for every arc $\arc vw$ in the support of $f^*$.
+% \note{Move optimality conditino to last section maybe.}
+%
 Suppose we relax the dual feasibility constraint to allow some small violation in the value of $c_\pi(\arc vw)$.
 We say that a pseudoflow $f$ is \EMPH{$\eps$-optimal} with respect to $\pi$ if
 $c_\pi(\arc vw) \geq -\eps$ for every residual arc $\arc vw$ in $A_f$; pseudoflow $f$ is \EMPH{$\eps$-optimal} if it is $\eps$-optimal with respect to some potentials $\pi$.
@@ -875,7 +877,9 @@ Let $f$ be an $\eps$-optimal pseudoflow in $G$ and let $f'$ be an
 admissible flow in $G_f$.
 Then $f + f'$ is also $\eps$-optimal.
 \end{lemma}
+
 \begin{proof}
+\note{rewrite using arcs.}
 Augmentation by $f'$ will not change the potentials, so any previously
 $\eps$-optimal arcs remain $\eps$-optimal.
 However, it may introduce new arcs with $u_{f+f'}(v, w) > 0$, that previously had
@@ -903,15 +907,91 @@ and thus $f+f'$ is $\eps$-optimal.
 % condition (admissibility), one can prove that the resulting circulation is
 % minimum cost.
 
-\subsection{Reduction to unit-capacity Min-Cost Flow Problem}
+\subsection{Reduction to Unit-Capacity Min-Cost Flow Problem}
 
-\begin{corollary}
+The goal of the subsection is to reduce the minimun-cost partial matching problem to the unit-capacity minimum-cost flow problem with a polynomial bound on diameter.
+To this end we first provide an upper bound on the size of support of an integral pseudoflow on the standard reduction network between the two problems.  This upper bound in turns provides an additive approximation on the cost of an $\eps$-optimal circulation.
+Next we employ a technique by Sharathkumar and Agarwal~\cite{SA12} to transform an additive $\eps$-approximate solution into a multiplicative $(1+\eps)$-approximation for the geometric partial matching problem.  The reduction does not work out of the box, as Sharathkumar and Agarwal were tackling a similar but different problem on geometric transportations.
+
+\begin{lemma}
 %\label{corollary:cost_scale_approx}
-If an algorithm can compute $(\eps\cdot K/6kn)$-optimal circulation for the
-reduction network $N_H$ of a point set with diameter
-$C \leq kn^2 \cdot K$ for some constant $K$, then we can find a $(1+\eps)$-approximate
-partial matching betwen $A$ and $B$, after $O(n\polylog n)$ extra preprocessing time.
-\end{corollary}
+Computing a $(1+\eps)$-approximate geometric partial matching can be reduced to the following problem in $O(n \polylog n)$ time:
+Given a reduction network $N$ over a point set with diameter at most $C \le kn^2 \cdot K$ for some constant $K$, compute an $(\eps\cdot K/6kn)$-optimal circulation on $N$.
+\end{lemma}
+
+
+\paragraph{Additive approximation.}
+Given a bipartite graph $G = (A,B,E_0)$ for the geometric partial matching problem with cost function $c$, we construct the \EMPH{reduction network $N_H$} as follows:
+Direct the edges in $E_0$ from $A$ to $B$, and assign each directed edge with capacity $1$.  Now add a dummy vertex $s$ with directed edges to all vertices in $A$, and add a dummy vertex $t$ with directed edges from all vertices in $B$; each edge added this way has cost $0$ and capacity $1$.
+Denote the new graph with vertex set $V = A \cup B \cup \set{s,t}$ and edge set $E$ as the \EMPH{reduction graph $H$}.
+Assign vertex $s$ with supply $k$ and vertex $t$ with demand $k$; the rest of the vertices in $H$ have zero supply-demand
+We call the network naturally corresponds to $H$ as the \EMPH{reduction network}, denoted by \EMPH{$N_H$}.
+
+It is straightforward to show that any integer circulation $f$ on $N_H$ uses exactly
+$k$ of the $A$-to-$B$ arcs, which correspond to the edges of a size-$k$
+matching \EMPH{$M_f$}.
+Notice that the cost of the circulation $f$ is equal to the cost of the corresponding matching $M_f$.
+%
+In other words, a $(1+\eps)$-approximation to the MCF problem on the reduction graph $H$ translates to a $(1+\eps)$-approximation to the geometric matching problem on the input graph $G$.
+
+First we show that the number of arcs used by any integer pseudoflow
+in $H$ is asymptotically bounded by the excess of the pseudoflow.
+
+\begin{lemma}
+\label{lemma:reduction_count}
+Let $f$ be an integer pseudoflow in $N_H$ with $O(k)$ excess.
+Then, the size of the support of $f$ is at most $O(k)$.
+\end{lemma}
+
+\begin{proof}
+Observe that the reductino graph $H$ is a directed acyclic graph, and thus the support of $f$ does not contain a cycle.
+Now $\supp(f)$ can be decomposed into a set of inclusion-maximal paths,
+each of which contributes a single unit of excess to the flow if the path does not terminate at $t$ or if more than $k$ paths terminate at $t$.
+By assumption, there are $O(k)$ units of excess to which we can associate the
+paths, and at most $k$ paths (those that terminate at $t$) that we cannot associate with a unit of excess.
+The length of any such paths is at most  three by construction of the reduction graph $H$.
+Therefore we can conclude that the number of arcs in the support of $f$ is $O(k)$.
+\end{proof}
+
+Using the bound on the support size, we now show that an $\eps$-optimal integral circulation gives an additive $O(k\eps)$-approximation to the MCF problem.
+
+\begin{lemma}
+\label{lemma:goldberg_cost_add}
+Let $f$ be an $\eps$-optimal integer circulation in $N_H$, and $f^*$ be an optimal integer circulation for $N_H$.
+Then, $\cost(f) \leq \cost(f^*) + 6k\eps$.
+\end{lemma}
+
+\begin{proof}
+% Reverse arcs must be induced by positive flow in the opposite direction
+% (forward arc between the same points), since $H$ only has arcs in the forward
+% direction.
+Because $f$ is a circulation, $\supp(f)$ can be decomposed into $k$ paths from
+$s$ to $t$.
+Each $s$-to-$t$ path in $N_H$ is of length three, so the total number of reverse arcs in the residual network $N_f$ is $3k$.
+
+Consider the residual flow in $N_f$ defined by the difference between $f^*$ and $f$.
+Since both $f$ and $f^*$ are both circulations and $N_H$ has unit-capacity,
+the flow $f - f^*$ is comprised of unit flows on a collection of edge-disjoint residual cycles $\Gamma_1, \ldots, \Gamma_\ell$.
+Observe that each residual cycle $\Gamma_i$ must have exactly half of its arcs being reverse arcs, and thus we have $\sum_i |\Gamma_i| \leq 6k$.
+
+Let $\pi$ be some potential certifying that $f$ is $\eps$-optimal.
+Because $\Gamma_i$ is a residual cycle, we have $c_\pi(\Gamma_i) = c(\Gamma_i)$ since the potential terms telescope.
+We then see that
+\[
+	\cost(f) - \cost(f^*)
+	= \sum_i c(\Gamma_i)
+	= \sum_i c_\pi(\Gamma_i)
+	\geq \sum_i (-\eps) \cdot |\Gamma_i|
+	\geq -6k\eps,
+\]
+where the second-to-last inequality follows from the $\eps$-optimality of $f$
+with respect to $\pi$.
+Rearranging the terms we have that $\cost(f) \leq \cost(f^*) + 6k\eps$.
+\end{proof}
+
+
+\paragraph{Multiplicative approximation.}
+
 
 \subsection{High-Level Description of Cost-Scaling Algorithm}
 
