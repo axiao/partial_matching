@@ -1027,9 +1027,9 @@ Furthermore, such partition can be constructed in $O(n\polylog n)$ time.
 
 Using this lemma, one can prove Lemma~\ref{lemma:cost_scale_approx} by computing an $(\eps c(e_i)/6kn)$-optimal
 circulation $f_K$ for each component $K$ in $T_j$; the union of the matchings $M_{f_K}$ will be a $(1+\eps)$-approximate partial matching on $G$.
-A detailed proof of Lemma~\ref{lemma:cost_scale_approx} can be found in the Appendix.
+%A detailed proof of Lemma~\ref{lemma:cost_scale_approx} can be found in the Appendix.
 
-\begin{appendixproof}
+\begin{proof}
 %[of Lemma~\ref{lemma:cost_scale_approx}]
 Let $f^*_K$ be the optimal flow on the reduction graph $H_K$ for the component $K$.
 Combining Lemma~\ref{lemma:goldberg_cost_add} and
@@ -1043,7 +1043,7 @@ Lemma~\ref{lemma:sa_partition}, one has
 		&\leq \cost(M^*) + \eps c(e_{ji_1}) & \text{\small [Lemma~\ref{lemma:sa_partition}(i)]} \\
 		&\leq (1 + \eps) \cost(M^*). & \text{\small[Lemma~\ref{lemma:sa_partition}(ii)]}
 \end{align*}
-\end{appendixproof}
+\end{proof}
 
 %The proof of these properties can be found in the original paper \cite[Section 3.5]{SA12}, but we reproduce the rest of proofs below
 %(tailored for $\eps$-optimality).
