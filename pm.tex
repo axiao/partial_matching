@@ -293,7 +293,7 @@ Let $G$ be a bipartite graph between vertex sets $A$ and $B$ and edge set $E$,
 with costs $c(v, w)$ for each edge $e$ in $E$.
 \note{Should we define the problem on point sets instead, and construct the graph afterwards?}
 We use $C \coloneqq \max_{e \in E} c(e)$, and assume that the problem is scaled such
-that $\min_{e \in E} c(e) = 1$.
+that $\min_{e \in E} c(e) = 1$. \note{where do we use this assumption?}
 A \EMPH{matching} $M \subseteq E$ is a set of edges where no two edges share an
 endpoint.
 We use $V(M)$ to denote the vertices matched by $M$.
@@ -910,6 +910,7 @@ and thus $f+f'$ is $\eps$-optimal.
 % minimum cost.
 
 \subsection{Reduction to Unit-Capacity Min-Cost Flow Problem}
+\label{SS:reduction}
 
 The goal of the subsection is to reduce the minimun-cost partial matching problem to the unit-capacity minimum-cost flow problem with a polynomial bound on diameter.
 To this end we first provide an upper bound on the size of support of an integral pseudoflow on the standard reduction network between the two problems.  This upper bound in turns provides an additive approximation on the cost of an $\eps$-optimal circulation.
@@ -918,7 +919,7 @@ Next we employ a technique by Sharathkumar and Agarwal~\cite{SA12} to transform 
 \begin{lemma}
 \label{lemma:cost_scale_approx}
 Computing a $(1+\eps)$-approximate geometric partial matching can be reduced to the following problem in $O(n \polylog n)$ time:
-Given a reduction network $N$ over a point set with diameter at most $K \cdot kn^2$ for some constant $K$, compute an $(K \cdot \eps/6k)$-optimal circulation on $N$.
+Given a reduction network $N$ over a point set with diameter at most $K \cdot kn^3$ for some constant $K$, compute an $(K \cdot \eps/6k)$-optimal circulation on $N$.
 \end{lemma}
 
 
@@ -946,7 +947,7 @@ Then, the size of the support of $f$ is at most $O(k)$.
 \end{lemma}
 
 \begin{proof}
-Observe that the reductino graph $H$ is a directed acyclic graph, and thus the support of $f$ does not contain a cycle.
+Observe that the reduction graph $H$ is a directed acyclic graph, and thus the support of $f$ does not contain a cycle.
 Now $\supp(f)$ can be decomposed into a set of inclusion-maximal paths,
 each of which contributes a single unit of excess to the flow if the path does not terminate at $t$ or if more than $k$ paths terminate at $t$.
 By assumption, there are $O(k)$ units of excess to which we can associate the
@@ -1069,7 +1070,128 @@ To solve this issue we perform a binary search on the edges $e_1, \ldots, e_{r+n
 % \end{align*}
 % \end{proof}
 
+
 \subsection{High-Level Description of Cost-Scaling Algorithm}
+
+Our main algorithm for the unit-capacity minimum-cost flow problem is based on the \EMPH{cost-scaling} technique,
+%(also known as \EMPH{successive approximation} \cite{\cite{GT90}}),
+originally due to Goldberg and
+Tarjan~\cite{GT90}; Goldberg, Hed, Kaplan, and Tarjan~\cite{GHKT17} applied the technique on unit-capacity networks.
+
+The algorithm finds $\eps$-optimal circulations for geometrically shrinking
+values of $\eps$.
+Each fixed value of $\eps$ is called a
+\EMPH{cost scale}.
+Once $\eps$ is sufficiently small, the $\eps$-optimal flow is a suitable
+approximation \note{how so, quantitatively?}%
+\footnote{When the costs are integers, an $\eps$-optimal circulation for a sufficiently small $\eps$ (say less than $1/n$) is itself an optimal solution \cite{GT90,GHKT17}.
+We present this algorithm without the integral-cost assumption because in the geometric
+partial matching setting (with respect to Euclidean distances) the costs are generally not integers.}
+
+%Pseudocode for the cost-scaling algorithm is given in
+%Algorithm~\ref{algorithm:cost-scaling}.
+%
+% \begin{figure*}[t]
+% \centering
+% \begin{minipage}{.5\linewidth}
+% \begin{algorithm}[H]
+% \caption{Cost-Scaling MCF}
+% \label{algorithm:cost-scaling}
+% \begin{algorithmic}[1]
+% \Function{MCF}{$H$, $\eps^*$}
+% 	\State $\eps \gets kC$,
+% 	$f \gets 0$,
+% 	$\pi \gets 0$
+% 	\While{$\eps > \eps^*/6$}
+% 		\State $(f, \pi) \gets$ \Call{Scale-Init}{$H$, $f$, $\pi$}
+% 		\State $(f, \pi) \gets$ \Call{Refine}{$H$, $f$, $\pi$}
+% 		\State $\eps \gets \eps/2$
+% 	\EndWhile
+% 	\State\Return $f$
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
+% \end{minipage}
+% \end{figure*}
+
+The cost-scaling algorithm initializes the flow $f$ and the potential $\pi$ to be zero.
+Note that the zero flow is trivially a $kC$-optimal flow.
+At the beginning of each scale starting at $\eps = kC$,
+\begin{itemize}
+\item
+\textsc{Scale-Init} takes the previous
+circulation (now $2\eps$-optimal) and transforms it into an $\eps$-optimal
+pseudoflow with $O(k)$ excess.
+\item
+\textsc{Refine} then reduces the excess in the newly constructed pseudoflow to zero, making it an $\eps$-optimal
+circulation.
+\end{itemize}
+Thus, the algorithm produces an $\eps^*$-optimal circulation after
+$O(\log(kC/\eps^*))$ scales.
+%
+Using the reduction in Lemma~\ref{lemma:cost_scale_approx}, we have the diameter of the point set, thus maximum cost $C$, bounded by $O(K \cdot kn^3)$ for some value $K$.  By setting $\eps^*$ to be $K \cdot \eps/6k$, the number of cost scales is bounded above by $O(\log(n/\eps))$.
+
+
+\paragraph{Scale initialization}
+
+% \begin{figure*}[h]
+% \centering
+% \begin{minipage}{.5\linewidth}
+% \begin{algorithm}[H]
+% \caption{Scale Initialization}
+% \label{algorithm:scale_init}
+% \begin{algorithmic}[1]
+% \Function{Scale-Init}{$H$, $f$, $\pi$}
+% 	\State $\forall a \in A, \pi(a) \gets \pi(a) + \eps$
+% 	\State $\forall b \in B, \pi(b) \gets \pi(b) + 2\eps$
+% 	\State $\pi(t) \gets \pi(t) + 3\eps$
+% 	%\Statex %newline
+% 	\ForAll{$(v, w) \in \supp(f)$}
+% 		\If{$c_\pi(w, v) < -\eps$}
+% 			\State $f(v, w) \gets 0$
+% 		\EndIf
+% 	\EndFor
+% 	\State\Return $(f, \pi)$
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
+% \end{minipage}
+% \end{figure*}
+
+Recall that $H$ is the \emph{reduction graph} and $N_H$ is the \emph{reduction network}, both constructed in Section~\ref{SS:reduction}.  The vertex set of $H$ consists of the two point sets $A$ and $B$, as well as two dummy vertices $s$ and $t$.  The directed edges in $H$ are pointed from $s$ to $A$, from $A$ to $B$, and from $B$ to $t$.  We call those arcs in $N_H$ whose direction is consistent with their corresponding directed edges as the \EMPH{forward arcs}, and those arcs that points in the opposite direction as \EMPH{backward arcs}.
+
+The procedure \textsc{Scale-Init} transforms a $2\eps$-optimal circulation from the previous cost scale into an $\eps$-optimal flow with $O(k)$ excess, by raising the potentials $\pi$ of all vertices in $A$ by $\eps$, those in $B$ by $2\eps$, and the potential of $t$ by $3\eps$.  The potential of $s$ remains unchanged.
+%
+Now the reduced cost of every forward arc is dropped by $\eps$, and thus all the forward arcs are $\eps$-optimal \note{undefined}.
+
+As for backward arcs, the precedure \textsc{Scale-Init} continues by setting the flow on $\arc vw$ to zero for each backward arc $\arc wv$ violating the $\eps$-optimality constraint.  In other words, we set $f(\arc vw) = 0$ whenever $c_\pi(\arc wv) < -\eps$.  This ensures that all such backward arcs are no longer residual, and therefore the flow (now with excess) is $\eps$-optimal.
+
+\note{I AM HERE.}
+
+\begin{lemma}
+\label{lemma:scale_init}
+\textsc{Scale-Init} turns a $2\eps$-optimal circulation into an
+$\eps$-optimal pseudoflow with $O(k)$ excess in $O(n)$ time.
+\end{lemma}
+
+\begin{proof}
+The potential updates affect every vertex except $s$, so this takes $O(n)$
+time.
+As for the arc de-saturation, every reverse arc is induced by positive flow on
+a forward arc, and the number of positive flow edges in $f$ is $O(k)$ by
+Lemma~\ref{lemma:reduction_count}.
+The total number of edges examined by the loop is $O(k)$.
+In total, this takes $O(n)$ time.
+
+%For the amount of excess,
+Notice that new excess vertex is only created due to the
+de-saturation of reverse arcs.
+Because the arcs in the graph has unit capacity, each de-saturation creates one unit of
+excess.
+By Lemma~\ref{lemma:reduction_count}, there are $|\supp(f)| = O(k)$ reverse
+arcs, so the total excess created must be $O(k)$.
+\end{proof}
+
 
 \subsection{Fast Implementation}
 
@@ -1283,145 +1405,145 @@ To solve this issue we perform a binary search on the edges $e_1, \ldots, e_{r+n
 % partial matching betwen $A$ and $B$, after $O(n\polylog n)$ extra preprocessing time. \note{Consider to remove dependency on $c(e_{j_i})$.}
 % \end{corollary}
 
-\subsection{Algorithm description}
-
-Pseudocode for the cost-scaling algorithm is given in
-Algorithm~\ref{algorithm:cost-scaling}.
-The Goldberg~{\etal}~\cite{GHKT17} algorithm is based on \EMPH{cost-scaling} or
-\EMPH{successive approximation}, originally due to Goldberg and
-Tarjan~\cite{GT90}.
-The algorithm finds $\eps$-optimal circulations for geometrically shrinking
-values of $\eps$.
-Each iteration of the outer loop (where $\eps$ holds single value) is called a
-\EMPH{cost scale}.
-Once $\eps$ is sufficiently small, the $\eps$-optimal flow is a suitable
-approximation (or even an optimal flow itself when costs are integers~\cite{GT90,GHKT17}).
-We present this algorithm without the integral-cost assumption because in the geometric
-partial matching setting (with respect to Euclidean distances) the costs are generally not integers.
-
-\begin{figure*}[h]
-\centering
-\begin{minipage}{.5\linewidth}
-\begin{algorithm}[H]
-\caption{Cost-Scaling MCF}
-\label{algorithm:cost-scaling}
-\begin{algorithmic}[1]
-\Function{MCF}{$H$, $\eps^*$}
-	\State $\eps \gets kC$,
-	$f \gets 0$,
-	$\pi \gets 0$
-	\While{$\eps > \eps^*/6$}
-		\State $(f, \pi) \gets$ \Call{Scale-Init}{$H$, $f$, $\pi$}
-		\State $(f, \pi) \gets$ \Call{Refine}{$H$, $f$, $\pi$}
-		\State $\eps \gets \eps/2$
-	\EndWhile
-	\State\Return $f$
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-\end{minipage}
-\end{figure*}
-
-Note that the zero flow is trivially $kC$-optimal for $H$.
-At the beginning of each scale, \textsc{Scale-Init} takes the previous
-circulation (now $2\eps$-optimal) and transforms it into an $\eps$-optimal
-pseudoflow with $O(k)$ excess.
-For the rest of the scale, the procedure \textsc{Refine}, reduces the excess in
-the newly constructed pseudoflow to zero, making it an $\eps$-optimal
-circulation.
-Thus, the algorithm produces an $\eps^*$-optimal circulation after
-$O(\log(kC/\eps^*))$ scales.
-
-\begin{lemma}
-\label{lemma:goldberg_scales}
-For each subproblem in Corollary~\ref{corollary:cost_scale_approx},
-the cost-scaling algorithm requires $O(\log(n/\eps^*))$ scales.
-\end{lemma}
-
-\begin{proof}
-Recall that the subproblems in Corollary~\ref{corollary:cost_scale_approx} have
-diameter $C \leq kn^2 \cdot c(e_{j_1})$ and ask for an
-$(\eps^* c(e_{j_1})/6kn)$-optimal circulation.
-The number of cost scales is bounded above by
-\begin{equation*}
-	O(\log(kC/\eps^*))
-	= O\left(\log\left(\frac{kn^2 \cdot c(e_{j_1})}{\eps^* c(e_{j_1})/6kn}\right)\right)
-	= O(\log(n/\eps^*)).
-\end{equation*}
-\end{proof}
-
-\subsection{\textsc{Scale-Init}}
-
-\note{merge with previous section}
-
-The procedure is described in Algorithm~\ref{algorithm:scale_init}.
-
-\begin{figure*}[h]
-\centering
-\begin{minipage}{.5\linewidth}
-\begin{algorithm}[H]
-\caption{Scale Initialization}
-\label{algorithm:scale_init}
-\begin{algorithmic}[1]
-\Function{Scale-Init}{$H$, $f$, $\pi$}
-	\State $\forall a \in A, \pi(a) \gets \pi(a) + \eps$
-	\State $\forall b \in B, \pi(b) \gets \pi(b) + 2\eps$
-	\State $\pi(t) \gets \pi(t) + 3\eps$
-	%\Statex %newline
-	\ForAll{$(v, w) \in \supp(f)$}
-		\If{$c_\pi(w, v) < -\eps$}
-			\State $f(v, w) \gets 0$
-		\EndIf
-	\EndFor
-	\State\Return $(f, \pi)$
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-\end{minipage}
-\end{figure*}
-
-Let the $H_f$ arcs directed from $s \to A$ or $A \to B$ or $B \to t$ be
-\EMPH{forward arcs}, and let those in the opposite directions be
-\EMPH{reverse arcs}.
-\note{Already did so in Lemma 4.3; might want to move this definition to somewhere before lemma 4.3.}
-The first four lines \note{try not use use specific numbers, in case you change the pseudocode later} of \textsc{Scale-Init} raise the reduced cost of each
-forward arc by $\eps$, therefore making all forward arcs $\eps$-optimal.
-\note{Instead of an example, mention that at the start of the iteration, every forward arc is $2\eps$-optimal.}
-% For example, a forward arc of $A \to B$ now has reduced cost
+% \subsection{Algorithm description}
+%
+% Pseudocode for the cost-scaling algorithm is given in
+% Algorithm~\ref{algorithm:cost-scaling}.
+% The Goldberg~{\etal}~\cite{GHKT17} algorithm is based on \EMPH{cost-scaling} or
+% \EMPH{successive approximation}, originally due to Goldberg and
+% Tarjan~\cite{GT90}.
+% The algorithm finds $\eps$-optimal circulations for geometrically shrinking
+% values of $\eps$.
+% Each iteration of the outer loop (where $\eps$ holds single value) is called a
+% \EMPH{cost scale}.
+% Once $\eps$ is sufficiently small, the $\eps$-optimal flow is a suitable
+% approximation (or even an optimal flow itself when costs are integers~\cite{GT90,GHKT17}).
+% We present this algorithm without the integral-cost assumption because in the geometric
+% partial matching setting (with respect to Euclidean distances) the costs are generally not integers.
+%
+% \begin{figure*}[h]
+% \centering
+% \begin{minipage}{.5\linewidth}
+% \begin{algorithm}[H]
+% \caption{Cost-Scaling MCF}
+% \label{algorithm:cost-scaling}
+% \begin{algorithmic}[1]
+% \Function{MCF}{$H$, $\eps^*$}
+% 	\State $\eps \gets kC$,
+% 	$f \gets 0$,
+% 	$\pi \gets 0$
+% 	\While{$\eps > \eps^*/6$}
+% 		\State $(f, \pi) \gets$ \Call{Scale-Init}{$H$, $f$, $\pi$}
+% 		\State $(f, \pi) \gets$ \Call{Refine}{$H$, $f$, $\pi$}
+% 		\State $\eps \gets \eps/2$
+% 	\EndWhile
+% 	\State\Return $f$
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
+% \end{minipage}
+% \end{figure*}
+%
+% Note that the zero flow is trivially $kC$-optimal for $H$.
+% At the beginning of each scale, \textsc{Scale-Init} takes the previous
+% circulation (now $2\eps$-optimal) and transforms it into an $\eps$-optimal
+% pseudoflow with $O(k)$ excess.
+% For the rest of the scale, the procedure \textsc{Refine}, reduces the excess in
+% the newly constructed pseudoflow to zero, making it an $\eps$-optimal
+% circulation.
+% Thus, the algorithm produces an $\eps^*$-optimal circulation after
+% $O(\log(kC/\eps^*))$ scales.
+%
+% \begin{lemma}
+% \label{lemma:goldberg_scales}
+% For each subproblem in Corollary~\ref{corollary:cost_scale_approx},
+% the cost-scaling algorithm requires $O(\log(n/\eps^*))$ scales.
+% \end{lemma}
+%
+% \begin{proof}
+% Recall that the subproblems in Corollary~\ref{corollary:cost_scale_approx} have
+% diameter $C \leq kn^2 \cdot c(e_{j_1})$ and ask for an
+% $(\eps^* c(e_{j_1})/6kn)$-optimal circulation.
+% The number of cost scales is bounded above by
 % \begin{equation*}
-% 	c(a, b) - (\pi(a) + \eps) + (\pi(b) + 2\eps)
-% 	= c_\pi(a, b) + \eps
-% 	\geq -2\eps + \eps
-% 	= -\eps.
+% 	O(\log(kC/\eps^*))
+% 	= O\left(\log\left(\frac{kn^2 \cdot c(e_{j_1})}{\eps^* c(e_{j_1})/6kn}\right)\right)
+% 	= O(\log(n/\eps^*)).
 % \end{equation*}
-In the lines after \note{the for-loop}, we deal with the reduced cost of reverse arcs by simply
-de-saturating them if they violate $\eps$-optimality.
-Note that forward arcs will not be de-saturated in this step, since they are
-now $\eps$-optimal.
+% \end{proof}
 
-\begin{lemma}
-\label{lemma:scale_init}
-\textsc{Scale-Init} turns a $2\eps$-optimal circulation into an
-$\eps$-optimal pseudoflow with $O(k)$ excess in $O(n)$ time.
-\end{lemma}
-
-\begin{proof}
-The potential updates affect every vertex except $s$, so this takes $O(n)$
-time.
-As for the arc de-saturation, every reverse arc is induced by positive flow on
-a forward arc, and the number of positive flow edges in $f$ is $O(k)$ by
-Lemma~\ref{lemma:reduction_count}.
-The total number of edges examined by the loop is $O(k)$.
-In total, this takes $O(n)$ time.
-
-%For the amount of excess,
-Notice that new excess vertex is only created due to the
-de-saturation of reverse arcs.
-Because the arcs in the graph has unit capacity, each de-saturation creates one unit of
-excess.
-By Lemma~\ref{lemma:reduction_count}, there are $|\supp(f)| = O(k)$ reverse
-arcs, so the total excess created must be $O(k)$.
-\end{proof}
+% \subsection{\textsc{Scale-Init}}
+%
+% \note{merge with previous section}
+%
+% The procedure is described in Algorithm~\ref{algorithm:scale_init}.
+%
+% \begin{figure*}[h]
+% \centering
+% \begin{minipage}{.5\linewidth}
+% \begin{algorithm}[H]
+% \caption{Scale Initialization}
+% \label{algorithm:scale_init}
+% \begin{algorithmic}[1]
+% \Function{Scale-Init}{$H$, $f$, $\pi$}
+% 	\State $\forall a \in A, \pi(a) \gets \pi(a) + \eps$
+% 	\State $\forall b \in B, \pi(b) \gets \pi(b) + 2\eps$
+% 	\State $\pi(t) \gets \pi(t) + 3\eps$
+% 	%\Statex %newline
+% 	\ForAll{$(v, w) \in \supp(f)$}
+% 		\If{$c_\pi(w, v) < -\eps$}
+% 			\State $f(v, w) \gets 0$
+% 		\EndIf
+% 	\EndFor
+% 	\State\Return $(f, \pi)$
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
+% \end{minipage}
+% \end{figure*}
+%
+% Let the $H_f$ arcs directed from $s \to A$ or $A \to B$ or $B \to t$ be
+% \EMPH{forward arcs}, and let those in the opposite directions be
+% \EMPH{reverse arcs}.
+% \note{Already did so in Lemma 4.3; might want to move this definition to somewhere before lemma 4.3.}
+% The first four lines \note{try not use use specific numbers, in case you change the pseudocode later} of \textsc{Scale-Init} raise the reduced cost of each
+% forward arc by $\eps$, therefore making all forward arcs $\eps$-optimal.
+% \note{Instead of an example, mention that at the start of the iteration, every forward arc is $2\eps$-optimal.}
+% % For example, a forward arc of $A \to B$ now has reduced cost
+% % \begin{equation*}
+% % 	c(a, b) - (\pi(a) + \eps) + (\pi(b) + 2\eps)
+% % 	= c_\pi(a, b) + \eps
+% % 	\geq -2\eps + \eps
+% % 	= -\eps.
+% % \end{equation*}
+% In the lines after \note{the for-loop}, we deal with the reduced cost of reverse arcs by simply
+% de-saturating them if they violate $\eps$-optimality.
+% Note that forward arcs will not be de-saturated in this step, since they are
+% now $\eps$-optimal.
+%
+% \begin{lemma}
+% \label{lemma:scale_init}
+% \textsc{Scale-Init} turns a $2\eps$-optimal circulation into an
+% $\eps$-optimal pseudoflow with $O(k)$ excess in $O(n)$ time.
+% \end{lemma}
+%
+% \begin{proof}
+% The potential updates affect every vertex except $s$, so this takes $O(n)$
+% time.
+% As for the arc de-saturation, every reverse arc is induced by positive flow on
+% a forward arc, and the number of positive flow edges in $f$ is $O(k)$ by
+% Lemma~\ref{lemma:reduction_count}.
+% The total number of edges examined by the loop is $O(k)$.
+% In total, this takes $O(n)$ time.
+%
+% %For the amount of excess,
+% Notice that new excess vertex is only created due to the
+% de-saturation of reverse arcs.
+% Because the arcs in the graph has unit capacity, each de-saturation creates one unit of
+% excess.
+% By Lemma~\ref{lemma:reduction_count}, there are $|\supp(f)| = O(k)$ reverse
+% arcs, so the total excess created must be $O(k)$.
+% \end{proof}
 
 
 \subsection{\textsc{Refine}}
