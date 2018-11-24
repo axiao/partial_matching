@@ -879,21 +879,20 @@ Then $f + f'$ is also $\eps$-optimal.
 \end{lemma}
 
 \begin{proof}
-\note{rewrite using arcs.}
 Augmentation by $f'$ will not change the potentials, so any previously
 $\eps$-optimal arcs remain $\eps$-optimal.
-However, it may introduce new arcs with $u_{f+f'}(v, w) > 0$, that previously had
-$u_f(v, w) = 0$.
+However, it may introduce new arcs $\arc vw$ with $u_{f+f'}(\arc vw) > 0$, that previously had
+$u_f(\arv vw) = 0$.
 We will verify that these arcs satisfy the $\eps$-optimality condition.
 
-If an arc $(v, w)$ is newly introduced this way, then by defintion of residual
-capacities $f(v, w) = u(v, w)$.
-At the same time, $u_{f+f'}(v, w) > 0$ implies that $(f+f')(v, w) < u(v, w)$.
-This means that $f'$ augmented flow in the reverse direction of $(v, w)$
-($f'(w, v) > 0$).
-By assumption, the arcs of $\supp(f')$ are admissible, so $(w, v)$ was an
-admissible arc ($c_\pi(w, v) \leq 0$).
-By antisymmetry of reduced costs, this implies $c_\pi(v, w) \geq 0 \geq -\eps$.
+If an arc $\arc vw$ is newly introduced this way, then by defintion of residual
+capacities $f(\arc vw) = u(\arc vw)$.
+At the same time, $u_{f+f'}(\arc vw) > 0$ implies that $(f+f')(\arc vw) < u(\arc vw)$.
+This means that $f'$ augmented flow in the reverse direction of $\arc vw$
+($f'(\arc wv) > 0$).
+By assumption, the arcs of $\supp(f')$ are admissible, so $\arc wv$ was an
+admissible arc ($c_\pi(\arc wv) \leq 0$).
+By antisymmetry of reduced costs, this implies $c_\pi(\arc vw) \geq 0 \geq -\eps$.
 Therefore, all arcs with $u_{f+f'}(v, w) > 0$ respect the $\eps$-optimality condition,
 and thus $f+f'$ is $\eps$-optimal.
 \end{proof}
@@ -916,7 +915,7 @@ Next we employ a technique by Sharathkumar and Agarwal~\cite{SA12} to transform 
 \begin{lemma}
 \label{lemma:cost_scale_approx}
 Computing a $(1+\eps)$-approximate geometric partial matching can be reduced to the following problem in $O(n \polylog n)$ time:
-Given a reduction network $N$ over a point set with diameter at most $C \le kn^2 \cdot K$ for some constant $K$, compute an $(\eps\cdot K/6kn)$-optimal circulation on $N$.
+Given a reduction network $N$ over a point set with diameter at most $K \cdot kn^2$ for some constant $K$, compute an $(K \cdot \eps/6kn)$-optimal circulation on $N$.
 \end{lemma}
 
 
@@ -1023,6 +1022,8 @@ Then,
 Furthermore, such partition can be constructed in $O(n\polylog n)$ time.
 %using a dynamic data structure for bichromatic closest pair.
 \end{lemma}
+
+\note{Need the argument that puts the clusters at a distance that does not change the optimal solution, but with bounded diameter.}
 
 Using this lemma, one can prove Lemma~\ref{lemma:cost_scale_approx} by computing an $(\eps c(e_i)/6kn)$-optimal
 circulation $f_K$ for each component $K$ in $T_j$; the union of the matchings $M_{f_K}$ will be a $(1+\eps)$-approximate partial matching on $G$.
