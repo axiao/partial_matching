@@ -150,6 +150,8 @@
 \author{
 Pankaj K.\ Agarwal
 \and
+Hsien-Chih Chang
+\and
 Allen Xiao
 }
 }
@@ -195,7 +197,7 @@ that are based on fitting nearest-neighbor (NN) and geometric closest pair
 (BCP) oracles into primal-dual algorithms for non-geometric bipartite matching
 and minimum-cost flow.
 This pattern is not new, see for example
-(\ldots)\note{TODO cite}.
+(\dots)\note{TODO cite}.
 Unlike these previous works, we focus on obtaining running time dependencies on
 $k$ or $r$ instead of $n$, that is, faster for inputs with small $r$ or $k$.
 We begin in Section~\ref{section:prelim} by introducing notation for matching
@@ -882,7 +884,7 @@ Then $f + f'$ is also $\eps$-optimal.
 Augmentation by $f'$ will not change the potentials, so any previously
 $\eps$-optimal arcs remain $\eps$-optimal.
 However, it may introduce new arcs $\arc vw$ with $u_{f+f'}(\arc vw) > 0$, that previously had
-$u_f(\arv vw) = 0$.
+$u_f(\arc vw) = 0$.
 We will verify that these arcs satisfy the $\eps$-optimality condition.
 
 If an arc $\arc vw$ is newly introduced this way, then by defintion of residual
@@ -2066,7 +2068,7 @@ In this section, we give an exact algorithm which solves the transportation
 problem in $O(rn^{3/2}\polylog n)$ time, proving Theorem~\ref{theorem:orlin}.
 This algorithm is a geometric implementation of the uncapacitated min-cost flow
 algorithm due to Orlin~\cite{O93}, combined with some of the tools developed
-in Sections~\ref{hung} and \ref{section:goldberg} (e.g. rewinding relaxation
+in Sections~\ref{section:hung} and \ref{section:goldberg} (e.g. rewinding relaxation
 updates).
 
 Let $A$ and $B$ be points in the plane with $r \coloneqq \abs{A}$ and
@@ -2149,6 +2151,38 @@ Orlin's algorithm finds optimal potentials after $O(n\log n)$ scaling phases,
 and $O(n\log n)$ total augmentations.
 \end{theorem}
 
+\paragraph{Geometric implementation of contractions.}
+Following Agarwal~\etal~\cite{AFPVX17}, our geometric datastructures must
+utilize actual points of $A$ and $B$, rather than the contracted entities in
+$\hat{G}$.
+We will track the contracted components described in $\hat{G}$ (e.g. with a
+disjoint-set data structure) and label the arcs of $\supp(f)$ which were
+contracted.
+We maintain potentials on the points of $A \cup B$ instead of the contracted
+entities.
+
+When conducting the Hungarian search, we initialize $S$ with all vertices from
+\EMPH{active contracted components} who (in sum) meet the respective imbalance
+criteria.
+Upon relaxing any $v \in \hat{v}$, we immediately relax all the contracted
+$\supp(f)$ arcs which span it.
+Since the input network is uncapacitated, each contracted component is
+strongly connected in the residual network by the admissible forward/reverse
+arcs corresponding to each $\supp(f)$ arc.
+Thus, these relaxations can be performed without further potential changes.
+
+During augmentations, contracted residual arcs are considered to have infinite
+capacity, and we do not update the value of flow on these arcs.
+We allow augmenting paths to begin from any $a \in \hat{v} \cap A$ of an active
+excess component $\hat{v}$, and end in any $b \in \hat{w} \cap B$ of an active
+deficit component $\hat{w}$.
+
+\paragraph{Geometric implementation of recovery.}
+Instead of running a generic max-flow algorithm after finding the optimal
+potentials, we use the following observation.
+
+\note{TODO is the ``admissible graph is planar'' thing true for other $L_p$ distances?} %TODO
+
 \subsection{Dead vertices and support stars}
 
 Given Theorem~\ref{theorem:orlin_old}, our goal is to implement each
@@ -2163,48 +2197,223 @@ transportation map (consider an instance with $r=1$, and the demand uniformly
 distributed among vertices of $B$).
 Still, by classifying vertices carefully, we can do better than an $O(n)$ bound
 on the number of relaxations.
-%Ultimately, we substitute $G$ with a new graph $\tilde{G}$ with only $O(r)$
-%vertices (thus, $O(r)$ relaxations), and where each relaxation can be performed
-%in $O(\sqrt{n}\polylog n)$ time.
+
+Let $E(\supp(f)) \coloneqq \{(v, w) \mid \arc vw \in \supp(f)\}$ be the set
+of undirected edges corresponding to the arcs in $\supp(f)$.
+Clearly, $\abs{\supp(f)} = \abs{E(\supp(f))}$.
+Let the \EMPH{support degree} of a vertex be its degree in $E(\supp(f))$.
 
 \paragraph{Dead vertices.}
-We call a vertex $b \in B$ \EMPH{dead} if it has no adjoining
-$\supp(f)$ arcs and is not an active excess or deficit.
+We call a vertex $b \in B$ \EMPH{dead} if it has support degree 0 and is not an
+active excess or deficit.
 These are essentially equivalent to the \emph{empty vertices} of
 Section~\ref{section:goldberg}.
 Since the reduction in this section does not use a super-source/super-sink,
 we can simply remove these from consideration during a Hungarian search ---
 they will not terminate the search, and have no outgoing residual arcs.
-Dead vertices may only stop being dead after $\Delta$ decreases, i.e. in a
-subsequent excess scale, as no augmenting path will cross a dead vertex.
-When this happens, we must add it back into a number of data structures.
+They would not be relaxed by the Hungarian search even if they were included,
+so their potentials will not change as long as they are dead.
+We use $A_\ell \subseteq A$ and $B_\ell \subseteq B$ to denote the living
+vertices of each point set.
+
+We say a dead vertex is \EMPH{revived} when it stops meeting either condition
+of the definition.
+Dead vertices are only revived after $\Delta$ decreases (i.e. in a
+subsequent excess scale) as no augmenting path will cross a dead vertex and
+they cannot meet the criteria for contractions.
+When a dead vertex is revived, we must add it back into a number of data
+structures.
+The total number of revivals is bounded above by the number of augmentations:
+since the final flow is a circulation on $\hat{G}$ and a newly revived vertex
+$v$ has no adjacent $\supp(f)$ arcs and cannot be contracted, there is at least
+one subsequent augmentation which uses $v$ as its beginning or end.
+Thus, the total number of revivals is $O(n\log n)$.
 
 \paragraph{Support stars.}
-Let the \EMPH{support degree} of a vertex be the number of adjoining arcs in
-$\supp(f)$.
 The vertices of $B$ with support degree 1 are partitioned into subsets
 $\Sigma_a \subset B$ by the $a \in A$ lying on the other end of their single
 support arc.
 We call $\Sigma_a$ the \EMPH{support star} centered around $a \in A$.
-The number of support stars is $O(r)$.
 
-%TODO i don't think we're really making a substitute graph this time. need to keep individual potentials for \Sigma_a
-%\paragraph{Compressed graph.}
-%We now construct $\tilde{G}$ from $G$.
-%First, remove all dead vertices and their adjacent arcs from $G$.
-%Next, for each support star $\Sigma_a$ and its center $a$, we replace
-
+Roughly speaking, we would like to handle each support star as a single unit.
+When the Hungarian search reaches $a$ or any $b \in \Sigma_a$, then the
+entirety of $\Sigma_a$ (as well as $a$) is also admissible-reachable and can be
+included into $S$ without further potential updates.
+Additionally, the only outgoing residual arcs of every $b \in \Sigma_a$ lead to
+$a$, so aside from $a$ there are no vertices of $A$ which can be reached by
+traveling through $\Sigma_a$.
+Once a relaxation step reaches some $b \in \Sigma_a$ or $a$ itself, we would
+like to quickly update the state such that the rest of $b \in \Sigma_a$ is also
+reached without performing relaxation steps to each individual
+$b \in \Sigma_a$.
 
 \subsection{Implementation details}
 
-%Agarwal~\etal~\cite{AFPVX17} provide a geometric implementation of Orlin's
-%algorithm to solve transportation problem between point sets $A$, $B$ lying in
-%the plane, using $L_p$ distances as costs.
-%As a result, they are able to compute each augmenting path in $O(n\polylog n)$
-%time and recover the optimal flow in $O(n^2\polylog n)$ time.
+Before describing our workaround for support stars, we analyze the number of
+relaxation steps for arcs outside of support stars.
+We can modify the Hungarian search slightly to ensure that $\supp(f)$ is always
+acyclic in the undirected sense, i.e. where $E(\supp(f))$ is acylic.
+Specifically, we relax support arcs before non-support arcs as they enter the
+frontier.
 
+\note{this proof isn't in the conference version, and our full version isn't published anywhere}
+%TODO this proof is not in the conference ver., and our full ver. isn't anywhere yet
+\begin{lemma}[Agarwal~\etal~\cite{AFPVX17}] 
+\label{lemma:orlin_acyclic}
+If arcs of $\supp(f)$ are relaxed first as they arrive on the frontier, then
+$E(\supp(f))$ is acyclic.
+\end{lemma}
 
+Let $E(\Sigma_a) \coloneqq \{(a, b) \mid b \in \Sigma_a\}$ be the set of
+undirected edges corresponding to arcs between $\Sigma_a$ and its center $a$.
+Using Lemma~\ref{lemma:orlin_acyclic}, we can show that the number of support
+arcs outside support stars is small.
 
+\begin{lemma}
+\label{lemma:no_star_support_size}
+$\abs{B_\ell \setminus \bigcup_{a \in A} \Sigma_a} \leq r$.
+\end{lemma}
+
+\begin{proof}
+By Lemma~\ref{lemma:orlin_acyclic}, $E(\supp(f))$ is acylic and therefore forms
+a spanning forest over $A \cup B_\ell$.
+By eliminating the edges of support stars and dead vertices, the remaining
+edges of $E(\supp(f))$ must adjoin $B$ vertices of support degree at least 2.
+Thus, no leaf of the bipartite forest
+$E(\supp(f)) \setminus \bigcup_{a \in A} E(\Sigma_a)$ is a vertex of $B_\ell$,
+or alternatively all leaves are vertices of $A$.
+
+Pick an arbitrary root for each connected component of
+$E(\supp(f)) \setminus \bigcup_{a \in A} E(\Sigma_a)$ to establish parent-child
+relationships for each edge.
+As no $b \in B$ is a leaf, $b$ has at least one child.
+Charge $b$ to one of the $a \in A$ that are its children.
+Each $a \in A$ has at most one parent, so is charged at most once.
+Thus, the number of $B_\ell$ vertices of support degree at least 2 is no more
+than $r$.
+\end{proof}
+
+\begin{lemma}
+\label{lemma:orlin_relax_count}
+Suppose we have stripped the graph of dead vertices.
+The number of relaxation steps in a Hungarian search outside of support stars
+is $O(r)$.
+\end{lemma}
+
+\begin{proof}
+If there are no dead vertices, then each relaxation step adds either
+(i) an active deficit vertex,
+(ii) a non-deficit vertex $a \in A_\ell$, or
+(iii) a non-deficit vertex $b \in B_\ell$ of support degree at least 2.
+There is a single relaxation of type (i), as it terminates the search.
+The number of vertices of type (ii) is $r$, and the number of vertices of type
+(iii) is at most $r$ by Lemma~\ref{lemma:no_star_support_size}.
+The lemma follows.
+\end{proof}
+
+The running time of a Hungarian search will be $O(r)$ times the time it takes
+us to implement each relaxation.
+
+\paragraph{Relaxations outside support stars.}
+For relaxations that don't involve support star vertices, we can once again
+maintain a BCP to query the minimum $A_\ell$-to-$B_\ell$ arc.
+To elaborate, this is the BCP between $P = A_\ell \cap S$ and
+$Q = (B_\ell \setminus (\bigcup_{a \in A_\ell} \Sigma_a)) \setminus S$,
+weighted by potentials.
+This can be queried in $O(\log n)$ time and updated in $O(\polylog n)$ time per
+point.
+Since it does not involve support stars, there is at most one
+insertion/deletion per relaxation step.
+
+For $B_\ell$-to-$A_\ell$, support reverse arcs are kept admissible by invariant
+so we relax them immediately when they arrive on the frontier.
+
+\paragraph{Relaxing a support star.}
+We classify support stars into two categories: \EMPH{big stars} are those with
+$\abs{\Sigma_a} > \sqrt{n}$, and \EMPH{small stars} are those with
+$\abs{\Sigma_a} \leq \sqrt{n}$.
+Let $A_\text{big} \subseteq A$ denote the centers of big stars and
+and $A_\text{big} \subseteq A$ denote the centers of small stars.
+We keep the following data structures to manage support stars.
+\begin{enumerate}
+\item For each big star $\Sigma_a$, we use a data structure
+	$\EuScript{D}_\text{big}(a)$ to maintain the BCP between
+	$P = A_\ell \cap S$ and $Q = \Sigma_a$, weighted by potentials.
+	We query this until $a \in S$ or any vertex of $\Sigma_a$ is added to
+	$S$.
+\item All small stars are added to a single BCP data structure
+	$\EuScript{D}_\text{small}$ between $P = A_\ell \cap S$ and
+	$Q = (\bigcup_{a \in A_s} \Sigma_a) \setminus S$, weighted by
+	potentials.
+	When $a \in A_s$ or any vertex of $\Sigma_a$ is added to $S$,
+	we remove the points of $\Sigma_a$ from $\EuScript{D}_\text{small}$
+	using $\abs{\Sigma_a}$ deletion operations.
+\end{enumerate}
+We will update these data structures as each support star center is added into
+$S$.
+If a relaxation step adds some $b \in B_\ell$ and $b$ is in a support star
+$\Sigma_a$, then we immediately relax $\arc ba$, as all support arcs are
+admissible.
+Relaxations of non-support star $b \in B_\ell$ will not affect the support star
+data structures.
+
+Suppose a relaxation step adds some $a \in A_\ell$ to $S$.
+For the support star data structures, we must 
+(i) remove $a$ from every $\EuScript{D}_\text{big}(\cdot)$,
+(ii) remove $a$ from $\EuScript{D}_\text{small}$.
+If $a \in A_\text{big}$, we also (iii) deactivate $\EuScript{D}_\text{big}(a)$.
+If $a \in  A_\text{small}$, we also (iv) remove the points of $\Sigma_a$ from
+$\EuScript{D}_\text{small}$.
+The operations (i), (ii), and (iii) can be performed in $O(\polylog n)$ time
+each, but (iv) may take up to $O(\sqrt{n}\polylog n)$ time.
+
+On the other hand, there are now $O(\sqrt{n})$ data structures to query during
+each relaxation step, as there are $O(n/\sqrt{n})$ data structures
+$\EuScript{D}_\text{big}(\cdot)$.
+Thus, the query time within each relaxation step is $O(\sqrt{n}\log n)$.
+
+\paragraph{Preprocessing time.}
+To build the very first set of data structures, we take $O(rn\polylog n)$ time.
+There are $r\abs{Sigma_a}$ points in each $\EuScript{D}_\text{big}(a)$,
+but the $\Sigma_a$ are disjoint so the sum of points is $O(rn)$.
+$\EuScript{D}_\text{small}$ also has at most $O(rn)$ points.
+Each BCP data structure can be constructed in $O(\polylog n)$ times its size,
+so the total preprocessing time is $O(rn\polylog n)$.
+
+\paragraph{Between searches.}
+After an augmentation, we must reset the above data structures to their initial
+state plus the change from the augmentation.
+Using the rewinding mechanism from the previous sections, this can be done in
+time proportional to $O(\sqrt{n}\polylog n)$ times the number of relaxations
+(to rewind), and then plus $O(\sqrt{n}\polylog n)$ time to change the initial
+set of active excesses in $S$.
+Additionally, augmentation may change the membership of some support stars.
+The number of these support star changes is bounded above by the length of the
+path, which is bounded above the number of relaxations.
+Each support star membership update updates a single data structure,
+so takes $O(\polylog n)$ time.
+
+\note{TODO what if a big star becomes small or vice versa?} %TODO oh no
+
+There are $O(r)$ relaxations by the bound in
+Lemma~\ref{lemma:orlin_relax_count} plus at most one for each support star
+(to reach the center).
+Thus, the running time per augmentation is $O(r\sqrt{n}\polylog n)$.
+
+\paragraph{Between excess scales.}
+When the excess scale changes, the sets of active and living vertices may
+change.
+Notably, the sets of active/living vertices may only \emph{grow} when $\Delta$
+decreases.
+If we have the data structures built on the active excesses at the end of the
+previous scale, then we can add in each newly active $a \in A$ and
+charge this insertion to the (future) augmenting path or contraction which
+eventually makes the vertex inactive, or absorbs it into another component.
+By Theorem~\ref{theorem:orlin_old}, there are $O(n\log n)$ such newly active
+vertices.
+The time to perform data structure updates for each of them is
+$O(\sqrt{n}\polylog n)$, so the total time spent bookkeeping newly active
+vertices is $O(n^{3/2}\polylog n)$.
 
 {
 \bibliographystyle{abbrv}
