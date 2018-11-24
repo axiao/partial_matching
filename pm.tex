@@ -31,8 +31,8 @@
 \usepackage{mathtools} % for \coloneqq
 
 \usepackage[title]{appendix}
-\usepackage[inline]{apxproof}
-\renewcommand{\appendixsectionformat}[2]{Proofs from Section~#1}
+%\usepackage[inline]{apxproof}
+%\renewcommand{\appendixsectionformat}[2]{Proofs from Section~#1}
 
 \usepackage{ifpdf}
 
@@ -291,6 +291,7 @@ $a$ and $b$.
 
 Let $G$ be a bipartite graph between vertex sets $A$ and $B$ and edge set $E$,
 with costs $c(v, w)$ for each edge $e$ in $E$.
+\note{Should we define the problem on point sets instead, and construct the graph afterwards?}
 We use $C \coloneqq \max_{e \in E} c(e)$, and assume that the problem is scaled such
 that $\min_{e \in E} c(e) = 1$.
 A \EMPH{matching} $M \subseteq E$ is a set of edges where no two edges share an
@@ -917,7 +918,7 @@ Next we employ a technique by Sharathkumar and Agarwal~\cite{SA12} to transform 
 \begin{lemma}
 \label{lemma:cost_scale_approx}
 Computing a $(1+\eps)$-approximate geometric partial matching can be reduced to the following problem in $O(n \polylog n)$ time:
-Given a reduction network $N$ over a point set with diameter at most $K \cdot kn^2$ for some constant $K$, compute an $(K \cdot \eps/6kn)$-optimal circulation on $N$.
+Given a reduction network $N$ over a point set with diameter at most $K \cdot kn^2$ for some constant $K$, compute an $(K \cdot \eps/6k)$-optimal circulation on $N$.
 \end{lemma}
 
 
@@ -997,7 +998,7 @@ Now we empoly a technique from Sharathkumar and Agarwal~\cite{SA12} to convert t
 Let $T$ be the minimum spanning tree on input graph $G$ and order
 its edges by increasing length as $e_1, \ldots, e_{r+n-1}$.
 Let $T_\ell$ denote the subgraph of $T$ obtained by removing the heaviest $\ell$ edges in $T$.
-
+%
 Let $i$ be the largest index so that
 the optimal solution to the MPM problem has edges between components of $T_i$.
 Choose $j$ to be the smallest index larger than $i$ satisfying
@@ -1012,48 +1013,61 @@ Since $j < i$, the optimal partial matching in $G$ can be partitioned into edges
 \label{lemma:sa_partition}
 %
 Let $G = (A,B,E_0)$ be the input to MPM problem, and consider the partitions $A_K$ and $B_K$ defined as above.
-Let $M^*$ be the optimal matching in $G$, and $M^*_K$ be the optimal matching
-in $G_K$ \note{with which parameter $k_K$?}.
+Let $M^*$ be the optimal partial matching in $G$.
+%and $M^*_K$ be the optimal matching in $G_K$ \note{with which parameter $k_K$?}.
 %and let the diameter of a component $K$ be $C_K \coloneqq \max_{p, q \in A_K \cup B_K} \|p - q\|$.
 Then,
 \begin{enumerate}[(i)]
-\item $M^* = \bigcup_{K \in K_j} M^*_K$,
-\item $c(e_i) \leq \cost(M^*)$, and
-\item the diameter of $K$ is at most $kn^2 \cdot c(e_i)$ for every $K \in T_j$,
+%\item $M^* = \bigcup_{K \in K_j} M^*_K$,
+\item $c(e_i) \leq \cost(M^*) \le kn \cdot c(e_i)$, and
+\item the diameter of $G_K$ is at most $kn^2 \cdot c(e_i)$ for every $K \in T_j$,
 \end{enumerate}
-Furthermore, such partition can be constructed in $O(n\polylog n)$ time.
-%using a dynamic data structure for bichromatic closest pair.
+% Furthermore, such partition can be constructed in $O(n\polylog n)$ time.
+% %using a dynamic data structure for bichromatic closest pair.
 \end{lemma}
 
-\note{Need the argument that puts the clusters at a distance that does not change the optimal solution, but with bounded diameter.}
+To prove Lemma~\ref{lemma:cost_scale_approx}, we need to further modify the point set so that the cost of the optimal solution does not change, while the diameter of the \emph{whole} point set is bounded.
+%
+Move the points within each component in \emph{translation} so that the minimum distances between points across components are at least $kn \cdot c(e_i)$ but at most $O(n \cdot kn^2 \cdot c(e_i))$.  This will guarantee that the optimal solution still uses edges within the components by Lemma~\ref{lemma:sa_partition}.  The simpliest way of achieveing this is by aligning the components one by one into a "straight line", so that the distance between the two farthest components is at most $O(n)$ times the maximum diameter of the cluster.
 
-Using this lemma, one can prove Lemma~\ref{lemma:cost_scale_approx} by computing an $(\eps c(e_i)/6kn)$-optimal
-circulation $f_K$ for each component $K$ in $T_j$; the union of the matchings $M_{f_K}$ will be a $(1+\eps)$-approximate partial matching on $G$.
-%A detailed proof of Lemma~\ref{lemma:cost_scale_approx} can be found in the Appendix.
+Now one can prove Lemma~\ref{lemma:cost_scale_approx} by computing an $(\eps c(e_i)/6k)$-optimal
+circulation $f$ on the point set after translations using additive approximation from Lemma~\ref{lemma:goldberg_cost_add}, together with the bound $c(e_i) \leq \cost(M^*)$ from
+Lemma~\ref{lemma:sa_partition}.
 
-\begin{proof}
-%[of Lemma~\ref{lemma:cost_scale_approx}]
-Let $f^*_K$ be the optimal flow on the reduction graph $H_K$ for the component $K$.
-Combining Lemma~\ref{lemma:goldberg_cost_add} and
-Lemma~\ref{lemma:sa_partition}, one has
-\begin{align*}
-	\cost(\bigcup_{K \in T_j} M_{f_K})
-		&= \sum_{K \in T_j} \cost(M_{f_K}) & \\
-		&= \sum_{K \in T_j} \cost(f_K) & \\
-		&\leq \sum_{K \in T_j} (\cost(f^*_K) + \eps c(e_i)/n) & \text{\small [Lemma~\ref{lemma:goldberg_cost_add}]} \\
-		&= \sum_{K \in T_j} (\cost(M^*_K) + \eps c(e_i)/n) & \\
-		&\leq \cost(M^*) + \eps c(e_{ji_1}) & \text{\small [Lemma~\ref{lemma:sa_partition}(i)]} \\
-		&\leq (1 + \eps) \cost(M^*). & \text{\small[Lemma~\ref{lemma:sa_partition}(ii)]}
-\end{align*}
-\end{proof}
+% \begin{align*}
+% 		\cost(M_{f})
+% 		&= \cost(f) & \\
+% 		&\leq \cost(f^*) + \eps c(e_i) & \text{\small [Lemma~\ref{lemma:goldberg_cost_add}]} \\
+% 		&= \cost(M^*) + \eps c(e_i) & \\
+% 		&\leq (1 + \eps) \cost(M^*). & \text{\small[Lemma~\ref{lemma:sa_partition}]}
+% \end{align*}
 
-%The proof of these properties can be found in the original paper \cite[Section 3.5]{SA12}, but we reproduce the rest of proofs below
-%(tailored for $\eps$-optimality).
-% Given this lemma, we can construct the MCF reduction network $N_H$ for each
-% component $T = A_T \cup B_T$, find an $(\eps c(e_{j_1})/6kn)$-optimal
-% circulation $f_T$ for each, and then $\bigcup_{T \in T_{j_2}}M_{f_T}$ will be a
-% $(1+\eps)$-approximate partial matching between $A$ and $B$.
+One small problem remains: We need to show that such reduction can be performed in $O(n\polylog n)$ time.
+Sharathkumar and Agarwal~\cite{SA12} have shown that the partition of $A$ and $B$ into $A_K$s and $B_K$s can be computed in $O(n \polylog n)$ time, assuming that the indices $i$ and $j$ can be determined in such time as well.  However in our application the choice of index $i$ depends on the optimal solution of MPM problem which we do not know.
 
+To solve this issue we perform a binary search on the edges $e_1, \ldots, e_{r+n-1}$.  \note{Hmm, we have no way to check Lemma 4.5(i); but in fact a polynomial bound is good enough.}
+
+\note{UNRESOLVED ISSUE}
+
+
+% Using this lemma, one can prove Lemma~\ref{lemma:cost_scale_approx} by computing an $(\eps c(e_i)/6kn)$-optimal
+% circulation $f_K$ for each component $K$ in $T_j$; the union of the matchings $M_{f_K}$ will be a $(1+\eps)$-approximate partial matching on $G$.
+%
+% \begin{proof}
+% %[of Lemma~\ref{lemma:cost_scale_approx}]
+% Let $f^*_K$ be the optimal flow on the reduction graph $H_K$ for the component $K$.
+% Combining Lemma~\ref{lemma:goldberg_cost_add} and
+% Lemma~\ref{lemma:sa_partition}, one has
+% \begin{align*}
+% 	\cost(\bigcup_{K \in T_j} M_{f_K})
+% 		&= \sum_{K \in T_j} \cost(M_{f_K}) & \\
+% 		&= \sum_{K \in T_j} \cost(f_K) & \\
+% 		&\leq \sum_{K \in T_j} (\cost(f^*_K) + \eps c(e_i)/n) & \text{\small [Lemma~\ref{lemma:goldberg_cost_add}]} \\
+% 		&= \sum_{K \in T_j} (\cost(M^*_K) + \eps c(e_i)/n) & \\
+% 		&\leq \cost(M^*) + \eps c(e_{ji_1}) & \text{\small [Lemma~\ref{lemma:sa_partition}(i)]} \\
+% 		&\leq (1 + \eps) \cost(M^*). & \text{\small[Lemma~\ref{lemma:sa_partition}(ii)]}
+% \end{align*}
+% \end{proof}
 
 \subsection{High-Level Description of Cost-Scaling Algorithm}
 
@@ -2069,7 +2083,7 @@ problem in $O(rn^{3/2}\polylog n)$ time, proving Theorem~\ref{theorem:orlin}.
 This algorithm is a geometric implementation of the uncapacitated min-cost flow
 algorithm due to Orlin~\cite{O93}, combined with some of the tools developed
 in Sections~\ref{section:hung} and \ref{section:goldberg} (e.g. rewinding relaxation
-updates).
+updates). \note{Be specific, since the tools have been introduced.}
 
 Let $A$ and $B$ be points in the plane with $r \coloneqq \abs{A}$ and
 $n \coloneqq \abs{B}$.
@@ -2087,7 +2101,7 @@ be sent to meet demands at $b$, and we require that all supplies are sent
 and all demands are met.
 We define the cost of $\tau$ to be
 \[
-	\cost(\tau) \coloneqq \sum_{a, b \in A \times B} \norm{a-b} \tau(a, b).
+	\cost(\tau) \coloneqq \sum_{(a, b) \in A \times B} \norm{a-b} \cdot \tau(a, b).
 \]
 Given $A$, $B$, and $\tsupply$, the \EMPH{transportation problem} asks to find
 a feasible transportation map of minimum cost.
@@ -2258,7 +2272,7 @@ frontier.
 
 \note{this proof isn't in the conference version, and our full version isn't published anywhere}
 %TODO this proof is not in the conference ver., and our full ver. isn't anywhere yet
-\begin{lemma}[Agarwal~\etal~\cite{AFPVX17}] 
+\begin{lemma}[Agarwal~\etal~\cite{AFPVX17}]
 \label{lemma:orlin_acyclic}
 If arcs of $\supp(f)$ are relaxed first as they arrive on the frontier, then
 $E(\supp(f))$ is acyclic.
@@ -2358,7 +2372,7 @@ Relaxations of non-support star $b \in B_\ell$ will not affect the support star
 data structures.
 
 Suppose a relaxation step adds some $a \in A_\ell$ to $S$.
-For the support star data structures, we must 
+For the support star data structures, we must
 (i) remove $a$ from every $\EuScript{D}_\text{big}(\cdot)$,
 (ii) remove $a$ from $\EuScript{D}_\text{small}$.
 If $a \in A_\text{big}$, we also (iii) deactivate $\EuScript{D}_\text{big}(a)$.
@@ -2374,7 +2388,7 @@ Thus, the query time within each relaxation step is $O(\sqrt{n}\log n)$.
 
 \paragraph{Preprocessing time.}
 To build the very first set of data structures, we take $O(rn\polylog n)$ time.
-There are $r\abs{Sigma_a}$ points in each $\EuScript{D}_\text{big}(a)$,
+There are $r\abs{\Sigma_a}$ points in each $\EuScript{D}_\text{big}(a)$,
 but the $\Sigma_a$ are disjoint so the sum of points is $O(rn)$.
 $\EuScript{D}_\text{small}$ also has at most $O(rn)$ points.
 Each BCP data structure can be constructed in $O(\polylog n)$ times its size,
