@@ -1166,20 +1166,126 @@ Thus the total amount of excess created is also $O(k)$.
 In total, potential updates and backward arc desaturations, and thus the whole precedure \textsc{Scale-Init}, take $O(n)$ time.
 
 
+\paragraph{Refinement.}
 
-% \begin{lemma}
-% \label{lemma:scale_init}
-% \textsc{Scale-Init} turns a $2\eps$-optimal circulation into an
-% $\eps$-optimal pseudoflow with $O(k)$ excess in $O(n)$ time.
-% \end{lemma}
+The procedure \textsc{Refine} is implemented using a primal-dual augmentation algorithm,
+which sends flows on admissible arcs that reduces the total excess, like the Hungarian algorithm.
+Unlike the Hungarian algorithm,
+it uses \emph{blocking flows} instead of augmenting paths.
 %
-% \begin{proof}
-% By Lemma~\ref{lemma:support_size} the total number of backward arcs in the residual network $N_f$ is at most $3k$.
-% Because the arcs are of unit-capacity in $N_H$, each desaturation creates one unit of excess.
-% Thus the total number of edges examined by the loop is $O(k)$, and the total excess created is also $O(k)$.
-% %
-% In total, potential updates and backward arc desaturations, and thus the whole precedure \textsc{Scale-Init}, take $O(n)$ time.
-% \end{proof}
+An \EMPH{augmenting path} is a path in the residual network from an excess vertex to a deficit vertex.
+We call a pseudoflow $f$ on residual network $N_g$ a \EMPH{blocking flow} if \note{$f$ is admissible?} $f$ saturates at least one residual arc in every augmenting path in $N_g$. \note{Is $N_g$ an admissible network?}
+In other words, there is no admissible augmenting path in $N_{f+g}$ from an excess vertex to a deficit vertex.
+
+% \begin{figure*}[ht]
+% \centering
+% \begin{minipage}{.8\linewidth}
+% \begin{algorithm}[H]
+% \caption{Refinement}
+% \label{algorithm:refine}
+% \begin{algorithmic}[1]
+% \Function{Refine}{$H = (V, E)$, $f$, $\pi$}
+% 	\While{$\sum_{v \in V} |\fsupply_f(v)| > 0$}
+% 		\State $\pi \gets$ \Call{Hungarian-Search2}{$H$, $f$, $\pi$}
+% 		\State $f' \gets$ \Call{DFS}{$H$, $f$, $\pi$}
+% 			\Comment{$f'$ is an admissible blocking flow}
+% 		\State $f \gets f + f'$
+% 	\EndWhile
+% 	\State\Return $(f, \pi)$
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
+% \end{minipage}
+% \end{figure*}
+
+%An \EMPH{iteration} of \textsc{Refine} is a complete execution of the main loop in Algorithm~\ref{algorithm:refine}.
+Each iteration of \textsc{Refine} finds an admissible blocking flow that is then added to the current pseudoflow in two stages:
+\begin{enumerate}
+\item
+A \EMPH{Hungarian search}, which updates the dual variables $\pi$ in a Dijkstra-like manner until there is an excess-deficit path of admissible edges.
+\item
+A \EMPH{depth-first search} through the set of admissible edges to construct an admissible blocking flow.
+It suffices to repeatedly extract admissible augmenting paths until no more admissible excess-deficit paths remain.
+By definition, the union of such paths is a blocking flow. \note{Move to where the blocking flow is introduced?}
+\end{enumerate}
+The algorithm continues until the total excess becomes zero and the $\eps$-optimal flow is now a circulation.
+
+First we analysis the number of iterations executed by \textsc{Refine}.
+The proof follows the strategy in Goldberg~\etal~\cite[Section~3.2]{GHKT17}. \note{and maybe \S5 of Goldberg-Tarjan?}
+
+% Using the properties of blocking flows and the unit-capacity input graph,
+% Goldberg~{\etal}~\cite{GHKT17} prove that there are $O(k)$ blocking
+% flows before excess becomes 0, but on a slightly different reduction graph
+% and under a slightly different model of minimum-cost flow.
+% We provide a sketch of their proof technique adapted for the reduction network
+% $N_H$.
+
+\begin{lemma}
+\label{lemma:goldberg_refine_iterations}
+Let $f$ be a pseudoflow in $N_H$ with $O(k)$ excess.
+The procedure \textsc{Refine} pushes $O(\sqrt{k})$ blocking flows before excess becomes zero.
+\end{lemma}
+
+\begin{proof}
+Let \EMPH{d(v)} defined to be the amount of potential increase at $v$, measured in units of $\eps$; in other words, $d(v) \coloneqq (\pi(v) - \pi_0(v)) / \eps$.
+Consider the set of arcs $\EMPH{$E^+$} \coloneqq \Set{\arc vw \mid f(\arc vw) < f(\arc vw)}$.
+%
+Goldberg~\etal~\cite{GHKT17} showed that every vertex $v$ has $d(v) \le 3n-3$, which we can improve to $O(k)$ on our reduction network.
+They also showed that the total amount of excess is upper bounded by the number of arcs in $E^+$ that crosses an arbitrarily given cut $X$ (when the network has unit-capacity) \cite[Lemma~3.6]{GHKT17}.
+
+Now divide the blocking flows pushed by the procedure \textsc{Refine} into two phases: One transit from the first phase to the second when every excess vertex $v$ has $d(v) \ge \Delta$. \note{Replace $\Delta$ with the real value}
+%
+At most $\Delta$ blocking flows belong to the first phase as each Hungarian search increase the potential $\pi$ (and thus $d(v)$) by at least $\eps$ for each excess vertex. \note{verity}
+Now the number of blocking flows that belong to the second phase is at most the amount of excess at the end of the first phase, because each blocking flow pushed reduced the total excess by at least one.
+
+Consider the set of cuts $X_i \coloneqq \Set{\arc vw \mid d(i) > i}$.  Each arc in $E^+$ crosses at most $3$ cuts of the type $X_i$. \note{check}  So there is one $X_i$ with size at least $3\abs{E^+}/\Delta$.
+Using the $O(k)$ bound on the support of $f$ and $f_0$, the size of $E^+$ is at most $O(k)$.  Setting $\Delta = \sqrt(k)$ provides a bound on the excess after the first phase, which in turn bounds the number of blocking flows.
+\note{So handwavy as a first version.  Rewrite.}
+\end{proof}
+
+% \note{This paragraph is hard to follow}
+% Both procedures traverse the residual graph using admissible arcs from the set
+% of excess vertices.
+% Each step of these procedures \EMPH{relaxes} a minimum-reduced cost arc from a
+% visited vertex to an unvisited vertex, until a deficit vertex is visited.
+% We associate each relaxation step with its newly-visited vertex.
+
+The goal of the rest of the section is to show that after $O(n \polylog n)$ time preprocessing, each Hungarian search and depth-first search can be implemented in $O(k \polylog n)$ time.
+%
+Combined with the $O(\sqrt{k})$ bound on the number of iterations we just proved, the procedure \textsc{Refine} can be implemented in $O((n+k\sqrt{k}) \polylog n)$ time.  Together with our analysis on scale initialation and the bound on number of cost scales, this concludes the proof to Theorem~\ref{theorem:gmcm}.
+
+
+\note{OLD}
+
+At a high level, our analysis strategy is to charge relaxation events in
+the search to arcs of $\supp(f)$.
+We first extend Lemma~\ref{lemma:reduction_count} to bound the size of
+$\supp(f)$ throughout \textsc{Refine}, by observing that the amount of excess
+decreases in each iteration of \textsc{Refine}.
+
+
+\begin{lemma}
+\label{lemma:reduction_count}
+Let $f$ be an integer pseudoflow in $N_H$ with $O(k)$ excess.
+Then, the size of the support of $f$ is at most $O(k)$.
+\end{lemma}
+
+\begin{proof}
+Observe that the reduction graph $H$ is a directed acyclic graph, and thus the support of $f$ does not contain a cycle.
+Now $\supp(f)$ can be decomposed into a set of inclusion-maximal paths,
+each of which contributes a single unit of excess to the flow if the path does not terminate at $t$ or if more than $k$ paths terminate at $t$.
+By assumption, there are $O(k)$ units of excess to which we can associate the
+paths, and at most $k$ paths (those that terminate at $t$) that we cannot associate with a unit of excess.
+The length of any such paths is at most  three by construction of the reduction graph $H$.
+Therefore we can conclude that the number of arcs in the support of $f$ is $O(k)$.
+\end{proof}
+
+\begin{corollary}
+\label{corollary:support_size_during}
+Let $f$ be the pseudoflow before or after any iteration of \textsc{Refine}.
+Then, $|\supp(f)| = O(k)$.
+\end{corollary}
+
 
 
 \subsection{Fast Implementation}
@@ -1535,127 +1641,127 @@ In total, potential updates and backward arc desaturations, and thus the whole p
 % \end{proof}
 
 
-\subsection{\textsc{Refine}}
-
-\textsc{Refine} is implemented using a primal-dual augmentation algorithm,
-which sends improving flows on admissible edges like the Hungarian algorithm.
-Unlike the Hungarian algorithm, it uses blocking flows instead of augmenting
-paths.
-
-\begin{figure*}[ht]
-\centering
-\begin{minipage}{.8\linewidth}
-\begin{algorithm}[H]
-\caption{Refinement}
-\label{algorithm:refine}
-\begin{algorithmic}[1]
-\Function{Refine}{$H = (V, E)$, $f$, $\pi$}
-	\While{$\sum_{v \in V} |\fsupply_f(v)| > 0$}
-		\State $\pi \gets$ \Call{Hungarian-Search2}{$H$, $f$, $\pi$}
-		\State $f' \gets$ \Call{DFS}{$H$, $f$, $\pi$}
-			\Comment{$f'$ is an admissible blocking flow}
-		\State $f \gets f + f'$
-	\EndWhile
-	\State\Return $(f, \pi)$
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-\end{minipage}
-\end{figure*}
-
-Using the properties of blocking flows and the unit-capacity input graph,
-Goldberg~{\etal}~\cite{GHKT17} prove that there are $O(k)$ blocking
-flows before excess becomes 0, but on a slightly different reduction graph
-and under a slightly different model of minimum-cost flow.
-We provide a sketch of their proof technique adapted for the reduction network
-$N_H$.
-
-\note{HC: I am not familiar enough with their algorithm; do you think it's a straightforward application of the technique, or are there something subtle that requires a complete proof?}
-
-\begin{lemma}[Goldberg~{\etal}~{\cite[Lemma~3.11 and \S{6}]{GHKT17}}]
-\label{lemma:goldberg_refine_iterations}
-Let $f$ be a pseudoflow in $H$ with $O(k)$ excess.
-There are $O(\sqrt{k})$ blocking flows before excess is 0.
-\end{lemma}
-
-\begin{proof}
-\note{TODO: proof sketch}%TODO needs a proof sketch at least
-\end{proof}
-
-An \EMPH{iteration} of \textsc{Refine} is a complete execution of the main loop
-in Algorithm~\ref{algorithm:refine}.
-Each iteration of \textsc{Refine} finds an admissible blocking (improving) flow
-in two stages, and then augments the current pseudoflow by the blocking flow.
-\begin{enumerate}
-\item A \EMPH{Hungarian search}, which updates dual variables in a Dijkstra-like
-	manner until there is an excess-deficit path of admissible edges.
-	This is different from the procedure \textsc{Hungarian-Search} used for
-	matching.
-	We call the procedure \textsc{Hungarian-Search2} to distinguish.
-\item A \EMPH{depth-first search} (\textsc{DFS}) through the set of admissible
-	edges to construct an admissible blocking flow.
-	It suffices to repeatedly extract admissible augmenting paths until
-	no more admissible excess-deficit paths remain.
-	By definition, the union of such paths is a blocking flow.
-\end{enumerate}
-
-\note{This paragraph is hard to follow}
-Both procedures traverse the residual graph using admissible arcs from the set
-of excess vertices.
-Each step of these procedures \EMPH{relaxes} a minimum-reduced cost arc from a
-visited vertex to an unvisited vertex, until a deficit vertex is visited.
-We associate each relaxation step with its newly-visited vertex.
-
-\note{Describe in a paragraph instead of stated as a lemma.}
-\begin{lemma}
-\label{lemma:goldberg_refine_time}
-Suppose \textsc{Hungarian-Search2} can be implemented in $T_1(n, k)$ time after
-a once-per-\textsc{Refine} $P_1(n, k)$ time preprocessing, and
-\textsc{DFS} can be implemented in $T_2(n, k)$ time after $P_2(n, k)$ preprocessing.
-Then, \textsc{Refine} can be implemented in time
-\[
-O(P_1(n, k) + P_2(n, k) + \sqrt{k}T_1(n, k) + \sqrt{k}T_2(n, k) + k\sqrt{k}).
-\]
-\end{lemma}
-
-As we will show shortly (Lemmas~\ref{lemma:goldberg_hs_time} and \ref{lemma:goldberg_dfs_time}), the total running time for \textsc{Refine} is
-$O((n + k\sqrt{k})\polylog n)$.
-Combining with Lemmas~\ref{lemma:goldberg_scales} and \ref{lemma:scale_init}
-completes the proof of Theorem~\ref{theorem:gmcm}.
-At a high level, our analysis strategy is to charge relaxation events in
-the search to arcs of $\supp(f)$.
-We first extend Lemma~\ref{lemma:reduction_count} to bound the size of
-$\supp(f)$ throughout \textsc{Refine}, by observing that the amount of excess
-decreases in each iteration of \textsc{Refine}.
-
-\note{adjust position}
-
-\begin{lemma}
-\label{lemma:reduction_count}
-Let $f$ be an integer pseudoflow in $N_H$ with $O(k)$ excess.
-Then, the size of the support of $f$ is at most $O(k)$.
-\end{lemma}
-
-\begin{proof}
-Observe that the reduction graph $H$ is a directed acyclic graph, and thus the support of $f$ does not contain a cycle.
-Now $\supp(f)$ can be decomposed into a set of inclusion-maximal paths,
-each of which contributes a single unit of excess to the flow if the path does not terminate at $t$ or if more than $k$ paths terminate at $t$.
-By assumption, there are $O(k)$ units of excess to which we can associate the
-paths, and at most $k$ paths (those that terminate at $t$) that we cannot associate with a unit of excess.
-The length of any such paths is at most  three by construction of the reduction graph $H$.
-Therefore we can conclude that the number of arcs in the support of $f$ is $O(k)$.
-\end{proof}
-
-
-
-\begin{corollary}
-\label{corollary:support_size_during}
-Let $f$ be the pseudoflow before or after any iteration of \textsc{Refine}.
-Then, $|\supp(f)| = O(k)$.
-\end{corollary}
-
-We discuss some challenges of our analysis and resolve them, before giving
-the details of \textsc{Hungarian-Search2} and \textsc{DFS}.
+% \subsection{\textsc{Refine}}
+%
+% \textsc{Refine} is implemented using a primal-dual augmentation algorithm,
+% which sends improving flows on admissible edges like the Hungarian algorithm.
+% Unlike the Hungarian algorithm, it uses blocking flows instead of augmenting
+% paths.
+%
+% \begin{figure*}[ht]
+% \centering
+% \begin{minipage}{.8\linewidth}
+% \begin{algorithm}[H]
+% \caption{Refinement}
+% \label{algorithm:refine}
+% \begin{algorithmic}[1]
+% \Function{Refine}{$H = (V, E)$, $f$, $\pi$}
+% 	\While{$\sum_{v \in V} |\fsupply_f(v)| > 0$}
+% 		\State $\pi \gets$ \Call{Hungarian-Search2}{$H$, $f$, $\pi$}
+% 		\State $f' \gets$ \Call{DFS}{$H$, $f$, $\pi$}
+% 			\Comment{$f'$ is an admissible blocking flow}
+% 		\State $f \gets f + f'$
+% 	\EndWhile
+% 	\State\Return $(f, \pi)$
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
+% \end{minipage}
+% \end{figure*}
+%
+% Using the properties of blocking flows and the unit-capacity input graph,
+% Goldberg~{\etal}~\cite{GHKT17} prove that there are $O(k)$ blocking
+% flows before excess becomes 0, but on a slightly different reduction graph
+% and under a slightly different model of minimum-cost flow.
+% We provide a sketch of their proof technique adapted for the reduction network
+% $N_H$.
+%
+% \note{HC: I am not familiar enough with their algorithm; do you think it's a straightforward application of the technique, or are there something subtle that requires a complete proof?}
+%
+% \begin{lemma}[Goldberg~{\etal}~{\cite[Lemma~3.11 and \S{6}]{GHKT17}}]
+% \label{lemma:goldberg_refine_iterations}
+% Let $f$ be a pseudoflow in $H$ with $O(k)$ excess.
+% There are $O(\sqrt{k})$ blocking flows before excess is 0.
+% \end{lemma}
+%
+% \begin{proof}
+% \note{TODO: proof sketch}%TODO needs a proof sketch at least
+% \end{proof}
+%
+% An \EMPH{iteration} of \textsc{Refine} is a complete execution of the main loop
+% in Algorithm~\ref{algorithm:refine}.
+% Each iteration of \textsc{Refine} finds an admissible blocking (improving) flow
+% in two stages, and then augments the current pseudoflow by the blocking flow.
+% \begin{enumerate}
+% \item A \EMPH{Hungarian search}, which updates dual variables in a Dijkstra-like
+% 	manner until there is an excess-deficit path of admissible edges.
+% 	This is different from the procedure \textsc{Hungarian-Search} used for
+% 	matching.
+% 	We call the procedure \textsc{Hungarian-Search2} to distinguish.
+% \item A \EMPH{depth-first search} (\textsc{DFS}) through the set of admissible
+% 	edges to construct an admissible blocking flow.
+% 	It suffices to repeatedly extract admissible augmenting paths until
+% 	no more admissible excess-deficit paths remain.
+% 	By definition, the union of such paths is a blocking flow.
+% \end{enumerate}
+%
+% \note{This paragraph is hard to follow}
+% Both procedures traverse the residual graph using admissible arcs from the set
+% of excess vertices.
+% Each step of these procedures \EMPH{relaxes} a minimum-reduced cost arc from a
+% visited vertex to an unvisited vertex, until a deficit vertex is visited.
+% We associate each relaxation step with its newly-visited vertex.
+%
+% \note{Describe in a paragraph instead of stated as a lemma.}
+% \begin{lemma}
+% \label{lemma:goldberg_refine_time}
+% Suppose \textsc{Hungarian-Search2} can be implemented in $T_1(n, k)$ time after
+% a once-per-\textsc{Refine} $P_1(n, k)$ time preprocessing, and
+% \textsc{DFS} can be implemented in $T_2(n, k)$ time after $P_2(n, k)$ preprocessing.
+% Then, \textsc{Refine} can be implemented in time
+% \[
+% O(P_1(n, k) + P_2(n, k) + \sqrt{k}T_1(n, k) + \sqrt{k}T_2(n, k) + k\sqrt{k}).
+% \]
+% \end{lemma}
+%
+% As we will show shortly (Lemmas~\ref{lemma:goldberg_hs_time} and \ref{lemma:goldberg_dfs_time}), the total running time for \textsc{Refine} is
+% $O((n + k\sqrt{k})\polylog n)$.
+% Combining with Lemmas~\ref{lemma:goldberg_scales} and \ref{lemma:scale_init}
+% completes the proof of Theorem~\ref{theorem:gmcm}.
+% At a high level, our analysis strategy is to charge relaxation events in
+% the search to arcs of $\supp(f)$.
+% We first extend Lemma~\ref{lemma:reduction_count} to bound the size of
+% $\supp(f)$ throughout \textsc{Refine}, by observing that the amount of excess
+% decreases in each iteration of \textsc{Refine}.
+%
+% \note{adjust position}
+%
+% \begin{lemma}
+% \label{lemma:reduction_count}
+% Let $f$ be an integer pseudoflow in $N_H$ with $O(k)$ excess.
+% Then, the size of the support of $f$ is at most $O(k)$.
+% \end{lemma}
+%
+% \begin{proof}
+% Observe that the reduction graph $H$ is a directed acyclic graph, and thus the support of $f$ does not contain a cycle.
+% Now $\supp(f)$ can be decomposed into a set of inclusion-maximal paths,
+% each of which contributes a single unit of excess to the flow if the path does not terminate at $t$ or if more than $k$ paths terminate at $t$.
+% By assumption, there are $O(k)$ units of excess to which we can associate the
+% paths, and at most $k$ paths (those that terminate at $t$) that we cannot associate with a unit of excess.
+% The length of any such paths is at most  three by construction of the reduction graph $H$.
+% Therefore we can conclude that the number of arcs in the support of $f$ is $O(k)$.
+% \end{proof}
+%
+%
+%
+% \begin{corollary}
+% \label{corollary:support_size_during}
+% Let $f$ be the pseudoflow before or after any iteration of \textsc{Refine}.
+% Then, $|\supp(f)| = O(k)$.
+% \end{corollary}
+%
+% We discuss some challenges of our analysis and resolve them, before giving
+% the details of \textsc{Hungarian-Search2} and \textsc{DFS}.
 
 \subsubsection{Empty vertices and the shortcut graph}
 
