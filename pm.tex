@@ -866,7 +866,7 @@ The \EMPH{dual feasibility constraint} says that $c_\pi(\arc vw) \geq 0$ holds f
 % \note{Move optimality conditino to last section maybe.}
 %
 Suppose we relax the dual feasibility constraint to allow some small violation in the value of $c_\pi(\arc vw)$.
-We say that a pseudoflow $f$ is \EMPH{$\eps$-optimal} with respect to $\pi$ if
+We say that a pseudoflow $f$ is \EMPH{$\eps$-optimal} \cite{tar-spmcc-1985,be-darml-1987}, with respect to $\pi$ if
 $c_\pi(\arc vw) \geq -\eps$ for every residual arc $\arc vw$ in $A_f$; pseudoflow $f$ is \EMPH{$\eps$-optimal} if it is $\eps$-optimal with respect to some potentials $\pi$.
 %
 Given a pseudoflow $f$ and potentials $\pi$, a residual arc $\arc vw$ in $A_f$ is
@@ -971,6 +971,7 @@ Then, $\cost(f) \leq \cost(f^*) + 6k\eps$.
 Because $f$ is a circulation, $\supp(f)$ can be decomposed into $k$ paths from
 $s$ to $t$.
 Each $s$-to-$t$ path in $N_H$ is of length three, so the total number of reverse arcs in the residual network $N_f$ is $3k$.
+\note{Can we just use Lemma~\ref{lemma:reduction_count}?}
 
 Consider the residual flow in $N_f$ defined by the difference between $f^*$ and $f$.
 Since both $f$ and $f^*$ are both circulations and $N_H$ has unit-capacity,
@@ -1077,13 +1078,13 @@ Our main algorithm for the unit-capacity minimum-cost flow problem is based on t
 %(also known as \EMPH{successive approximation} \cite{\cite{GT90}}),
 originally due to Goldberg and
 Tarjan~\cite{GT90}; Goldberg, Hed, Kaplan, and Tarjan~\cite{GHKT17} applied the technique on unit-capacity networks.
-
+%
 The algorithm finds $\eps$-optimal circulations for geometrically shrinking
 values of $\eps$.
 Each fixed value of $\eps$ is called a
 \EMPH{cost scale}.
 Once $\eps$ is sufficiently small, the $\eps$-optimal flow is a suitable
-approximation \note{how so, quantitatively?}%
+approximation according to Lemma~\ref{lemma:cost_scale_approx}%
 \footnote{When the costs are integers, an $\eps$-optimal circulation for a sufficiently small $\eps$ (say less than $1/n$) is itself an optimal solution \cite{GT90,GHKT17}.
 We present this algorithm without the integral-cost assumption because in the geometric
 partial matching setting (with respect to Euclidean distances) the costs are generally not integers.}
@@ -1132,7 +1133,7 @@ $O(\log(kC/\eps^*))$ scales.
 Using the reduction in Lemma~\ref{lemma:cost_scale_approx}, we have the diameter of the point set, thus maximum cost $C$, bounded by $O(K \cdot kn^3)$ for some value $K$.  By setting $\eps^*$ to be $K \cdot \eps/6k$, the number of cost scales is bounded above by $O(\log(n/\eps))$.
 
 
-\paragraph{Scale initialization}
+\paragraph{Scale initialization.}
 
 % \begin{figure*}[h]
 % \centering
@@ -1162,9 +1163,14 @@ Recall that $H$ is the \emph{reduction graph} and $N_H$ is the \emph{reduction n
 
 The procedure \textsc{Scale-Init} transforms a $2\eps$-optimal circulation from the previous cost scale into an $\eps$-optimal flow with $O(k)$ excess, by raising the potentials $\pi$ of all vertices in $A$ by $\eps$, those in $B$ by $2\eps$, and the potential of $t$ by $3\eps$.  The potential of $s$ remains unchanged.
 %
-Now the reduced cost of every forward arc is dropped by $\eps$, and thus all the forward arcs are $\eps$-optimal \note{undefined}.
+Now the reduced cost of every forward arc is dropped by $\eps$, and thus all the forward arcs have reduced cost at least $-\eps$.
 
 As for backward arcs, the precedure \textsc{Scale-Init} continues by setting the flow on $\arc vw$ to zero for each backward arc $\arc wv$ violating the $\eps$-optimality constraint.  In other words, we set $f(\arc vw) = 0$ whenever $c_\pi(\arc wv) < -\eps$.  This ensures that all such backward arcs are no longer residual, and therefore the flow (now with excess) is $\eps$-optimal.
+
+Each desaturation of backward arcs creates one unit of excess.  By Lemma~\ref{lemma:reduction_count},
+the number of backward arcs is at most $O(k)$.  Thus the total amount of excess in the final $\eps$-optimal flow is $O(k)$.
+
+The whole precedure \textsc{Scale-Init} can be performed in $O(n)$ time.
 
 \note{I AM HERE.}
 
