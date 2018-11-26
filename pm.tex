@@ -879,6 +879,7 @@ only on admissible arcs $\arc vw$.
 Let $f$ be an $\eps$-optimal pseudoflow in $G$ and let $f'$ be an
 admissible flow in $G_f$.
 Then $f + f'$ is also $\eps$-optimal.
+\note{Lemma 5.3 in \cite{GT90}?}
 \end{lemma}
 
 \begin{proof}
@@ -1202,7 +1203,7 @@ In other words, there is no admissible augmenting path in $N_{f+g}$ from an exce
 Each iteration of \textsc{Refine} finds an admissible blocking flow that is then added to the current pseudoflow in two stages:
 \begin{enumerate}
 \item
-A \EMPH{Hungarian search}, which updates the dual variables $\pi$ in a Dijkstra-like manner until there is an excess-deficit path of admissible edges.
+A \EMPH{Hungarian search}, which increases the dual variables $\pi$ of vertices that are reachable from an excess vertex by at least $\eps$, in a Dijkstra-like manner, until there is an excess-deficit path of admissible edges.
 \item
 A \EMPH{depth-first search} through the set of admissible edges to construct an admissible blocking flow.
 It suffices to repeatedly extract admissible augmenting paths until no more admissible excess-deficit paths remain.
@@ -1235,7 +1236,7 @@ They also showed that the total amount of excess is upper bounded by the number 
 
 Now divide the blocking flows pushed by the procedure \textsc{Refine} into two phases: One transit from the first phase to the second when every excess vertex $v$ has $d(v) \ge \Delta$. \note{Replace $\Delta$ with the real value}
 %
-At most $\Delta$ blocking flows belong to the first phase as each Hungarian search increase the potential $\pi$ (and thus $d(v)$) by at least $\eps$ for each excess vertex. \note{verity}
+At most $\Delta$ blocking flows belong to the first phase as each Hungarian search increase the potential $\pi$ (and thus $d(v)$) by at least $\eps$ for each excess vertex. \note{verify}
 Now the number of blocking flows that belong to the second phase is at most the amount of excess at the end of the first phase, because each blocking flow pushed reduced the total excess by at least one.
 
 Consider the set of cuts $X_i \coloneqq \Set{\arc vw \mid d(i) > i}$.  Each arc in $E^+$ crosses at most $3$ cuts of the type $X_i$. \note{check}  So there is one $X_i$ with size at least $3\abs{E^+}/\Delta$.
@@ -1935,7 +1936,7 @@ We revisit this lemma after analyzing \textsc{DFS}.
 		\State $\gamma \gets c_\pi(v', w')$
 		\If{$\gamma > 0$}
 			\Comment{make $(v', w')$ admissible if it isn't}
-			\State $\pi(v) \gets \pi(v) + \gamma\lceil\frac{\gamma}{\eps}\rceil, \forall v \in S$
+			\State $\pi(v) \gets \pi(v) + \lceil\frac{\gamma}{\eps}\rceil\cdot \eps, \forall v \in S$
 		\EndIf
 		\State $S \gets S \cup \{w'\}$
 		\If{$\fsupply_f(w') < 0$} \Comment{reached a deficit}
