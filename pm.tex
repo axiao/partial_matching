@@ -655,7 +655,7 @@ show how potential updates can be implemented efficiently.
 	vertices from $S$ and recover $S^t_0$.
 	By the argument in (2) there are $O(k)$ of such points to
 	delete, so reconstructing $S^t_0$ takes $O(k)$ BCP operations.
-	\note{TODO instead of reversing a log, is persistence an easier solution to this?}
+	\note{TODO change to full persistence: loglogm overhead with $m=r$ modifications} %TODO
 \end{enumerate}
 
 We spend $P(n, k) = O(n \polylog n)$ time to build the initial BCP.
@@ -2624,6 +2624,57 @@ each relaxation step, as there are $O(n/\sqrt{n})$ data structures
 $\EuScript{D}_\text{big}(\cdot)$.
 Thus, the query time within each relaxation step is $O(\sqrt{n}\log n)$.
 
+\paragraph{Updating support stars.}
+As the flow support changes, the membership of support stars may shift and 
+a big star may eventually become small (or vice versa).
+To efficiently support this, introduce some leniency for when a star should be
+represented as a big star versus a small star and use \emph{fully persistent}
+versions of the $\EuScript{D}_\text{big}(\cdot)$ data structures.
+
+Initially, we label stars big or small according to the $\sqrt{n}$ threshold.
+Instead of changing a star from big-to-small (or vice versa) immediately
+when crossing the $\sqrt{n}$ threshold, we keep a big star in
+$\EuScript{D}_\text{big}(a)$ so long as $\abs{\Sigma_a} \geq \sqrt{n}/2$ and keep
+a small star in $\EuScript{D}_\text{small}$ so long as
+$\abs{\Sigma_a} \leq 2\sqrt{n}$.
+Intuitively, switching data structures will incur some ``rebuilding'' expense
+which we can charge to the $O(\sqrt{n})$ insertions/deletions that were needed
+for the star to switch types.
+
+%TODO figure: show how the persistence chains together
+At the beginning of the algorithm, we build a single ``empty''
+$\EuScript{D}_\text{big}(\cdot)$ containing the set $P$ (vertices of $A$) but
+omitting $Q$, which we call $\EuScript{D}_\text{root}$.
+We maintain changes in the set of active excesses (the intial set of $S$)
+by updating a single persistent branch of $\EuScript{D}_\text{root}$,
+which we call the \EMPH{root branch}.
+Within a single iteration, we create a new branch of $\EuScript{D}_\text{root}$
+which tracks $P = A_\ell \cap S$ and $Q = \emptyset$.
+
+Any ``newly-big'' star $\Sigma_a$ will make a persistent copy of the latest
+$\EuScript{D}_\text{root}$ and insert into $Q$ the points of the star,
+creating a new branch which maintains $\EuScript{D}_\text{big}(a)$.
+Note that $\abs{\Sigma_a} = \sqrt{n} + x > 2\sqrt{n}$, so we have 
+$\abs{\Sigma_a} < 2x$.
+There were at least $x$ insertions into $\Sigma_a$ since $\Sigma_a$ was first
+small, so the $\abs{\Sigma_a}$ insertions to construct
+$\EuScript{D}_\text{big}(a)$ from $\EuScript{D}_\text{root}$ can be charged to
+previous changes to $\Sigma_a$.
+$\Sigma_a$ must also be deleted from $\EuScript{D}_\text{small}$;
+these deletions can be charged in the same way.
+
+When a big star crosses $\abs{\Sigma_a} < \sqrt{n}/2$, we delete the branch of 
+$\EuScript{D}_\text{root}$ corresponding to $\EuScript{D}_\text{big}(a)$ and
+insert its points into $\EuScript{D}_\text{small}$.
+There were at least $\sqrt{n}/2$ points removed from $\Sigma_a$ since it was
+first big, so we can charge the $\abs{\Sigma_a}$ insertions to the previous
+changes to $\Sigma_a$.
+
+In summary, switching stars from big-to-small or small-to-big can be charged to
+the star membership changes since the star last changed types.
+Membership changes can themselves be bounded above the length of augmenting
+paths (flow support must change for stars to change).
+
 \paragraph{Preprocessing time.}
 To build the very first set of data structures, we take $O(rn\polylog n)$ time.
 There are $r\abs{\Sigma_a}$ points in each $\EuScript{D}_\text{big}(a)$,
@@ -2632,6 +2683,7 @@ $\EuScript{D}_\text{small}$ also has at most $O(rn)$ points.
 Each BCP data structure can be constructed in $O(\polylog n)$ times its size,
 so the total preprocessing time is $O(rn\polylog n)$.
 
+\note{TODO just invoke persistence here} %TODO
 \paragraph{Between searches.}
 After an augmentation, we must reset the above data structures to their initial
 state plus the change from the augmentation.
@@ -2644,9 +2696,6 @@ The number of these support star changes is bounded above by the length of the
 path, which is bounded above the number of relaxations.
 Each support star membership update updates a single data structure,
 so takes $O(\polylog n)$ time.
-
-\note{TODO what if a big star becomes small or vice versa?} %TODO oh no
-
 There are $O(r)$ relaxations by the bound in
 Lemma~\ref{lemma:orlin_relax_count} plus at most one for each support star
 (to reach the center).
