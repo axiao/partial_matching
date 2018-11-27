@@ -1263,7 +1263,9 @@ Let $f_0$ and $\pi_0$ be the flow and potential at the start of the procedure \t
 Let \EMPH{$d(v)$} defined to be the amount of potential increase at $v$, measured in units of $\eps$; in other words, $d(v) \coloneqq (\pi(v) - \pi_0(v)) / \eps$.
 Consider the set of arcs $\EMPH{$E^+$} \coloneqq \Set{\arc vw \mid f(\arc vw) < f_0(\arc vw)}$.
 %
-Goldberg~\etal~\cite[Lemma~3.5]{GHKT17} showed that every vertex $v$ has $d(v) \le 3n-3$, which we can improve to $O(k)$ on our reduction network, by the fact that the size of $E^+$ is bounded by the sum of support sizes of $f$ and $f_0$, which by Corollary~\ref{corollary:support_size_during} is at most $O(k)$.
+Goldberg~\etal~\cite[Lemma~3.5]{GHKT17} showed that every vertex $v$ has $d(v) \le 3n-3$, which we can improve to $O(k)$ on our reduction network,
+%\note{why do we need this bound? ANS: for pigeonhole later in the proof}
+by the fact that the size of $E^+$ is bounded by the sum of support sizes of $f$ and $f_0$, which by Corollary~\ref{corollary:support_size_during} is at most $O(k)$.
 
 Now divide the iterations executed by
 %the blocking flows pushed by
@@ -1280,7 +1282,7 @@ belonging to the second phase is upper bounded by the amount of total excess at 
 %
 The total amount of excess is upper bounded by the number of arcs in $E^+$ that crosses an arbitrarily given cut $X$ (when the network has unit-capacity) \cite[Lemma~3.6]{GHKT17}.
 %
-Consider the set of cuts $X_i \coloneqq \Set{\arc vw \mid d(i) > i}$.  Each arc in $E^+$ crosses at most $3$ cuts of type $X_i$ \cite[Lemma~3.1]{GHKT17}.  So there is one $X_i$ with size at least $3\abs{E^+}/\sqrt{k}$.
+Consider the set of cuts $X_i \coloneqq \Set{v \mid d(v) > i}$ for $0 \le i < \sqrt{k}$.  Each arc in $E^+$ crosses at most $3$ cuts of type $X_i$ \cite[Lemma~3.1]{GHKT17}.  So there is one $X_i$ crossed by at most $3\abs{E^+}/\sqrt{k}$ arcs in $E^+$.
 Again by Corollary~\ref{corollary:support_size_during} the size of $E^+$ is $O(k)$; this implies an $O(\sqrt{k})$ bound on the total excess after the first phase, which in turn bounds the number of iterations in the second phase.
 \end{proof}
 
