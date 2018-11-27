@@ -1213,35 +1213,75 @@ The algorithm continues until the total excess becomes zero and the $\eps$-optim
 
 First we analysis the number of iterations executed by \textsc{Refine}.
 The proof follows the strategy in Goldberg~\etal~\cite[Section~3.2]{GHKT17}. \note{and maybe \S5 of Goldberg-Tarjan?}
-
+%
 % Using the properties of blocking flows and the unit-capacity input graph,
 % Goldberg~{\etal}~\cite{GHKT17} prove that there are $O(k)$ blocking
 % flows before excess becomes 0, but on a slightly different reduction graph
 % and under a slightly different model of minimum-cost flow.
 % We provide a sketch of their proof technique adapted for the reduction network
 % $N_H$.
+%
+To this end we need a bound on the size of the support of $f$ right before and throughout the execution of \textsc{Refine}.
+
+% At a high level, our analysis strategy is to charge relaxation events in
+% the search to arcs of $\supp(f)$.
+% We first extend Lemma~\ref{lemma:reduction_count} to bound the size of
+% $\supp(f)$ throughout \textsc{Refine}, by observing that the amount of excess
+% decreases in each iteration of \textsc{Refine}.
+
+\begin{lemma}
+\label{lemma:reduction_count}
+Let $f$ be an integer pseudoflow in $N_H$ with $O(k)$ excess.
+Then, the size of the support of $f$ is at most $O(k)$.
+\end{lemma}
+
+\begin{proof}
+Observe that the reduction graph $H$ is a directed acyclic graph, and thus the support of $f$ does not contain a cycle.
+Now $\supp(f)$ can be decomposed into a set of inclusion-maximal paths,
+each of which contributes a single unit of excess to the flow if the path does not terminate at $t$ or if more than $k$ paths terminate at $t$.
+By assumption, there are $O(k)$ units of excess to which we can associate to the paths, and at most $k$ paths (those that terminate at $t$) that we cannot associate with a unit of excess.
+The length of any such paths is at most  three by construction of the reduction graph $H$.
+Therefore we can conclude that the number of arcs in the support of $f$ is $O(k)$.
+\end{proof}
+
+\begin{corollary}
+\label{corollary:support_size_during}
+The size of $\supp(f)$ is at most $O(k)$ for pseudoflow $f$ right before or during the execution of \textsc{Refine}.
+\end{corollary}
+
 
 \begin{lemma}
 \label{lemma:goldberg_refine_iterations}
 Let $f$ be a pseudoflow in $N_H$ with $O(k)$ excess.
-The procedure \textsc{Refine} pushes $O(\sqrt{k})$ blocking flows before excess becomes zero.
+The procedure \textsc{Refine} runs for $O(\sqrt{k})$ iterations
+%pushes $O(\sqrt{k})$ blocking flows
+before the excess of $f$ becomes zero.
 \end{lemma}
 
 \begin{proof}
-Let \EMPH{d(v)} defined to be the amount of potential increase at $v$, measured in units of $\eps$; in other words, $d(v) \coloneqq (\pi(v) - \pi_0(v)) / \eps$.
-Consider the set of arcs $\EMPH{$E^+$} \coloneqq \Set{\arc vw \mid f(\arc vw) < f(\arc vw)}$.
+Let $f_0$ and $\pi_0$ be the flow and potential at the start of the procedure \textsc{Refine}.  Let $f$ and $\pi$ be the current flow and the potential.
+Let \EMPH{$d(v)$} defined to be the amount of potential increase at $v$, measured in units of $\eps$; in other words, $d(v) \coloneqq (\pi(v) - \pi_0(v)) / \eps$.
+Consider the set of arcs $\EMPH{$E^+$} \coloneqq \Set{\arc vw \mid f(\arc vw) < f_0(\arc vw)}$.
 %
-Goldberg~\etal~\cite{GHKT17} showed that every vertex $v$ has $d(v) \le 3n-3$, which we can improve to $O(k)$ on our reduction network.
-They also showed that the total amount of excess is upper bounded by the number of arcs in $E^+$ that crosses an arbitrarily given cut $X$ (when the network has unit-capacity) \cite[Lemma~3.6]{GHKT17}.
+Goldberg~\etal~\cite[Lemma~3.5]{GHKT17} showed that every vertex $v$ has $d(v) \le 3n-3$, which we can improve to $O(k)$ on our reduction network, by the fact that the size of $E^+$ is bounded by the sum of support sizes of $f$ and $f_0$, which by Corollary~\ref{corollary:support_size_during} is at most $O(k)$.
 
-Now divide the blocking flows pushed by the procedure \textsc{Refine} into two phases: One transit from the first phase to the second when every excess vertex $v$ has $d(v) \ge \Delta$. \note{Replace $\Delta$ with the real value}
+Now divide the iterations executed by
+%the blocking flows pushed by
+the procedure \textsc{Refine}
+into two phases:  The transition from the first phase to the second happens when every excess vertex $v$ has $d(v) \ge \sqrt{k}$.
 %
-At most $\Delta$ blocking flows belong to the first phase as each Hungarian search increase the potential $\pi$ (and thus $d(v)$) by at least $\eps$ for each excess vertex. \note{verify}
-Now the number of blocking flows that belong to the second phase is at most the amount of excess at the end of the first phase, because each blocking flow pushed reduced the total excess by at least one.
+At most $\sqrt{k}$ iterations belong to
+%blocking flows are being pushed during
+the first phase as each Hungarian search increases the potential $\pi$ by at least $\eps$ for each excess vertex (and thus increases $d(v)$ by at least one).
 
-Consider the set of cuts $X_i \coloneqq \Set{\arc vw \mid d(i) > i}$.  Each arc in $E^+$ crosses at most $3$ cuts of the type $X_i$. \note{check}  So there is one $X_i$ with size at least $3\abs{E^+}/\Delta$.
-Using the $O(k)$ bound on the support of $f$ and $f_0$, the size of $E^+$ is at most $O(k)$.  Setting $\Delta = \sqrt(k)$ provides a bound on the excess after the first phase, which in turn bounds the number of blocking flows.
-\note{So handwavy as a first version.  Rewrite.}
+%Now the number of blocking flows that
+The number of iterations
+belonging to the second phase is upper bounded by the amount of total excess at the end of the first phase, because each subsequent push of a blocking flow reduces the total excess by at least one.  We now show that the amount of such excess is at most $O(\sqrt{k})$.
+%
+The total amount of excess is upper bounded by the number of arcs in $E^+$ that crosses an arbitrarily given cut $X$ (when the network has unit-capacity) \cite[Lemma~3.6]{GHKT17}.
+%
+Consider the set of cuts $X_i \coloneqq \Set{\arc vw \mid d(i) > i}$.  Each arc in $E^+$ crosses at most $3$ cuts of type $X_i$ \cite[Lemma~3.1]{GHKT17}.  So there is one $X_i$ with size at least $3\abs{E^+}/\sqrt{k}$.
+Again by Corollary~\ref{corollary:support_size_during} the size of $E^+$ is $O(k)$; this implies an $O(\sqrt{k})$ bound on the total excess after the first phase, which in turn bounds the number of iterations in the second phase.
 \end{proof}
 
 % \note{This paragraph is hard to follow}
@@ -1255,37 +1295,6 @@ The goal of the rest of the section is to show that after $O(n \polylog n)$ time
 %
 Combined with the $O(\sqrt{k})$ bound on the number of iterations we just proved, the procedure \textsc{Refine} can be implemented in $O((n+k\sqrt{k}) \polylog n)$ time.  Together with our analysis on scale initialation and the bound on number of cost scales, this concludes the proof to Theorem~\ref{theorem:gmcm}.
 
-
-\note{OLD}
-
-At a high level, our analysis strategy is to charge relaxation events in
-the search to arcs of $\supp(f)$.
-We first extend Lemma~\ref{lemma:reduction_count} to bound the size of
-$\supp(f)$ throughout \textsc{Refine}, by observing that the amount of excess
-decreases in each iteration of \textsc{Refine}.
-
-
-\begin{lemma}
-\label{lemma:reduction_count}
-Let $f$ be an integer pseudoflow in $N_H$ with $O(k)$ excess.
-Then, the size of the support of $f$ is at most $O(k)$.
-\end{lemma}
-
-\begin{proof}
-Observe that the reduction graph $H$ is a directed acyclic graph, and thus the support of $f$ does not contain a cycle.
-Now $\supp(f)$ can be decomposed into a set of inclusion-maximal paths,
-each of which contributes a single unit of excess to the flow if the path does not terminate at $t$ or if more than $k$ paths terminate at $t$.
-By assumption, there are $O(k)$ units of excess to which we can associate the
-paths, and at most $k$ paths (those that terminate at $t$) that we cannot associate with a unit of excess.
-The length of any such paths is at most  three by construction of the reduction graph $H$.
-Therefore we can conclude that the number of arcs in the support of $f$ is $O(k)$.
-\end{proof}
-
-\begin{corollary}
-\label{corollary:support_size_during}
-Let $f$ be the pseudoflow before or after any iteration of \textsc{Refine}.
-Then, $|\supp(f)| = O(k)$.
-\end{corollary}
 
 
 
@@ -2442,7 +2451,7 @@ augmentation in $O(rn^{1/2}\polylog n)$ time.
 To find an augmenting path, we again use some form of Hungarian search with
 geometric data structures to perform relaxations quickly.
 
-Like in Section~\ref{section:goldberg}, there are vertices which cannot charge
+Like in Section~\ref{section:goldberg}, there are vertices which cannot be charged
 to the flow support.
 Even worse, the size of the flow support have size $\Omega(n)$ for the
 transportation map (consider an instance with $r=1$, and the demand uniformly
@@ -2465,8 +2474,8 @@ we can simply remove these from consideration during a Hungarian search ---
 they will not terminate the search, and have no outgoing residual arcs.
 They would not be relaxed by the Hungarian search even if they were included,
 so their potentials will not change as long as they are dead.
-We use $A_\ell \subseteq A$ and $B_\ell \subseteq B$ to denote the living
-vertices of each point set.
+We use \EMPH{$A_\ell$} and \EMPH{$B_\ell$} to denote the living
+vertices of points in $A$ and $B$, respectively.
 
 We say a dead vertex is \EMPH{revived} when it stops meeting either condition
 of the definition.
@@ -2509,6 +2518,7 @@ Specifically, we relax support arcs before non-support arcs as they enter the
 frontier.
 
 \note{this proof isn't in the conference version, and our full version isn't published anywhere}
+\note{HC: include here, at least in the full version}
 %TODO this proof is not in the conference ver., and our full ver. isn't anywhere yet
 \begin{lemma}[Agarwal~\etal~\cite{AFPVX17}]
 \label{lemma:orlin_acyclic}
@@ -2516,8 +2526,9 @@ If arcs of $\supp(f)$ are relaxed first as they arrive on the frontier, then
 $E(\supp(f))$ is acyclic.
 \end{lemma}
 
-Let $E(\Sigma_a) \coloneqq \{(a, b) \mid b \in \Sigma_a\}$ be the set of
-undirected edges corresponding to arcs between $\Sigma_a$ and its center $a$.
+Let \EMPH{$E(\Sigma_a)$} be the underlying edges of the support star centered at $a$. \note{Do you really need this?}
+% Let $E(\Sigma_a) \coloneqq \{(a, b) \mid b \in \Sigma_a\}$ be the set of
+% undirected edges corresponding to arcs between $\Sigma_a$ and its center $a$.
 Using Lemma~\ref{lemma:orlin_acyclic}, we can show that the number of support
 arcs outside support stars is small.
 
@@ -2530,17 +2541,14 @@ $\abs{B_\ell \setminus \bigcup_{a \in A} \Sigma_a} \leq r$.
 By Lemma~\ref{lemma:orlin_acyclic}, $E(\supp(f))$ is acylic and therefore forms
 a spanning forest over $A \cup B_\ell$.
 By eliminating the edges of support stars and dead vertices, the remaining
-edges of $E(\supp(f))$ must adjoin $B$ vertices of support degree at least 2.
-Thus, no leaf of the bipartite forest
-$E(\supp(f)) \setminus \bigcup_{a \in A} E(\Sigma_a)$ is a vertex of $B_\ell$,
-or alternatively all leaves are vertices of $A$.
+edges of $E(\supp(f))$ must adjoin vertices in $B$ of support degree at least 2.
+Thus, all leaves of the bipartite forest $F \coloneqq E(\supp(f)) \setminus \bigcup_{a \in A} E(\Sigma_a)$ are vertices of $A$. \note{Define $F$ outside the lemma because it is being reused.}
 
-Pick an arbitrary root for each connected component of
-$E(\supp(f)) \setminus \bigcup_{a \in A} E(\Sigma_a)$ to establish parent-child
+Pick an arbitrary root for each connected component of the bipartite forest $F$ to establish parent-child
 relationships for each edge.
-As no $b \in B$ is a leaf, $b$ has at least one child.
-Charge $b$ to one of the $a \in A$ that are its children.
-Each $a \in A$ has at most one parent, so is charged at most once.
+As no vertex in $B$ is a leaf, each vertex in $B$ has at least one child.
+Charge each vertex in $B$ to one of its children in $F$, which must belong to $A$.
+Each vertex in $A$ is charged at most once because it has at most one parent in $F$.
 Thus, the number of $B_\ell$ vertices of support degree at least 2 is no more
 than $r$.
 \end{proof}
@@ -2585,7 +2593,7 @@ We classify support stars into two categories: \EMPH{big stars} are those with
 $\abs{\Sigma_a} > \sqrt{n}$, and \EMPH{small stars} are those with
 $\abs{\Sigma_a} \leq \sqrt{n}$.
 Let $A_\text{big} \subseteq A$ denote the centers of big stars and
-and $A_\text{big} \subseteq A$ denote the centers of small stars.
+and $A_\text{small} \subseteq A$ denote the centers of small stars.
 We keep the following data structures to manage support stars.
 \begin{enumerate}
 \item For each big star $\Sigma_a$, we use a data structure
@@ -2595,7 +2603,7 @@ We keep the following data structures to manage support stars.
 	$S$.
 \item All small stars are added to a single BCP data structure
 	$\EuScript{D}_\text{small}$ between $P = A_\ell \cap S$ and
-	$Q = (\bigcup_{a \in A_s} \Sigma_a) \setminus S$, weighted by
+	$Q = (\bigcup_{a \in A_\text{small}} \Sigma_a) \setminus S$, weighted by
 	potentials.
 	When $a \in A_s$ or any vertex of $\Sigma_a$ is added to $S$,
 	we remove the points of $\Sigma_a$ from $\EuScript{D}_\text{small}$
@@ -2625,7 +2633,7 @@ $\EuScript{D}_\text{big}(\cdot)$.
 Thus, the query time within each relaxation step is $O(\sqrt{n}\log n)$.
 
 \paragraph{Updating support stars.}
-As the flow support changes, the membership of support stars may shift and 
+As the flow support changes, the membership of support stars may shift and
 a big star may eventually become small (or vice versa).
 To efficiently support this, introduce some leniency for when a star should be
 represented as a big star versus a small star and use \emph{fully persistent}
@@ -2654,7 +2662,7 @@ which tracks $P = A_\ell \cap S$ and $Q = \emptyset$.
 Any ``newly-big'' star $\Sigma_a$ will make a persistent copy of the latest
 $\EuScript{D}_\text{root}$ and insert into $Q$ the points of the star,
 creating a new branch which maintains $\EuScript{D}_\text{big}(a)$.
-Note that $\abs{\Sigma_a} = \sqrt{n} + x > 2\sqrt{n}$, so we have 
+Note that $\abs{\Sigma_a} = \sqrt{n} + x > 2\sqrt{n}$, so we have
 $\abs{\Sigma_a} < 2x$.
 There were at least $x$ insertions into $\Sigma_a$ since $\Sigma_a$ was first
 small, so the $\abs{\Sigma_a}$ insertions to construct
@@ -2663,7 +2671,7 @@ previous changes to $\Sigma_a$.
 $\Sigma_a$ must also be deleted from $\EuScript{D}_\text{small}$;
 these deletions can be charged in the same way.
 
-When a big star crosses $\abs{\Sigma_a} < \sqrt{n}/2$, we delete the branch of 
+When a big star crosses $\abs{\Sigma_a} < \sqrt{n}/2$, we delete the branch of
 $\EuScript{D}_\text{root}$ corresponding to $\EuScript{D}_\text{big}(a)$ and
 insert its points into $\EuScript{D}_\text{small}$.
 There were at least $\sqrt{n}/2$ points removed from $\Sigma_a$ since it was
