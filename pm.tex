@@ -1302,7 +1302,7 @@ Each step of the search procedures \EMPH{relaxes} a minimum-reduced-cost arc fro
 %
 At a high level, our analysis strategy is to charge the relaxation events in the search to arcs in the support of $f$, which has size at most $O(k)$ by Corollary~\ref{corollary:support_size_during}.
 
-\subsection{Null vertices and shortcut network}
+\subsection{Null vertices and shortcut graph}
 
 \note{A figure might be helpful for this section.}
 
@@ -1316,8 +1316,7 @@ and run the Hungarian search and depth-first search on such graph instead.
 \paragraph{Null vertices.}
 We say a vertex $v$ in the residual graph $N_f$ is a \EMPH{null vertex} if $\fsupply_f(v) = 0$ and no edges of $\supp(f)$ is incident to $v$.
 %We are unable to charge relaxation steps involving null vertices to $|\supp(f)|$, so the algorithm must deal with them separately.
-We use $A_\emptyset$ and $B_in\emptyset$ to denote the null vertices  $A$ and
-$B$ respectively.
+We use $A_\emptyset$ and $B_\emptyset$ to denote the null vertices $A$ and $B$ respectively.
 Vertices that are not null are called \EMPH{normal vertices}.
 %
 A \EMPH{null 2-path} is a length-$2$ subpath in $N_f$ from a normal vertex to another normal vertex, passing through a null vertex.
@@ -1329,8 +1328,8 @@ vertices to be a \EMPH{null 3-path}.
 %
 Because reduced costs telescope for residual paths, the reduced cost of any null 2-path or null 3-path does not depend on the null vertices it passes through.
 
-\paragraph{Shortcut network.}
-We construct the \EMPH{shortcut graph} $\tilde{H}_f$ from the residual graph $H_f$ \note{graph or network?} by removing all
+\paragraph{Shortcut graph.}
+We construct the \EMPH{shortcut graph} $\tilde{H}_f$ from the reduction network $H$ by removing all
 null vertices and their incident edges, followed by inserting an arc
 from the head of each each null path $\Pi$ to its tail, with cost equals to the sum of costs on the arcs.
 We call this arc the \EMPH{shortcut} of null path $\Pi$, denoted as \EMPH{$\short(\Pi)$}.
@@ -1401,11 +1400,44 @@ This proves the lemma.
 \subsection{Dynamic data structures for search procedures}
 
 \paragraph{Hungarian search.}
+
+\begin{figure*}
+\centering
+\begin{minipage}{.8\linewidth}
+\begin{algorithm}[H]
+\caption{Hungarian Search (cost-scaling)}
+\begin{algorithmic}[1]
+\Function{Hungarian-Search2}{$H = (V, E)$, $f$, $\pi$}
+	\State $\tilde{H}_f \gets$ the shortcut graph of $H$ with respect to $f$
+	\State $S \gets \{v \in V \mid \fsupply_f(v) > 0\}$
+	\Repeat
+		\State $(v', w') \gets \argmin\{c_\pi(v', w') \mid v' \in S, w' \not\in S, (v', w') \in \tilde{H}_f)\}$
+			\label{line:hs_relaxation}
+		\State $\gamma \gets c_\pi(v', w')$
+		\If{$\gamma > 0$}
+			\Comment{make $(v', w')$ admissible if it isn't}
+			\State $\pi(v) \gets \pi(v) + \lceil\frac{\gamma}{\eps}\rceil\cdot \eps, \forall v \in S$
+		\EndIf
+		\State $S \gets S \cup \{w'\}$
+		\If{$\fsupply_f(w') < 0$} \Comment{reached a deficit}
+			\State\Return $\pi$
+		\EndIf
+	\Until{$S = (A \setminus A_\emptyset) \cup (B \setminus B_\emptyset)$}
+	\State\Return failure
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+\end{minipage}
+\end{figure*}
+
+
+\note{Shortly describe the Hungarian search and depth-first search implementations.}
+
 Conceptually, we are executing the Hungarian search
 %(``raise prices'') from \cite[Section 3.2]{GHKT17}
-on the shortcut network $\tilde{H}_f$. \note{Really?  I think it's the admissible network?}
+on the shortcut graph $\tilde{H}_f$.
 We describe how we can query the minimum-reduced cost arc leaving $S$ in
-$O(\polylog n)$ time for the shortcut network, without constructing
+$O(\polylog n)$ time for the shortcut graph, without constructing
 $\tilde{H}_f$ explicitly.
 For this purpose, let \EMPH{$S'$} be a set of ``reached'' vertices maintained,
 identical to $S$ \note{undefined} except whenever a shortcut is relaxed, we add the null vertices passed by the corresponding null path to $S'$ in addition to its (normal) endpoints. \note{$S$ should be $\tilde{S}$ and $S'$ should be $S$?}
@@ -1721,21 +1753,21 @@ iterations of \textsc{Refine} before it terminates.
 Summing, we see that $\sum_i N_i = O(k\sqrt{k})$.
 \end{proof}
 
-We now complete the proof of Lemma~\ref{lemma:goldberg_refine_time}.
-There $O(\sqrt{k})$ iterations of \textsc{Refine}, each of which executes
-\textsc{Hungarian-Search2} and \textsc{DFS}.
-By Lemmas~\ref{lemma:goldberg_hs_time} and \ref{lemma:goldberg_dfs_time},
-these calls take $O(T_1(n, k) + T_2(n, k)) = O(k\polylog n)$ time per
-iteration.
-\textsc{Hungarian-Search2} and \textsc{DFS} require some
-once-per-\textsc{Refine} preprocessing to initialize data structures
-in $P_1(n, k) + P_2(n, k) = O(n\polylog n)$ time.
-Outside of these, we need to account for the time spent on flow value updates
-and augmentation-induced null vertex potential updates.
-By Lemma~\ref{lemma:goldberg_bf_size}, the former is $O(k\sqrt{k})$ over the
-course of \textsc{Refine}.
-Combining Lemmas~\ref{lemma:goldberg_bf_size} and \ref{lemma:empty_updates},
-the time for the latter is also $O(k\sqrt{k})$.
+% We now complete the proof of Lemma~\ref{lemma:goldberg_refine_time}.
+% There $O(\sqrt{k})$ iterations of \textsc{Refine}, each of which executes
+% \textsc{Hungarian-Search2} and \textsc{DFS}.
+% By Lemmas~\ref{lemma:goldberg_hs_time} and \ref{lemma:goldberg_dfs_time},
+% these calls take $O(T_1(n, k) + T_2(n, k)) = O(k\polylog n)$ time per
+% iteration.
+% \textsc{Hungarian-Search2} and \textsc{DFS} require some
+% once-per-\textsc{Refine} preprocessing to initialize data structures
+% in $P_1(n, k) + P_2(n, k) = O(n\polylog n)$ time.
+% Outside of these, we need to account for the time spent on flow value updates
+% and augmentation-induced null vertex potential updates.
+% By Lemma~\ref{lemma:goldberg_bf_size}, the former is $O(k\sqrt{k})$ over the
+% course of \textsc{Refine}.
+% Combining Lemmas~\ref{lemma:goldberg_bf_size} and \ref{lemma:empty_updates},
+% the time for the latter is also $O(k\sqrt{k})$.
 
 % Filling in the values of $P_1(n, k)$, $P_2(n, k)$, $T_1(n, k)$, and
 % $T_2(n, k)$, the total time for \textsc{Refine} is
