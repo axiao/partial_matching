@@ -1293,7 +1293,7 @@ This implies an $O(\sqrt{k})$ bound on the total excess after the first phase, w
 The goal of the next section is to show that after $O(n \polylog n)$ time preprocessing, each Hungarian search and depth-first search can be implemented in $O(k \polylog n)$ time.
 %
 Combined with the $O(\sqrt{k})$ bound on the number of iterations we just proved, the procedure \textsc{Refine} can be implemented in $O((n+k\sqrt{k}) \polylog n)$ time.  Together with our analysis on scale initialation and the bound on number of cost scales, this concludes the proof to Theorem~\ref{theorem:gmcm}.
-
+\note{Well, there's the null vertex potential updates.  Hide it?}
 
 \section{Fast Implementation}
 
@@ -1302,7 +1302,7 @@ Each step of the search procedures \EMPH{relaxes} a minimum-reduced-cost arc fro
 %
 At a high level, our analysis strategy is to charge the relaxation events in the search to arcs in the support of $f$, which has size at most $O(k)$ by Corollary~\ref{corollary:support_size_during}.
 
-\subsection{Null Vertices and shortcut network}
+\subsection{Null vertices and shortcut network}
 
 \note{A figure might be helpful for this section.}
 
@@ -1348,8 +1348,7 @@ in other words, we have $c_\pi(\Pi) = c_{\tilde\pi}(\tilde{\Pi})$. \note{Do we w
 % its passing null paths.
 % Thus, there is a corresponding $v$-to-$w$ path $\tilde{\Pi}$ in $\tilde{H}_f$
 % by replacing each null path contained in $\Pi$ with its shortcut.
-We argue now that $\tilde{H}_f$ is fine as a surrogate for $H_f$, by showing
-that we can recover $\eps$-optimal potentials \note{??} for the normal vertices.
+We argue now that $\tilde{H}_f$ is fine as a surrogate for $H_f$.
 
 \begin{lemma}
 \label{lemma:empty_correct}
@@ -1399,17 +1398,278 @@ This proves the lemma.
 \end{proof}
 
 
-\subsection{Number of Potential Updates on Null Vertices}
+\subsection{Dynamic data structures for search procedures}
 
-In \textsc{Refine}, we do not explicitly construct $\tilde{H}_f$ for running
-\textsc{Hungarian-Search2} or \textsc{DFS}, but query its edges using BCP/NN
+\paragraph{Hungarian search.}
+Conceptually, we are executing the Hungarian search
+%(``raise prices'') from \cite[Section 3.2]{GHKT17}
+on the shortcut network $\tilde{H}_f$. \note{Really?  I think it's the admissible network?}
+We describe how we can query the minimum-reduced cost arc leaving $S$ in
+$O(\polylog n)$ time for the shortcut network, without constructing
+$\tilde{H}_f$ explicitly.
+For this purpose, let \EMPH{$S'$} be a set of ``reached'' vertices maintained,
+identical to $S$ \note{undefined} except whenever a shortcut is relaxed, we add the null vertices passed by the corresponding null path to $S'$ in addition to its (normal) endpoints. \note{$S$ should be $\tilde{S}$ and $S'$ should be $S$?}
+%
+Observe that the arcs of $\tilde{H}_f$ leaving $S$ fall into $O(1)$ categories.
+\begin{enumerate}
+\item Non-shortcut backward arcs $(v, w)$ with $(w, v) \in \supp(f)$.
+	For these, we can maintain a min-heap on $\supp(f)$ arcs as each $v$
+	arrives in $S$.
+\item Non-shortcut $A$-to-$B$ forward arcs.
+	For these, we can use a BCP data structure between
+	$(A \setminus A_\emptyset) \cap S$ and
+	$(B \setminus B_\emptyset) \setminus S$, weighted by potential.
+\item Non-shortcut forward arcs from $s$-to-$A$ and from $B$-to-$t$.
+	For $s$, we can maintain a min-heap on the potentials of
+	$B \setminus S$, queried while $s \in S$.
+	For $t$, we can maintain a max-heap on the potentials of
+	$A \cap S$, queried while $t \not\in S$.
+
+\item Shortcut arcs $(s, b)$ corresponding to null 2-paths from $s$ to
+	$b \in (B \setminus B_\emptyset) \setminus S'$.
+	For these, we maintain a BCP data structure with $P = A_\emptyset$,
+	$Q = (B \setminus B_\emptyset) \setminus S')$ with weights
+	$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for
+	all $q \in Q$.
+	A response $(a, b)$ corresponds to th null 2-path $(s, a, b)$.
+	This is only queried while $s \in S'$.
+\item Shortcut arcs $(a, t)$ corresponding to null 2-paths from
+	$a \in (A \setminus A_\emptyset) \cap S'$ to $t$.
+	For these, we maintain a BCP data structure with
+	$P = (A \setminus A_\emptyset) \cap S'$,
+	$Q = B_\emptyset \setminus S'$ with weights $\omega(p) = \pi(p)$ for
+	all $p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
+	A response $(a, b)$ corresponds to th null 2-path $(a, b, t)$.
+	This is only queried while $t \not\in S'$.
+\item Shortcut arcs $(s, t)$ corresponding to null 3-paths.
+	For these, we maintain in a BCP data structure with
+	$P = A_\emptyset \setminus S'$, $Q = B_\emptyset \setminus S'$ with
+	weights $\omega(p) = \pi(s)$ for all
+	$p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
+	A response $(a, b)$ corresponds to th null 3-path $(s, a, b, t)$.
+	This is only queried while $s \in S'$ and $t \not\in S'$.
+\end{enumerate}
+
+By construction, the distance returned by
+each of the BCP data structure in (4)--(6) is equal to
+the reduced cost of the shortcut, which is equal to the reduced cost of the
+corresponding null path.
+Each of the above data structures requires one query per relaxation, and an update operation whenever a new vertex moves into $S$.
+The data structures above can perform both queries and updates in $O(\polylog n)$ time each, so the
+running time of the Hungarian search other than the potential updates can be
+charged to the number of relaxation steps.
+
+
+\paragraph{Depth-first search.}
+
+The depth-first search is similar to Hungarian search in that it
+uses the relaxation of minimum-reduced cost arcs/null paths, this time to
+identify admissible arcs/null paths in a depth-first manner.
+This requires some adjustments to the data structures for finding the
+minimum-reduced cost arc leaving $v' \in S$.
+Given $v' \in S$, we would like to query:
+%
+\begin{enumerate}
+\item Non-shortcut backward arcs $(v', w')$ with $(w', v') \in \supp(f)$.
+	For these, we can maintain a min-heap on $(w', v') \in \supp(f)$ arcs
+	for each normal $v' \in V$.
+\item Non-shortcut $A$-to-$B$ forward arcs.
+	For these, we maintain a NN data structure over
+	$P = (B \setminus B_\emptyset) \setminus S$, with weights
+	$\omega(p) = \pi(p)$ for each $p \in P$.
+	We subtract $\pi(v')$ from the NN distance to recover the reduced cost
+	of the arc from $v'$.
+\item Non-shortcut forward arcs from $s$-to-$A$ and from $B$-to-$t$.
+	For $s$, we can maintain a min-heap on the potentials of
+	$B \setminus S$, queried only if $v' = s$.
+	For $B$-to-$t$ arcs, there is only one arc to check if $v' \in B$,
+	which we can examine manually.
+
+\item Shortcut arcs $(s, b)$ corresponding to null 2-paths from $s$ to
+	$b \in (B \setminus B_\emptyset) \setminus S'$.
+	For these, we maintain a BCP data structure with $P = A_\emptyset$,
+	$Q = (B \setminus B_\emptyset) \setminus S')$ with weights
+	$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for
+	all $q \in Q$.
+	A response $(a, b)$ corresponds to th null 2-path $(s, a, b)$.
+	This is only queried if $v' = s$.
+\item Shortcut arcs $(a, t)$ corresponding to null 2-paths from
+	$a \in (A \setminus A_\emptyset) \cap S'$ to $t$.
+	For these, we maintain a NN data structure over
+	$P = B_\emptyset \setminus S'$ with weights $\omega(p) = \pi(t)$ for
+	each $p \in P$.
+	A response $(v', b)$ corresponds to th null 2-path $(v', b, t)$.
+	We subtract $\pi(v')$ from the NN distance to recover the reduced cost
+	of the arc from $v'$.
+	This is not queried if $t \in S$.
+\item Shortcut arcs $(s, t)$ corresponding to null 3-paths.
+	For these, we maintain in a BCP data structure with
+	$P = A_\emptyset \setminus S'$, $Q = B_\emptyset \setminus S'$ with
+	weights $\omega(p) = \pi(s)$ for all
+	$p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
+	A response $(a, b)$ corresponds to th null 3-path $(s, a, b, t)$.
+	This is only queried while $v' = s$ and $t \not\in S'$.
+\end{enumerate}
+
+Each data structure above performs a constant number of queries and
+updates per relaxation, each of which can be implemented in $O(\polylog n)$ time \cite{}; so the running time is again bounded by
+$O(\polylog n)$ times the number of relaxations.
+%Since the pseudoflow is not changed within \textsc{DFS} we can bound the number
+%of relaxation events in a similar way as \textsc{Hungarian-Search2}.
+
+
+
+\subsection{Number of relaxations}
+
+\begin{corollary}
+\label{corollary:goldberg_hs_length}
+There are $O(k)$ relaxations in \textsc{Hungarian-Search2} before a deficit
+vertex is reached.
+\end{corollary}
+
+\begin{proof}
+\note{TO BE REWRITTEN.}
+%\begin{lemma}
+%\label{lemma:goldberg_hs_length1}
+First we prove that there are $O(k)$ non-shortcut relaxations.
+%in Hargarian search before a deficit vertex is reached.
+%\end{lemma}
+%
+Each edge relaxation adds a new vertex to $S$, and non-shortcut relaxations
+only add normal vertices.
+The vertices of $V \setminus S$ fall into several categories:
+(i) $s$ or $t$, (ii) vertices of $A$ or $B$ with 0 imbalance, and (iii)
+deficit vertices of $A$ or $B$ ($S$ contains all excess vertices).
+The number of vertices in (i) and (iii) is $O(k)$, leaving us to bound the
+number of (ii) vertices.
+
+An $A$ or $B$ vertex with 0 imbalance must have an even number of $\supp(f)$
+edges.
+There is either only one positive-capacity incoming arc (for $A$) or outgoing
+arc (for $B$), so this quantity is either 0 or 2.
+Since the vertex is normal, this must be 2.
+We charge 0.5 to each of the two $\supp(f)$ arcs; the arcs of $\supp(f)$
+have no more than 1 charge each.
+Thus, the number of type (ii) vertex relaxations is $O(|\supp(f)|)$.
+By Corollary~\ref{corollary:support_size_during}, $O(|\supp(f)|) = O(k)$.
+
+%\begin{lemma}
+%\label{lemma:goldberg_hs_length2}
+Next we prove that there are $O(k)$ shortcut relaxations.
+%in Hungarian search before a deficit vertex is reached.
+%\end{lemma}
+%
+Recall the categories of shortcuts from the list of datastructures above.
+We have shortcuts corresponding to (i) null 2-paths surrounding
+$a \in A_\emptyset$, (ii) null 2-paths surrounding $b \in B_\emptyset$, and
+(iii) null 3-paths, which go from $s$ to $t$.
+%
+There is only one relaxation of type (iii), since $t$ can only be added to $S$
+once.
+The same argument holds for type (ii).
+
+Each type (i) relaxation adds some normal $b \in B \setminus B_\emptyset$
+into $S$.
+Since $b$ is normal, it must either have deficit or an adjacent arc of
+$\supp(f)$.
+We charge this relaxation to $b$ if it is deficit, or the adjacent arc of
+$\supp(f)$ otherwise.
+No vertex is charged more than once, and no $\supp(f)$ edge is charged more
+than twice, therefore the total number of type (i) relaxations is
+$O(|\supp(f)|)$.
+By Corollary~\ref{corollary:support_size_during}, $O(|\supp(f)|) = O(k)$.
+\end{proof}
+
+Similarly we can prove that there are $O(k)$ relaxations during the DFS.
+
+\begin{corollary}
+\label{corollary:goldberg_dfs_length}
+There are $O(k)$ relaxations in \textsc{DFS} before a deficit vertex is
+reached.
+\end{corollary}
+
+
+\subsection{Time analysis}
+
+Now we complete the time analysis
+%of the Hargarian search
+%by proving that potentials can be maintained in $O(k)$ time over the course of the search.
+by showing that each Hungarian search and depth-first search can be implemented in $O(k \polylog n)$ time after a one-time $O(n \polylog n)$-time preprocessing.
+
+\begin{lemma}
+\label{lemma:goldberg_hs_time}
+After $O(n \polylog n)$-time preprocessing,
+each Hungarian search can be implemented in $O(k \polylog n)$ time.
+\end{lemma}
+%
+\begin{proof}
+Each of the constant number of data structures used by the Hungarian search can be constructed in $O(n\polylog n)$ time.
+For each data structure queried during a relaxation,
+the new vertex moved into $S$ causes a constant number of updates, each of which can be implemented in $O(\polylog n)$ time.
+%
+We first prove that the number of BCP
+operations during the Hungarian search over %the course of \textsc{Refine}
+is bounded by $O(k)$.
+
+\begin{enumerate}
+\item Let $S^t$ denote the initial set $S$ at the beginning of the $t$-th Hungarian search,
+% i.e. the set of $v \in V$ with
+% 	$\fsupply_f(v) > 0$ after $t$ blocking flows.
+Assume for now that, at the beginning of the $(t+1)$-th Hungarian search, we have the set $S^t$ from the previous iteration.
+To construct $S^{t+1}$, we remove the vertices that had excess decreased to zero by the $t$-th blocking flow.
+Thus, we are able to initialize $S$ at the cost of one BCP deletion per excess vertex, which sums to $O(k)$ over the entire course of \textsc{Refine}.  \note{Too strong as a bound? Is it enough to look at one Hungarian search?}
+
+\item During each Hungarian search, a vertex entering $S$ may incur one BCP insertion/deletion.
+We can charge the updates to the number of relaxations over the course of Hungarian search.
+The number of relatexations in a Hungarian search is $O(k)$ by Corollary~\ref{corollary:goldberg_hs_length}.
+
+\item To obtain $S^t$, we keep track of the points added to $S^t$ since the last Hungarian search.  After the augmentation, we remove those points added to $S^t$.  By (2) there are $O(k)$ such points to be deleted, so reconstructing $S^t$ takes $O(k)$ BCP operations.
+\end{enumerate}
+
+For potential updates, we use the same trick by Vaidya~\cite{Vaidya89} to
+lazily update potentials after vertices leave $S$ (similar to Lemma~\ref{lemma:hs_time}), but this time only for normal vertices.
+Normal vertices are stored in each data structure with weight
+$\omega(v) = \pi(v) - \delta$, and $\delta$ is increased in lieu of increasing
+the potential of vertices in $S$.
+When a vertex leave $S$ (through the rewind mechanism above), we restore
+its potential as $\pi(v) \gets \omega(v) + \delta$.
+With lazy updates, the number of potential updates on normal vertices is
+bounded by the number of relaxations in the Hungarian search, which is $O(k)$ by Corollary~\ref{corollary:goldberg_hs_length}.
+Note that null vertex potentials are not handled in the Hungarian search. \note{then where? Lemma~\ref{lemma:empty_updates}}
+\end{proof}
+
+
+There are no potentials to update within \textsc{DFS}, so the running time of
+\textsc{DFS} boils down to the time spent to querying and updating the data
+structures.
+
+\begin{lemma}
+\label{lemma:goldberg_dfs_time}
+After $O(n \polylog n)$-time preprocessing,
+each depth-first search can be implemented in $O(k \polylog n)$ time.
+\end{lemma}
+
+\begin{proof}
+At the beginning of \textsc{Refine}, we can initialize the $O(1)$ data
+structures used in \textsc{DFS} in $O(n\polylog n)$ time.
+We use the same rewinding mechanism as in Hungarian search
+(Lemma~\ref{lemma:goldberg_hs_time}) to avoid reconstructing the data
+structures across iterations of \textsc{Refine}, so the total time spent
+is bounded by the $O(\polylog n)$ times the number of relaxations.
+By Corollary~\ref{corollary:goldberg_dfs_length}, the running time for depth-first search is $O(k\polylog n)$.
+\end{proof}
+
+\subsection{Number of potential updates on null vertices}
+
+In our implementation of \textsc{Refine}, we do not explicitly construct $\tilde{H}_f$; instead we query its edges using BCP/NN
 oracles and min/max heaps on elements of $H_f$.
-Potentials for null vertices are only required at the end of \textsc{Refine}
-(for the next scale), and right before an augmentation sends flow through an
-null path, making its passed vertices normal.
-During these occasions, we use the procedure in Lemma~\ref{lemma:empty_correct}
-to find feasible, $\eps$-optimal potentials for null vertices which
-also preserve the structure of admissibility.
+Potentials on the null vertices are only required right before an augmentation sends a flow through a
+null path, making the null vertices it passes normal.
+%as well as at the end of \textsc{Refine} (for the next cost-scale).
+We use Lemma~\ref{lemma:empty_correct} \note{move outside}
+to construct potential $\pi$ such that the flow $f$ is both $\eps$-optimal and admissible with respect to $\pi$.
+
+\note{TO BE REWRITTEN.}
 
 \begin{lemma}
 \label{lemma:empty_updates}
@@ -1433,17 +1693,66 @@ $i$-th blocking flow, and $O(\sum_i N_i)$ over the course of \textsc{Refine}.
 
 Ultimately, we prove that $\sum_i N_i = O(k\sqrt{k})$, but this requires that
 we explain the process creating each blocking flow.
-We revisit this lemma after analyzing \textsc{DFS}.
+
+\paragraph{Size of blocking flows.}
+
+Now we bound the total number arcs whose flow is updated by a blocking flow during the course of \textsc{Refine}.
+This bounds both the time spent updating the flow on these arcs and also the time spent on null vertex potential updates
+(Lemma~\ref{lemma:empty_updates}).
+
+\begin{lemma}
+\label{lemma:goldberg_bf_size}
+Let $N_i$ be the number of positive flow arcs in the $i$-th blocking flow
+of \textsc{Refine}.
+Then, $\sum_i N_i = O(k\sqrt{k})$.
+\end{lemma}
+
+\begin{proof}
+Let $i$ be fixed and consider the invocation of \textsc{DFS} which produces the
+$i$-th blocking flow $f_i$.
+\textsc{DFS} constructs $f_i$ as a sequence of admissible excess-deficit paths,
+which appear as path $P$ in Algorithm~\ref{algorithm:goldberg_dfs}.
+Every arc in $P$ is an arc relaxed by \textsc{DFS}, so $N_i$ is bounded by the
+number of relaxations performed in \textsc{DFS}.
+Using Corollary~\ref{corollary:goldberg_dfs_length}, we have $N_i = O(k)$.
+
+By Lemma~\ref{lemma:goldberg_refine_iterations}, there are $O(\sqrt{k})$
+iterations of \textsc{Refine} before it terminates.
+Summing, we see that $\sum_i N_i = O(k\sqrt{k})$.
+\end{proof}
+
+We now complete the proof of Lemma~\ref{lemma:goldberg_refine_time}.
+There $O(\sqrt{k})$ iterations of \textsc{Refine}, each of which executes
+\textsc{Hungarian-Search2} and \textsc{DFS}.
+By Lemmas~\ref{lemma:goldberg_hs_time} and \ref{lemma:goldberg_dfs_time},
+these calls take $O(T_1(n, k) + T_2(n, k)) = O(k\polylog n)$ time per
+iteration.
+\textsc{Hungarian-Search2} and \textsc{DFS} require some
+once-per-\textsc{Refine} preprocessing to initialize data structures
+in $P_1(n, k) + P_2(n, k) = O(n\polylog n)$ time.
+Outside of these, we need to account for the time spent on flow value updates
+and augmentation-induced null vertex potential updates.
+By Lemma~\ref{lemma:goldberg_bf_size}, the former is $O(k\sqrt{k})$ over the
+course of \textsc{Refine}.
+Combining Lemmas~\ref{lemma:goldberg_bf_size} and \ref{lemma:empty_updates},
+the time for the latter is also $O(k\sqrt{k})$.
+
+% Filling in the values of $P_1(n, k)$, $P_2(n, k)$, $T_1(n, k)$, and
+% $T_2(n, k)$, the total time for \textsc{Refine} is
+% $O((n + k\sqrt{k})\polylog n)$.
+% Together with Lemmas~\ref{lemma:goldberg_scales} and \ref{lemma:scale_init},
+%
+Now combining Lemma~\ref{lemma:goldberg_hs_time}, Lemma~\ref{lemma:goldberg_dfs_time}, and
+Lemma~\ref{lemma:empty_updates}
+completes the proof of Theorem~\ref{theorem:gmcm}.
 
 
 
-
-
-% --------------------------------------
-\section{Approximating Min-cost Partial Matchings --- OLD}
-\label{section:goldberg}
-
-\note{THIS IS THE OLD SECTION}
+% % --------------------------------------
+% \section{Approximating Min-cost Partial Matchings --- OLD}
+% \label{section:goldberg}
+%
+% \note{THIS IS THE OLD SECTION}
 
 % %\note{Remind the readers what you want to achieve in this section.}
 % In this section, we describe a $(1+\eps)$-approximation algorithm for the geometric
@@ -2064,394 +2373,394 @@ We revisit this lemma after analyzing \textsc{DFS}.
 % we explain the process creating each blocking flow.
 % We revisit this lemma after analyzing \textsc{DFS}.
 
-\subsubsection{Hungarian search}
+% \subsubsection{Hungarian search}
+%
+% \begin{figure*}
+% \centering
+% \begin{minipage}{.8\linewidth}
+% \begin{algorithm}[H]
+% \caption{Hungarian Search (cost-scaling)}
+% \begin{algorithmic}[1]
+% \Function{Hungarian-Search2}{$H = (V, E)$, $f$, $\pi$}
+% 	\State $\tilde{H}_f \gets$ the shortcut network of $H_f$
+% 	\State $S \gets \{v \in V \mid \fsupply_f(v) > 0\}$
+% 	\Repeat
+% 		\State $(v', w') \gets \argmin\{c_\pi(v', w') \mid v' \in S, w' \not\in S, (v', w') \in \tilde{H}_f)\}$
+% 			\label{line:hs_relaxation}
+% 		\State $\gamma \gets c_\pi(v', w')$
+% 		\If{$\gamma > 0$}
+% 			\Comment{make $(v', w')$ admissible if it isn't}
+% 			\State $\pi(v) \gets \pi(v) + \lceil\frac{\gamma}{\eps}\rceil\cdot \eps, \forall v \in S$
+% 		\EndIf
+% 		\State $S \gets S \cup \{w'\}$
+% 		\If{$\fsupply_f(w') < 0$} \Comment{reached a deficit}
+% 			\State\Return $\pi$
+% 		\EndIf
+% 	\Until{$S = (A \setminus A_\emptyset) \cup (B \setminus B_\emptyset)$}
+% 	\State\Return failure
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
+% \end{minipage}
+% \end{figure*}
+%
+% Logically, we are executing the Hungarian search (``raise prices'') from
+% \cite[Section 3.2]{GHKT17} on the shortcut network $\tilde{H}_f$.
+% We describe how we can query the minimum-reduced cost arc leaving $S$ in
+% $O(\polylog n)$ time, for the shortcut network, without constructing
+% $\tilde{H}_f$ explicitly.
+% For this purpose, let $S'$ be a set of ``reached'' vertices maintained
+% alongside $S$, identical except whenever a shortcut is relaxed, we add its
+% surrounded null vertices to $S'$ in addition to its (normal) endpoints.
+% Observe that the arcs of $\tilde{H}_f$ leaving $S$ fall into $O(1)$ categories.
+% \begin{enumerate}
+% \item Non-shortcut backward arcs $(v, w)$ with $(w, v) \in \supp(f)$.
+% 	For these, we can maintain a min-heap on $\supp(f)$ arcs as each $v$
+% 	arrives in $S$.
+% \item Non-shortcut $A$-to-$B$ forward arcs.
+% 	For these, we can use a BCP data structure between
+% 	$(A \setminus A_\emptyset) \cap S$ and
+% 	$(B \setminus B_\emptyset) \setminus S$, weighted by potential.
+% \item Non-shortcut forward arcs from $s$-to-$A$ and from $B$-to-$t$.
+% 	For $s$, we can maintain a min-heap on the potentials of
+% 	$B \setminus S$, queried while $s \in S$.
+% 	For $t$, we can maintain a max-heap on the potentials of
+% 	$A \cap S$, queried while $t \not\in S$.
+%
+% \item Shortcut arcs $(s, b)$ corresponding to null 2-paths from $s$ to
+% 	$b \in (B \setminus B_\emptyset) \setminus S'$.
+% 	For these, we maintain a BCP data structure with $P = A_\emptyset$,
+% 	$Q = (B \setminus B_\emptyset) \setminus S')$ with weights
+% 	$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for
+% 	all $q \in Q$.
+% 	A response $(a, b)$ corresponds to th null 2-path $(s, a, b)$.
+% 	This is only queried while $s \in S'$.
+% \item Shortcut arcs $(a, t)$ corresponding to null 2-paths from
+% 	$a \in (A \setminus A_\emptyset) \cap S'$ to $t$.
+% 	For these, we maintain a BCP data structure with
+% 	$P = (A \setminus A_\emptyset) \cap S'$,
+% 	$Q = B_\emptyset \setminus S'$ with weights $\omega(p) = \pi(p)$ for
+% 	all $p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
+% 	A response $(a, b)$ corresponds to th null 2-path $(a, b, t)$.
+% 	This is only queried while $t \not\in S'$.
+% \item Shortcut arcs $(s, t)$ corresponding to null 3-paths.
+% 	For these, we maintain in a BCP data structure with
+% 	$P = A_\emptyset \setminus S'$, $Q = B_\emptyset \setminus S'$ with
+% 	weights $\omega(p) = \pi(s)$ for all
+% 	$p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
+% 	A response $(a, b)$ corresponds to th null 3-path $(s, a, b, t)$.
+% 	This is only queried while $s \in S'$ and $t \not\in S'$.
+% \end{enumerate}
+%
+% By construction, the BCP distance of each datastructure in (4-6) is equal to
+% the reduced cost of the shortcut, which is equal to the reduced cost of the
+% corresponding null path.
+% Each of the above data structures requires one query per relaxation, and an
+% insertion/deletion operation whenever a new vertex moves into $S$.
+% The data structures above can perform both in $O(\polylog n)$ time each, so the
+% running time of \textsc{Hungarian-Search2} outside of potential updates can be
+% bounded in the number of relaxation steps.
+%
+% \begin{lemma}
+% \label{lemma:goldberg_hs_length1}
+% There are $O(k)$ non-shortcut relaxations in \textsc{Hungarian-Search2} before
+% a deficit vertex is reached.
+% \end{lemma}
+%
+% \begin{proof}
+% Each edge relaxation adds a new vertex to $S$, and non-shortcut relaxations
+% only add normal vertices.
+% The vertices of $V \setminus S$ fall into several categories:
+% (i) $s$ or $t$, (ii) vertices of $A$ or $B$ with 0 imbalance, and (iii)
+% deficit vertices of $A$ or $B$ ($S$ contains all excess vertices).
+% The number of vertices in (i) and (iii) is $O(k)$, leaving us to bound the
+% number of (ii) vertices.
+%
+% An $A$ or $B$ vertex with 0 imbalance must have an even number of $\supp(f)$
+% edges.
+% There is either only one positive-capacity incoming arc (for $A$) or outgoing
+% arc (for $B$), so this quantity is either 0 or 2.
+% Since the vertex is normal, this must be 2.
+% We charge 0.5 to each of the two $\supp(f)$ arcs; the arcs of $\supp(f)$
+% have no more than 1 charge each.
+% Thus, the number of type (ii) vertex relaxations is $O(|\supp(f)|)$.
+% By Corollary~\ref{corollary:support_size_during}, $O(|\supp(f)|) = O(k)$.
+% \end{proof}
+%
+% \begin{lemma}
+% \label{lemma:goldberg_hs_length2}
+% There are $O(k)$ shortcut relaxations in \textsc{Hungarian-Search2} before a
+% deficit vertex is reached.
+% \end{lemma}
+%
+% \begin{proof}
+% Recall the categories of shortcuts from the list of datastructures above.
+% We have shortcuts corresponding to (i) null 2-paths surrounding
+% $a \in A_\emptyset$, (ii) null 2-paths surrounding $b \in B_\emptyset$, and
+% (iii) null 3-paths, which go from $s$ to $t$.
+%
+% There is only one relaxation of type (iii), since $t$ can only be added to $S$
+% once.
+% The same argument holds for type (ii).
+%
+% Each type (i) relaxation adds some normal $b \in B \setminus B_\emptyset$
+% into $S$.
+% Since $b$ is normal, it must either have deficit or an adjacent arc of
+% $\supp(f)$.
+% We charge this relaxation to $b$ if it is deficit, or the adjacent arc of
+% $\supp(f)$ otherwise.
+% No vertex is charged more than once, and no $\supp(f)$ edge is charged more
+% than twice, therefore the total number of type (i) relaxations is
+% $O(|\supp(f)|)$.
+% By Corollary~\ref{corollary:support_size_during}, $O(|\supp(f)|) = O(k)$.
+% \end{proof}
+%
+% \begin{corollary}
+% \label{corollary:goldberg_hs_length}
+% There are $O(k)$ relaxations in \textsc{Hungarian-Search2} before a deficit
+% vertex is reached.
+% \end{corollary}
+%
+% In the following lemma, we complete the time analysis of
+% \textsc{Hungarian-Search2} by proving that potentials can be maintained in
+% $O(k)$ time over the course of the search.
+%
+% \begin{lemma}
+% \label{lemma:goldberg_hs_time}
+% Using a dynamic BCP, we can implement \textsc{Hungarian-Search2} with
+% $T_1(n, k) = O(k\polylog n)$ and $P_1(n, k) = O(n\polylog n)$.
+% \end{lemma}
+%
+% \begin{proof}
+% The initial sets for each data structure can be constructed in
+% $O(n\polylog n)$ time.
+% For each of the $O(1)$ data structures that are queried during a relaxation,
+% the new vertex moved into $S$ as a result of the relaxation causes $O(1)$
+% insertion/deletion operations.
+% For each of the data structures mentioned above, insertions and deletions
+% can be performed in $O(\polylog n)$ time.
+% Using Lemma~\ref{lemma:hs_time} as a basis, we first analyze the number of BCP
+% operations over the course of \textsc{Hungarian-Search2}.
+%
+% \begin{enumerate}
+% \item Let $S^t_0$ denote the initial set $S$ at the beginning of the
+% 	$t$-th Hungarian search, i.e. the set of $v \in V$ with
+% 	$\fsupply_f(v) > 0$ after $t$ blocking flows.
+% 	Assume for now that, at the beginning of the $(t+1)$-th
+% 	Hungarian search, we have on hand the $S^t_0$ from the
+% 	previous iteration.
+% 	To construct $S^{t+1}_0$, we remove the vertices that had
+% 	excess decreased to 0 by the $t$-th blocking flow.
+% 	Thus, with that assumption, we are able to initialize $S$ at
+% 	the cost of one BCP deletion per excess vertex, which sums to
+% 	$O(k)$ over the entire course of \textsc{Refine}.
+% \item During each Hungarian search, a vertex entering $S$ may cause $P$
+% 	or $Q$ to update and incur one BCP insertion/deletion.
+% 	Like before, we can charge these to the number of edge
+% 	relaxations over the course of \textsc{Hungarian-Search2}.
+% 	The number of these is $O(k)$ by
+% 	Corollary~\ref{corollary:goldberg_hs_length}.
+% \item Like before, we can meet the assumption in (1) by rewinding a log
+% 	of point additions to $S$, and recover $S^t_0$.
+% \end{enumerate}
+%
+% For potential updates, we use the same trick as in Lemma~\ref{lemma:hs_time} to
+% lazily update potentials after vertices leave $S$, but only for normal
+% vertices.
+% normal vertices are stored in each data structure with weight
+% $\omega(v) = \pi(v) - \delta$, and $\delta$ is increased in lieu of increasing
+% the potential of all $S$ vertices.
+% When vertices leave $S$ (through the rewind mechansim above), we restore
+% their potentials as $\pi(v) \gets \omega(v) + \delta$.
+% With lazy updates, the number of potential updates on normal vertices is
+% bounded by the number of relaxations in the Hungarian search, which is $O(k)$
+% by Corollary~\ref{corollary:goldberg_hs_length}.
+% Note that null vertex potentials are not handled in
+% \textsc{Hungarian-Search2}.
+% \end{proof}
+%
+% \subsubsection{Depth-first search}
+%
+% \begin{algorithm}
+% \caption{Depth-first search}
+% \label{algorithm:goldberg_dfs}
+% \begin{algorithmic}[1]
+% \Function{DFS}{$H = (V, E)$, $f$, $\pi$}
+% 	\State $\tilde{H}_f \gets$ the shortcut network of $H_f$
+% 	\State $f' \gets 0$.
+% 	\State $S \gets \{v \in V \mid \fsupply_f(v) > 0\}$
+% 	\State $S_0 \gets \{v \in V \mid \fsupply_f(v) > 0\}$
+% 		\Comment{stack of excess vertices}
+% 	\State $P \gets$ \Call{Pop}{$S_0$}
+% 		\Comment{current path; stack}
+% 	\Repeat
+% 		\State $v' \gets$ \Call{Peek}{$P$}
+% 		\If{$\fsupply_f(v') < 0$}
+% 			\Comment{if we reached a deficit, save the path to $f'$}
+% 			\State add to $f'$ a unit flow on the path $P$
+% 			\State $P \gets$ \Call{Pop}{$S_0$}
+% 		\Else
+% 			\State $w' \gets \argmin\{c_\pi(v', w') \mid w' \not\in S, (v', w') \in \tilde{H}_f\}$
+% 			\State $\gamma \gets c_\pi(v', w')$
+%
+% 			\If{$\gamma \leq 0$}
+% 				\Comment{if $(v', w')$ is admissible, extend the current path}
+% 				\State $S \gets S \cup \{w'\}$
+% 				\State $P \gets$ \Call{Push}{$P$, $w'$}
+% 			\Else
+% 				\Comment{No admissible arcs leaving $v'$, remove from $P$}
+% 				\State \Call{Pop}{$P$}
+% 			\EndIf
+% 		\EndIf
+% 	\Until{$S_0 = \emptyset$}
+% 	\State\Return $f'$
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
+%
+% The depth-first search is similar to \textsc{Hungarian-Search2} in that it
+% uses the relaxation of minimum-reduced cost arcs/null paths, this time to
+% identify admissible arcs/null paths in a depth-first manner.
+% This requires some adjustments to the data structures for finding the
+% minimum-reduced cost arc leaving $v' \in S$.
+% Given $v' \in S$, we would like to query:
+% \begin{enumerate}
+% \item Non-shortcut backward arcs $(v', w')$ with $(w', v') \in \supp(f)$.
+% 	For these, we can maintain a min-heap on $(w', v') \in \supp(f)$ arcs
+% 	for each normal $v' \in V$.
+% \item Non-shortcut $A$-to-$B$ forward arcs.
+% 	For these, we maintain a NN data structure over
+% 	$P = (B \setminus B_\emptyset) \setminus S$, with weights
+% 	$\omega(p) = \pi(p)$ for each $p \in P$.
+% 	We subtract $\pi(v')$ from the NN distance to recover the reduced cost
+% 	of the arc from $v'$.
+% \item Non-shortcut forward arcs from $s$-to-$A$ and from $B$-to-$t$.
+% 	For $s$, we can maintain a min-heap on the potentials of
+% 	$B \setminus S$, queried only if $v' = s$.
+% 	For $B$-to-$t$ arcs, there is only one arc to check if $v' \in B$,
+% 	which we can examine manually.
+%
+% \item Shortcut arcs $(s, b)$ corresponding to null 2-paths from $s$ to
+% 	$b \in (B \setminus B_\emptyset) \setminus S'$.
+% 	For these, we maintain a BCP data structure with $P = A_\emptyset$,
+% 	$Q = (B \setminus B_\emptyset) \setminus S')$ with weights
+% 	$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for
+% 	all $q \in Q$.
+% 	A response $(a, b)$ corresponds to th null 2-path $(s, a, b)$.
+% 	This is only queried if $v' = s$.
+% \item Shortcut arcs $(a, t)$ corresponding to null 2-paths from
+% 	$a \in (A \setminus A_\emptyset) \cap S'$ to $t$.
+% 	For these, we maintain a NN data structure over
+% 	$P = B_\emptyset \setminus S'$ with weights $\omega(p) = \pi(t)$ for
+% 	each $p \in P$.
+% 	A response $(v', b)$ corresponds to th null 2-path $(v', b, t)$.
+% 	We subtract $\pi(v')$ from the NN distance to recover the reduced cost
+% 	of the arc from $v'$.
+% 	This is not queried if $t \in S$.
+% \item Shortcut arcs $(s, t)$ corresponding to null 3-paths.
+% 	For these, we maintain in a BCP data structure with
+% 	$P = A_\emptyset \setminus S'$, $Q = B_\emptyset \setminus S'$ with
+% 	weights $\omega(p) = \pi(s)$ for all
+% 	$p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
+% 	A response $(a, b)$ corresponds to th null 3-path $(s, a, b, t)$.
+% 	This is only queried while $v' = s$ and $t \not\in S'$.
+% \end{enumerate}
+%
+% Each data structure above performs $O(\polylog n)$ time worth of query and
+% insertion/deletion per relaxation, so the running time is again bounded by
+% $O(\polylog n)$ times the number of relaxations.
+% %Since the pseudoflow is not changed within \textsc{DFS} we can bound the number
+% %of relaxation events in a similar way as \textsc{Hungarian-Search2}.
+%
+% \begin{lemma}
+% \label{lemma:goldberg_dfs_length1}
+% There are $O(k)$ non-shortcut relaxations in \textsc{DFS}.
+% \end{lemma}
+%
+% \begin{lemma}
+% \label{lemma:goldberg_dfs_length2}
+% There are $O(k)$ shortcut relaxations in \textsc{DFS}.
+% \end{lemma}
 
-\begin{figure*}
-\centering
-\begin{minipage}{.8\linewidth}
-\begin{algorithm}[H]
-\caption{Hungarian Search (cost-scaling)}
-\begin{algorithmic}[1]
-\Function{Hungarian-Search2}{$H = (V, E)$, $f$, $\pi$}
-	\State $\tilde{H}_f \gets$ the shortcut network of $H_f$
-	\State $S \gets \{v \in V \mid \fsupply_f(v) > 0\}$
-	\Repeat
-		\State $(v', w') \gets \argmin\{c_\pi(v', w') \mid v' \in S, w' \not\in S, (v', w') \in \tilde{H}_f)\}$
-			\label{line:hs_relaxation}
-		\State $\gamma \gets c_\pi(v', w')$
-		\If{$\gamma > 0$}
-			\Comment{make $(v', w')$ admissible if it isn't}
-			\State $\pi(v) \gets \pi(v) + \lceil\frac{\gamma}{\eps}\rceil\cdot \eps, \forall v \in S$
-		\EndIf
-		\State $S \gets S \cup \{w'\}$
-		\If{$\fsupply_f(w') < 0$} \Comment{reached a deficit}
-			\State\Return $\pi$
-		\EndIf
-	\Until{$S = (A \setminus A_\emptyset) \cup (B \setminus B_\emptyset)$}
-	\State\Return failure
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-\end{minipage}
-\end{figure*}
-
-Logically, we are executing the Hungarian search (``raise prices'') from
-\cite[Section 3.2]{GHKT17} on the shortcut network $\tilde{H}_f$.
-We describe how we can query the minimum-reduced cost arc leaving $S$ in
-$O(\polylog n)$ time, for the shortcut network, without constructing
-$\tilde{H}_f$ explicitly.
-For this purpose, let $S'$ be a set of ``reached'' vertices maintained
-alongside $S$, identical except whenever a shortcut is relaxed, we add its
-surrounded null vertices to $S'$ in addition to its (normal) endpoints.
-Observe that the arcs of $\tilde{H}_f$ leaving $S$ fall into $O(1)$ categories.
-\begin{enumerate}
-\item Non-shortcut backward arcs $(v, w)$ with $(w, v) \in \supp(f)$.
-	For these, we can maintain a min-heap on $\supp(f)$ arcs as each $v$
-	arrives in $S$.
-\item Non-shortcut $A$-to-$B$ forward arcs.
-	For these, we can use a BCP data structure between
-	$(A \setminus A_\emptyset) \cap S$ and
-	$(B \setminus B_\emptyset) \setminus S$, weighted by potential.
-\item Non-shortcut forward arcs from $s$-to-$A$ and from $B$-to-$t$.
-	For $s$, we can maintain a min-heap on the potentials of
-	$B \setminus S$, queried while $s \in S$.
-	For $t$, we can maintain a max-heap on the potentials of
-	$A \cap S$, queried while $t \not\in S$.
-
-\item Shortcut arcs $(s, b)$ corresponding to null 2-paths from $s$ to
-	$b \in (B \setminus B_\emptyset) \setminus S'$.
-	For these, we maintain a BCP data structure with $P = A_\emptyset$,
-	$Q = (B \setminus B_\emptyset) \setminus S')$ with weights
-	$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for
-	all $q \in Q$.
-	A response $(a, b)$ corresponds to th null 2-path $(s, a, b)$.
-	This is only queried while $s \in S'$.
-\item Shortcut arcs $(a, t)$ corresponding to null 2-paths from
-	$a \in (A \setminus A_\emptyset) \cap S'$ to $t$.
-	For these, we maintain a BCP data structure with
-	$P = (A \setminus A_\emptyset) \cap S'$,
-	$Q = B_\emptyset \setminus S'$ with weights $\omega(p) = \pi(p)$ for
-	all $p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
-	A response $(a, b)$ corresponds to th null 2-path $(a, b, t)$.
-	This is only queried while $t \not\in S'$.
-\item Shortcut arcs $(s, t)$ corresponding to null 3-paths.
-	For these, we maintain in a BCP data structure with
-	$P = A_\emptyset \setminus S'$, $Q = B_\emptyset \setminus S'$ with
-	weights $\omega(p) = \pi(s)$ for all
-	$p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
-	A response $(a, b)$ corresponds to th null 3-path $(s, a, b, t)$.
-	This is only queried while $s \in S'$ and $t \not\in S'$.
-\end{enumerate}
-
-By construction, the BCP distance of each datastructure in (4-6) is equal to
-the reduced cost of the shortcut, which is equal to the reduced cost of the
-corresponding null path.
-Each of the above data structures requires one query per relaxation, and an
-insertion/deletion operation whenever a new vertex moves into $S$.
-The data structures above can perform both in $O(\polylog n)$ time each, so the
-running time of \textsc{Hungarian-Search2} outside of potential updates can be
-bounded in the number of relaxation steps.
-
-\begin{lemma}
-\label{lemma:goldberg_hs_length1}
-There are $O(k)$ non-shortcut relaxations in \textsc{Hungarian-Search2} before
-a deficit vertex is reached.
-\end{lemma}
-
-\begin{proof}
-Each edge relaxation adds a new vertex to $S$, and non-shortcut relaxations
-only add normal vertices.
-The vertices of $V \setminus S$ fall into several categories:
-(i) $s$ or $t$, (ii) vertices of $A$ or $B$ with 0 imbalance, and (iii)
-deficit vertices of $A$ or $B$ ($S$ contains all excess vertices).
-The number of vertices in (i) and (iii) is $O(k)$, leaving us to bound the
-number of (ii) vertices.
-
-An $A$ or $B$ vertex with 0 imbalance must have an even number of $\supp(f)$
-edges.
-There is either only one positive-capacity incoming arc (for $A$) or outgoing
-arc (for $B$), so this quantity is either 0 or 2.
-Since the vertex is normal, this must be 2.
-We charge 0.5 to each of the two $\supp(f)$ arcs; the arcs of $\supp(f)$
-have no more than 1 charge each.
-Thus, the number of type (ii) vertex relaxations is $O(|\supp(f)|)$.
-By Corollary~\ref{corollary:support_size_during}, $O(|\supp(f)|) = O(k)$.
-\end{proof}
-
-\begin{lemma}
-\label{lemma:goldberg_hs_length2}
-There are $O(k)$ shortcut relaxations in \textsc{Hungarian-Search2} before a
-deficit vertex is reached.
-\end{lemma}
-
-\begin{proof}
-Recall the categories of shortcuts from the list of datastructures above.
-We have shortcuts corresponding to (i) null 2-paths surrounding
-$a \in A_\emptyset$, (ii) null 2-paths surrounding $b \in B_\emptyset$, and
-(iii) null 3-paths, which go from $s$ to $t$.
-
-There is only one relaxation of type (iii), since $t$ can only be added to $S$
-once.
-The same argument holds for type (ii).
-
-Each type (i) relaxation adds some normal $b \in B \setminus B_\emptyset$
-into $S$.
-Since $b$ is normal, it must either have deficit or an adjacent arc of
-$\supp(f)$.
-We charge this relaxation to $b$ if it is deficit, or the adjacent arc of
-$\supp(f)$ otherwise.
-No vertex is charged more than once, and no $\supp(f)$ edge is charged more
-than twice, therefore the total number of type (i) relaxations is
-$O(|\supp(f)|)$.
-By Corollary~\ref{corollary:support_size_during}, $O(|\supp(f)|) = O(k)$.
-\end{proof}
-
-\begin{corollary}
-\label{corollary:goldberg_hs_length}
-There are $O(k)$ relaxations in \textsc{Hungarian-Search2} before a deficit
-vertex is reached.
-\end{corollary}
-
-In the following lemma, we complete the time analysis of
-\textsc{Hungarian-Search2} by proving that potentials can be maintained in
-$O(k)$ time over the course of the search.
-
-\begin{lemma}
-\label{lemma:goldberg_hs_time}
-Using a dynamic BCP, we can implement \textsc{Hungarian-Search2} with
-$T_1(n, k) = O(k\polylog n)$ and $P_1(n, k) = O(n\polylog n)$.
-\end{lemma}
-
-\begin{proof}
-The initial sets for each data structure can be constructed in
-$O(n\polylog n)$ time.
-For each of the $O(1)$ data structures that are queried during a relaxation,
-the new vertex moved into $S$ as a result of the relaxation causes $O(1)$
-insertion/deletion operations.
-For each of the data structures mentioned above, insertions and deletions
-can be performed in $O(\polylog n)$ time.
-Using Lemma~\ref{lemma:hs_time} as a basis, we first analyze the number of BCP
-operations over the course of \textsc{Hungarian-Search2}.
-
-\begin{enumerate}
-\item Let $S^t_0$ denote the initial set $S$ at the beginning of the
-	$t$-th Hungarian search, i.e. the set of $v \in V$ with
-	$\fsupply_f(v) > 0$ after $t$ blocking flows.
-	Assume for now that, at the beginning of the $(t+1)$-th
-	Hungarian search, we have on hand the $S^t_0$ from the
-	previous iteration.
-	To construct $S^{t+1}_0$, we remove the vertices that had
-	excess decreased to 0 by the $t$-th blocking flow.
-	Thus, with that assumption, we are able to initialize $S$ at
-	the cost of one BCP deletion per excess vertex, which sums to
-	$O(k)$ over the entire course of \textsc{Refine}.
-\item During each Hungarian search, a vertex entering $S$ may cause $P$
-	or $Q$ to update and incur one BCP insertion/deletion.
-	Like before, we can charge these to the number of edge
-	relaxations over the course of \textsc{Hungarian-Search2}.
-	The number of these is $O(k)$ by
-	Corollary~\ref{corollary:goldberg_hs_length}.
-\item Like before, we can meet the assumption in (1) by rewinding a log
-	of point additions to $S$, and recover $S^t_0$.
-\end{enumerate}
-
-For potential updates, we use the same trick as in Lemma~\ref{lemma:hs_time} to
-lazily update potentials after vertices leave $S$, but only for normal
-vertices.
-normal vertices are stored in each data structure with weight
-$\omega(v) = \pi(v) - \delta$, and $\delta$ is increased in lieu of increasing
-the potential of all $S$ vertices.
-When vertices leave $S$ (through the rewind mechansim above), we restore
-their potentials as $\pi(v) \gets \omega(v) + \delta$.
-With lazy updates, the number of potential updates on normal vertices is
-bounded by the number of relaxations in the Hungarian search, which is $O(k)$
-by Corollary~\ref{corollary:goldberg_hs_length}.
-Note that null vertex potentials are not handled in
-\textsc{Hungarian-Search2}.
-\end{proof}
-
-\subsubsection{Depth-first search}
-
-\begin{algorithm}
-\caption{Depth-first search}
-\label{algorithm:goldberg_dfs}
-\begin{algorithmic}[1]
-\Function{DFS}{$H = (V, E)$, $f$, $\pi$}
-	\State $\tilde{H}_f \gets$ the shortcut network of $H_f$
-	\State $f' \gets 0$.
-	\State $S \gets \{v \in V \mid \fsupply_f(v) > 0\}$
-	\State $S_0 \gets \{v \in V \mid \fsupply_f(v) > 0\}$
-		\Comment{stack of excess vertices}
-	\State $P \gets$ \Call{Pop}{$S_0$}
-		\Comment{current path; stack}
-	\Repeat
-		\State $v' \gets$ \Call{Peek}{$P$}
-		\If{$\fsupply_f(v') < 0$}
-			\Comment{if we reached a deficit, save the path to $f'$}
-			\State add to $f'$ a unit flow on the path $P$
-			\State $P \gets$ \Call{Pop}{$S_0$}
-		\Else
-			\State $w' \gets \argmin\{c_\pi(v', w') \mid w' \not\in S, (v', w') \in \tilde{H}_f\}$
-			\State $\gamma \gets c_\pi(v', w')$
-
-			\If{$\gamma \leq 0$}
-				\Comment{if $(v', w')$ is admissible, extend the current path}
-				\State $S \gets S \cup \{w'\}$
-				\State $P \gets$ \Call{Push}{$P$, $w'$}
-			\Else
-				\Comment{No admissible arcs leaving $v'$, remove from $P$}
-				\State \Call{Pop}{$P$}
-			\EndIf
-		\EndIf
-	\Until{$S_0 = \emptyset$}
-	\State\Return $f'$
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-
-The depth-first search is similar to \textsc{Hungarian-Search2} in that it
-uses the relaxation of minimum-reduced cost arcs/null paths, this time to
-identify admissible arcs/null paths in a depth-first manner.
-This requires some adjustments to the data structures for finding the
-minimum-reduced cost arc leaving $v' \in S$.
-Given $v' \in S$, we would like to query:
-\begin{enumerate}
-\item Non-shortcut backward arcs $(v', w')$ with $(w', v') \in \supp(f)$.
-	For these, we can maintain a min-heap on $(w', v') \in \supp(f)$ arcs
-	for each normal $v' \in V$.
-\item Non-shortcut $A$-to-$B$ forward arcs.
-	For these, we maintain a NN data structure over
-	$P = (B \setminus B_\emptyset) \setminus S$, with weights
-	$\omega(p) = \pi(p)$ for each $p \in P$.
-	We subtract $\pi(v')$ from the NN distance to recover the reduced cost
-	of the arc from $v'$.
-\item Non-shortcut forward arcs from $s$-to-$A$ and from $B$-to-$t$.
-	For $s$, we can maintain a min-heap on the potentials of
-	$B \setminus S$, queried only if $v' = s$.
-	For $B$-to-$t$ arcs, there is only one arc to check if $v' \in B$,
-	which we can examine manually.
-
-\item Shortcut arcs $(s, b)$ corresponding to null 2-paths from $s$ to
-	$b \in (B \setminus B_\emptyset) \setminus S'$.
-	For these, we maintain a BCP data structure with $P = A_\emptyset$,
-	$Q = (B \setminus B_\emptyset) \setminus S')$ with weights
-	$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for
-	all $q \in Q$.
-	A response $(a, b)$ corresponds to th null 2-path $(s, a, b)$.
-	This is only queried if $v' = s$.
-\item Shortcut arcs $(a, t)$ corresponding to null 2-paths from
-	$a \in (A \setminus A_\emptyset) \cap S'$ to $t$.
-	For these, we maintain a NN data structure over
-	$P = B_\emptyset \setminus S'$ with weights $\omega(p) = \pi(t)$ for
-	each $p \in P$.
-	A response $(v', b)$ corresponds to th null 2-path $(v', b, t)$.
-	We subtract $\pi(v')$ from the NN distance to recover the reduced cost
-	of the arc from $v'$.
-	This is not queried if $t \in S$.
-\item Shortcut arcs $(s, t)$ corresponding to null 3-paths.
-	For these, we maintain in a BCP data structure with
-	$P = A_\emptyset \setminus S'$, $Q = B_\emptyset \setminus S'$ with
-	weights $\omega(p) = \pi(s)$ for all
-	$p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
-	A response $(a, b)$ corresponds to th null 3-path $(s, a, b, t)$.
-	This is only queried while $v' = s$ and $t \not\in S'$.
-\end{enumerate}
-
-Each data structure above performs $O(\polylog n)$ time worth of query and
-insertion/deletion per relaxation, so the running time is again bounded by
-$O(\polylog n)$ times the number of relaxations.
-%Since the pseudoflow is not changed within \textsc{DFS} we can bound the number
-%of relaxation events in a similar way as \textsc{Hungarian-Search2}.
-
-\begin{lemma}
-\label{lemma:goldberg_dfs_length1}
-There are $O(k)$ non-shortcut relaxations in \textsc{DFS}.
-\end{lemma}
-
-\begin{lemma}
-\label{lemma:goldberg_dfs_length2}
-There are $O(k)$ shortcut relaxations in \textsc{DFS}.
-\end{lemma}
-
-\begin{corollary}
-\label{corollary:goldberg_dfs_length}
-There are $O(k)$ relaxations in \textsc{DFS} before a deficit vertex is
-reached.
-\end{corollary}
-
-There are no potentials to update within \textsc{DFS}, so the running time of
-\textsc{DFS} boils down to the time spent to querying and updating the data
-structures.
-
-\begin{lemma}
-\label{lemma:goldberg_dfs_time}
-Using a dynamic NN, we can implement \textsc{DFS} with
-$T_2(n, k) = O(k\polylog n)$ and $P_2(n, k) = O(n\polylog n)$.
-\end{lemma}
-
-\begin{proof}
-At the beginning of \textsc{Refine}, we can initialize the $O(1)$ data
-structures used in \textsc{DFS} in $P_2(n, k) = O(n\polylog n)$ time.
-We use the same rewinding mechanism as \textsc{Hungarian-Search2}
-(Lemma~\ref{lemma:goldberg_hs_time}) to avoid reconstructing the data
-structures across iterations of \textsc{Refine}, so the total time spent
-is bounded by the $O(\polylog n)$ times the number of relaxations.
-By Corollary~\ref{corollary:goldberg_dfs_length}, we obtain
-$T_2(n, k) = O(k\polylog n)$.
-\end{proof}
-
-\subsubsection{Size of the blocking flow and completing time analysis}
-
-With Lemmas~\ref{lemma:goldberg_hs_time} and \ref{lemma:goldberg_dfs_time},
-we can complete the proof of Lemma~\ref{lemma:goldberg_refine_time}
-(time per \textsc{Refine}) by bounding the total number of arcs whose flow is
-updated by a blocking flow during \textsc{Refine}.
-This bounds both the time spent updating the flow value of these arcs, and
-also the time spent on null vertex potential updates
-(Lemma~\ref{lemma:empty_updates}).
-
-\begin{lemma}
-\label{lemma:goldberg_bf_size}
-Let $N_i$ be the number of positive flow arcs in the $i$-ith blocking flow
-of \textsc{Refine}.
-Then, $\sum_i N_i = O(k\sqrt{k})$.
-\end{lemma}
-
-\begin{proof}
-Let $i$ be fixed and consider the invocation of \textsc{DFS} which produces the
-$i$-th blocking flow $f_i$.
-\textsc{DFS} constructs $f_i$ as a sequence of admissible excess-deficit paths,
-which appear as path $P$ in Algorithm~\ref{algorithm:goldberg_dfs}.
-Every arc in $P$ is an arc relaxed by \textsc{DFS}, so $N_i$ is bounded by the
-number of relaxations performed in \textsc{DFS}.
-Using Corollary~\ref{corollary:goldberg_dfs_length}, we have $N_i = O(k)$.
-
-By Lemma~\ref{lemma:goldberg_refine_iterations}, there are $O(\sqrt{k})$
-iterations of \textsc{Refine} before it terminates.
-Summing, we see that $\sum_i N_i = O(k\sqrt{k})$.
-\end{proof}
-
-We now complete the proof of Lemma~\ref{lemma:goldberg_refine_time}.
-There $O(\sqrt{k})$ iterations of \textsc{Refine}, each of which executes
-\textsc{Hungarian-Search2} and \textsc{DFS}.
-By Lemmas~\ref{lemma:goldberg_hs_time} and \ref{lemma:goldberg_dfs_time},
-these calls take $O(T_1(n, k) + T_2(n, k)) = O(k\polylog n)$ time per
-iteration.
-\textsc{Hungarian-Search2} and \textsc{DFS} require some
-once-per-\textsc{Refine} preprocessing to initialize data structures
-in $P_1(n, k) + P_2(n, k) = O(n\polylog n)$ time.
-Outside of these, we need to account for the time spent on flow value updates
-and augmentation-induced null vertex potential updates.
-By Lemma~\ref{lemma:goldberg_bf_size}, the former is $O(k\sqrt{k})$ over the
-course of \textsc{Refine}.
-Combining Lemmas~\ref{lemma:goldberg_bf_size} and \ref{lemma:empty_updates},
-the time for the latter is also $O(k\sqrt{k})$.
-
-Filling in the values of $P_1(n, k)$, $P_2(n, k)$, $T_1(n, k)$, and
-$T_2(n, k)$, the total time for \textsc{Refine} is
-$O((n + k\sqrt{k})\polylog n)$.
-Together with Lemmas~\ref{lemma:goldberg_scales} and \ref{lemma:scale_init},
-this completes the proof of Theorem~\ref{theorem:gmcm}.
+% \begin{corollary}
+% \label{corollary:goldberg_dfs_length}
+% There are $O(k)$ relaxations in \textsc{DFS} before a deficit vertex is
+% reached.
+% \end{corollary}
+%
+% There are no potentials to update within \textsc{DFS}, so the running time of
+% \textsc{DFS} boils down to the time spent to querying and updating the data
+% structures.
+%
+% \begin{lemma}
+% \label{lemma:goldberg_dfs_time}
+% Using a dynamic NN, we can implement \textsc{DFS} with
+% $T_2(n, k) = O(k\polylog n)$ and $P_2(n, k) = O(n\polylog n)$.
+% \end{lemma}
+%
+% \begin{proof}
+% At the beginning of \textsc{Refine}, we can initialize the $O(1)$ data
+% structures used in \textsc{DFS} in $P_2(n, k) = O(n\polylog n)$ time.
+% We use the same rewinding mechanism as \textsc{Hungarian-Search2}
+% (Lemma~\ref{lemma:goldberg_hs_time}) to avoid reconstructing the data
+% structures across iterations of \textsc{Refine}, so the total time spent
+% is bounded by the $O(\polylog n)$ times the number of relaxations.
+% By Corollary~\ref{corollary:goldberg_dfs_length}, we obtain
+% $T_2(n, k) = O(k\polylog n)$.
+% \end{proof}
+%
+% \subsubsection{Size of the blocking flow and completing time analysis}
+%
+% With Lemmas~\ref{lemma:goldberg_hs_time} and \ref{lemma:goldberg_dfs_time},
+% we can complete the proof of Lemma~\ref{lemma:goldberg_refine_time}
+% (time per \textsc{Refine}) by bounding the total number of arcs whose flow is
+% updated by a blocking flow during \textsc{Refine}.
+% This bounds both the time spent updating the flow value of these arcs, and
+% also the time spent on null vertex potential updates
+% (Lemma~\ref{lemma:empty_updates}).
+%
+% \begin{lemma}
+% \label{lemma:goldberg_bf_size}
+% Let $N_i$ be the number of positive flow arcs in the $i$-ith blocking flow
+% of \textsc{Refine}.
+% Then, $\sum_i N_i = O(k\sqrt{k})$.
+% \end{lemma}
+%
+% \begin{proof}
+% Let $i$ be fixed and consider the invocation of \textsc{DFS} which produces the
+% $i$-th blocking flow $f_i$.
+% \textsc{DFS} constructs $f_i$ as a sequence of admissible excess-deficit paths,
+% which appear as path $P$ in Algorithm~\ref{algorithm:goldberg_dfs}.
+% Every arc in $P$ is an arc relaxed by \textsc{DFS}, so $N_i$ is bounded by the
+% number of relaxations performed in \textsc{DFS}.
+% Using Corollary~\ref{corollary:goldberg_dfs_length}, we have $N_i = O(k)$.
+%
+% By Lemma~\ref{lemma:goldberg_refine_iterations}, there are $O(\sqrt{k})$
+% iterations of \textsc{Refine} before it terminates.
+% Summing, we see that $\sum_i N_i = O(k\sqrt{k})$.
+% \end{proof}
+%
+% We now complete the proof of Lemma~\ref{lemma:goldberg_refine_time}.
+% There $O(\sqrt{k})$ iterations of \textsc{Refine}, each of which executes
+% \textsc{Hungarian-Search2} and \textsc{DFS}.
+% By Lemmas~\ref{lemma:goldberg_hs_time} and \ref{lemma:goldberg_dfs_time},
+% these calls take $O(T_1(n, k) + T_2(n, k)) = O(k\polylog n)$ time per
+% iteration.
+% \textsc{Hungarian-Search2} and \textsc{DFS} require some
+% once-per-\textsc{Refine} preprocessing to initialize data structures
+% in $P_1(n, k) + P_2(n, k) = O(n\polylog n)$ time.
+% Outside of these, we need to account for the time spent on flow value updates
+% and augmentation-induced null vertex potential updates.
+% By Lemma~\ref{lemma:goldberg_bf_size}, the former is $O(k\sqrt{k})$ over the
+% course of \textsc{Refine}.
+% Combining Lemmas~\ref{lemma:goldberg_bf_size} and \ref{lemma:empty_updates},
+% the time for the latter is also $O(k\sqrt{k})$.
+%
+% Filling in the values of $P_1(n, k)$, $P_2(n, k)$, $T_1(n, k)$, and
+% $T_2(n, k)$, the total time for \textsc{Refine} is
+% $O((n + k\sqrt{k})\polylog n)$.
+% Together with Lemmas~\ref{lemma:goldberg_scales} and \ref{lemma:scale_init},
+% this completes the proof of Theorem~\ref{theorem:gmcm}.
 
 
 \section{Unbalanced transportation}
