@@ -866,8 +866,8 @@ The \EMPH{dual feasibility constraint} says that $c_\pi(\arc vw) \geq 0$ holds f
 % \note{Move optimality conditino to last section maybe.}
 %
 Suppose we relax the dual feasibility constraint to allow some small violation in the value of $c_\pi(\arc vw)$.
-We say that a pseudoflow $f$ is \EMPH{$\eps$-optimal} \cite{tar-spmcc-1985,be-darml-1987}, with respect to $\pi$ if
-$c_\pi(\arc vw) \geq -\eps$ for every residual arc $\arc vw$ in $A_f$; pseudoflow $f$ is \EMPH{$\eps$-optimal} if it is $\eps$-optimal with respect to some potentials $\pi$.
+We say that a pair of pseudoflow $f$ and potential $\pi$ is \EMPH{$\eps$-optimal} \cite{tar-spmcc-1985,be-darml-1987} if
+$c_\pi(\arc vw) \geq -\eps$ for every residual arc $\arc vw$ in $A_f$.  Pseudoflow $f$ is \emph{$\eps$-optimal} if it is $\eps$-optimal with respect to some potentials $\pi$; potential $\pi$ is \emph{$\eps$-optimal} if it is $\eps$-optimal with respect to some pseudoflow $f$.
 %
 Given a pseudoflow $f$ and potentials $\pi$, a residual arc $\arc vw$ in $A_f$ is
 \EMPH{admissible} if $c_\pi(\arc vw) \leq 0$.
@@ -1223,12 +1223,6 @@ The proof follows the strategy in Goldberg~\etal~\cite[Section~3.2]{GHKT17}. \no
 %
 To this end we need a bound on the size of the support of $f$ right before and throughout the execution of \textsc{Refine}.
 
-% At a high level, our analysis strategy is to charge relaxation events in
-% the search to arcs of $\supp(f)$.
-% We first extend Lemma~\ref{lemma:reduction_count} to bound the size of
-% $\supp(f)$ throughout \textsc{Refine}, by observing that the amount of excess
-% decreases in each iteration of \textsc{Refine}.
-
 \begin{lemma}
 \label{lemma:reduction_count}
 Let $f$ be an integer pseudoflow in $N_H$ with $O(k)$ excess.
@@ -1279,7 +1273,7 @@ the first phase as each Hungarian search increases the potential $\pi$ by at lea
 The number of iterations
 belonging to the second phase is upper bounded by the amount of total excess at the end of the first phase, because each subsequent push of a blocking flow reduces the total excess by at least one.  We now show that the amount of such excess is at most $O(\sqrt{k})$.
 %
-Consider the set of arcs $\EMPH{$E^+$} \coloneqq \Set{\arc vw \mid f(\arc vw) < f_0(\arc vw)}$.
+Consider the set of arcs $E^+ \coloneqq \Set{\arc vw \mid f(\arc vw) < f_0(\arc vw)}$.
 The total amount of excess is upper bounded by the number of arcs in $E^+$ that crosses an arbitrarily given cut $X$ that separates the excess vertices from the deficit vertices, when the network has unit-capacity \cite[Lemma~3.6]{GHKT17}.
 %
 Consider the set of cuts $X_i \coloneqq \Set{v \mid d(v) > i}$ for $0 \le i < \sqrt{k}$; every such cut separates the excess vertices from the deficit vertices at the end of first phase.
@@ -1296,14 +1290,151 @@ This implies an $O(\sqrt{k})$ bound on the total excess after the first phase, w
 % visited vertex to an unvisited vertex, until a deficit vertex is visited.
 % We associate each relaxation step with its newly-visited vertex.
 
-The goal of the rest of the section is to show that after $O(n \polylog n)$ time preprocessing, each Hungarian search and depth-first search can be implemented in $O(k \polylog n)$ time.
+The goal of the next section is to show that after $O(n \polylog n)$ time preprocessing, each Hungarian search and depth-first search can be implemented in $O(k \polylog n)$ time.
 %
 Combined with the $O(\sqrt{k})$ bound on the number of iterations we just proved, the procedure \textsc{Refine} can be implemented in $O((n+k\sqrt{k}) \polylog n)$ time.  Together with our analysis on scale initialation and the bound on number of cost scales, this concludes the proof to Theorem~\ref{theorem:gmcm}.
 
 
+\section{Fast Implementation}
+
+Both the Hungarian search and the depth-first search are implemented in a Dijkstra-like fashion, traversing through the residual graph using admissible arcs starting from the excess vertices.
+Each step of the search procedures \EMPH{relaxes} a minimum-reduced-cost arc from the set of visited vertices to an unvisited vertex, until a deficit vertex is reached.
+%
+At a high level, our analysis strategy is to charge the relaxation events in the search to arcs in the support of $f$, which has size at most $O(k)$ by Corollary~\ref{corollary:support_size_during}.
+
+\subsection{Null Vertices and shortcut network}
+
+\note{A figure might be helpful for this section.}
+
+As it turns out, there are some vertices first visited by a relaxation event which we cannot charge to $\supp(f)$; informally we refer them as the \emph{null vertices}.
+Unfortunately the number of null vertices can be as large as $\Omega(n)$
+(consider the residual graph under the zero flow).
+%
+To overcome this issue, we replace the residual graph with an equivalent graph that excludes all the null vertices,
+and run the Hungarian search and depth-first search on such graph instead.
+
+\paragraph{Null vertices.}
+We say a vertex $v$ in the residual graph $N_f$ is a \EMPH{null vertex} if $\fsupply_f(v) = 0$ and no edges of $\supp(f)$ is incident to $v$.
+%We are unable to charge relaxation steps involving null vertices to $|\supp(f)|$, so the algorithm must deal with them separately.
+We use $A_\emptyset$ and $B_in\emptyset$ to denote the null vertices  $A$ and
+$B$ respectively.
+Vertices that are not null are called \EMPH{normal vertices}.
+%
+A \EMPH{null 2-path} is a length-$2$ subpath in $N_f$ from a normal vertex to another normal vertex, passing through a null vertex.
+As every vertex in $A$ has in-degree $1$ and every vertex in $B$ has out-degree $1$ in the residual graph, the null 2-paths must be of the form either $(s, v, b)$ for some vertex $b$ in $B \setminus B_\emptyset$ or $(a, v, t)$ for some vertex $a$ in $A \setminus A_\emptyset$.
+In either case, we say that the null 2-path \EMPH{passes through} null vertex $v$.
+%
+Similarly, we define the length-$3$ path from $s$ to $t$ that passes through two null
+vertices to be a \EMPH{null 3-path}.
+%
+Because reduced costs telescope for residual paths, the reduced cost of any null 2-path or null 3-path does not depend on the null vertices it passes through.
+
+\paragraph{Shortcut network.}
+We construct the \EMPH{shortcut graph} $\tilde{H}_f$ from the residual graph $H_f$ \note{graph or network?} by removing all
+null vertices and their incident edges, followed by inserting an arc
+from the head of each each null path $\Pi$ to its tail, with cost equals to the sum of costs on the arcs.
+We call this arc the \EMPH{shortcut} of null path $\Pi$, denoted as \EMPH{$\short(\Pi)$}.
+% For example, the null 2-path $(s, v, b)$ for $v \in A_\emptyset$ is replaced
+% with a shortcut $(s, b)$ of cost $c(\short(s, v, b)) \coloneqq c(v, b)$.
+% Similarly, the null 3-path $(s, v_1, v_2, t)$ would be replaced with a
+% shortcut $(s, t)$ of cost $c(\short((s, v_1, v_2 t))) \coloneqq c(v_1, v_2)$.
+%
+The resulting multigraph $\tilde{H}_f$ contains only normal vertices of $H_f$, and the reduced cost of any path between normal vertices are preserved;
+in other words, we have $c_\pi(\Pi) = c_{\tilde\pi}(\tilde{\Pi})$. \note{Do we want this just for the null path, or any normal-to-normal path?  In any case $\tilde{\Pi}$ is undefined.}
+%\note{Do we need the fact that every null vertex is passed by a null path? ANS: not here, do it in the proof}
+% Consider a path $\Pi$ from normal $v$ to normal $w$ in $H_f$.
+% Any null vertex in $\Pi$ is passed by an empty 2- or 3-path contained
+% in $\Pi$, since the only nontrivial residual paths through a null vertex are
+% its passing null paths.
+% Thus, there is a corresponding $v$-to-$w$ path $\tilde{\Pi}$ in $\tilde{H}_f$
+% by replacing each null path contained in $\Pi$ with its shortcut.
+We argue now that $\tilde{H}_f$ is fine as a surrogate for $H_f$, by showing
+that we can recover $\eps$-optimal potentials \note{??} for the normal vertices.
+
+\begin{lemma}
+\label{lemma:empty_correct}
+Let \EMPH{$\tilde{\pi}$} be an $\eps$-optimal potential on $\tilde{H}_f$.
+Construct potentials $\pi$ on $H_f$ which extends $\tilde{\pi}$ to null vertices, by
+setting $\pi(a) \coloneqq \tilde{\pi}(s)$ for $a \in A_\emptyset$ and
+$\pi(b) \coloneqq \tilde{\pi}(t)$ for $b \in B_\emptyset$.
+Then,
+\begin{enumerate}
+\item potential $\pi$ is $\eps$-optimal on  $H_f$, and
+\item if arc $\short(\Pi)$ is admissible under $\tilde{\pi}$, then every arc in $\Pi$ is admissible under $\pi$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+Reduced costs for any arc from a normal vertex another is unchanged under either
+$\tilde{\pi}$ or $\pi$.
+Recall that a null path is comprised of one $A$-to-$B$ arc, and one or two
+zero-cost arcs (connecting the null vertex/vertices to $s$ and/or $t$).
+With our choice of null vertex potentials, we observe that the zero-cost arcs
+still have zero reduced cost.
+It remains to prove that an arbitrary \note{residual?} arc $(a, b)$ \note{arc or directed edge?} satisfies the $\eps$-optimality condition and admissibility when either $a$ or $b$ is a null vertex.
+
+By construction of the shortcut graph,
+there is always a null path $\Pi$ that contains $(a, b)$.
+Observe that $c_\pi(a, b) = c_\pi(\Pi)$, independent to the type of null path.
+% \begin{itemize}
+% \item If $\Pi = (s, a, b)$ for $a \in A_\emptyset$:
+% 	\begin{equation*}
+% 	c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b) = c(a, b) - \pi(s) + \pi(b) = c_\pi(\Pi)
+% 	\end{equation*}
+% \item If $\Pi = (a, b, t)$ for $b \in B_\emptyset$:
+% 	\begin{equation*}
+% 	c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b) = c(a, b) - \pi(a) + \pi(t) = c_\pi(\Pi)
+% 	\end{equation*}
+% \item If $\Pi = (s, a, b, t)$ for $a \in A_\emptyset$ and $b \in B_\emptyset$:
+% 	\begin{equation*}
+% 	c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b) = c(a, b) - \pi(s) + \pi(t) = c_\pi(\Pi)
+% 	\end{equation*}
+% \end{itemize}
+Again by construction, $c_\pi(\Pi) = c_{\tilde{\pi}}(\short(\Pi))$, so we have
+$c_\pi(a, b) = c_{\tilde{\pi}}(\short(\Pi)) \geq -\eps$.
+Additionally, if $\short(\Pi)$ is admissible under $\tilde{\pi}$, then so is
+$(a, b)$ under $\pi$.
+%
+This proves the lemma.
+\end{proof}
 
 
-\subsection{Fast Implementation}
+\subsection{Number of Potential Updates on Null Vertices}
+
+In \textsc{Refine}, we do not explicitly construct $\tilde{H}_f$ for running
+\textsc{Hungarian-Search2} or \textsc{DFS}, but query its edges using BCP/NN
+oracles and min/max heaps on elements of $H_f$.
+Potentials for null vertices are only required at the end of \textsc{Refine}
+(for the next scale), and right before an augmentation sends flow through an
+null path, making its passed vertices normal.
+During these occasions, we use the procedure in Lemma~\ref{lemma:empty_correct}
+to find feasible, $\eps$-optimal potentials for null vertices which
+also preserve the structure of admissibility.
+
+\begin{lemma}
+\label{lemma:empty_updates}
+The number of end-of-\textsc{Refine} null vertex potential updates is $O(n)$.
+The number of augmentation-induced null vertex potential updates in each
+invocation of \textsc{Refine} is $O(\sum_i N_i)$ where $N_i$ is the number
+of positive flow arcs in the $i$-th blocking flow.
+\end{lemma}
+
+\begin{proof}
+The number of end-of-\textsc{Refine} potential updates is $O(n)$.
+Each update due to flow augmentation involves a blocking flow sending positive
+flow through an null path, causing a potential update on the passed
+null vertex.
+We charge this potential update to the edges of that null path, which are in
+turn arcs with positive flow in the blocking flow.
+For each blocking flow, no positive arc is charged more than twice.
+It follows that the number of augmentation-induced updates is $O(N_i)$ for the
+$i$-th blocking flow, and $O(\sum_i N_i)$ over the course of \textsc{Refine}.
+\end{proof}
+
+Ultimately, we prove that $\sum_i N_i = O(k\sqrt{k})$, but this requires that
+we explain the process creating each blocking flow.
+We revisit this lemma after analyzing \textsc{DFS}.
+
 
 
 
@@ -1778,160 +1909,160 @@ Combined with the $O(\sqrt{k})$ bound on the number of iterations we just proved
 % We discuss some challenges of our analysis and resolve them, before giving
 % the details of \textsc{Hungarian-Search2} and \textsc{DFS}.
 
-\subsubsection{Empty vertices and the shortcut graph}
-
-\note{A figure might be helpful for this section.}
-
-As it turns out, there are some vertices whose relaxation events we cannot
-charge to the support size.
-However, we can replace $H_f$ with an equivalent graph that excludes them,
-and run \textsc{Hungarian-Search2} and \textsc{DFS} on the resulting graph.
-
-We say $v \in A \cup B$ is an \EMPH{empty vertex} if $\fsupply_f(v) = 0$ and no edges
-of $\supp(f)$ adjoin $v$.
-\note{Hmm. How do you feel about calling them "irrelavant vertices" or "null vertices"?}
-We are unable to charge relaxation steps involving empty vertices to
-$|\supp(f)|$, so the algorithm must deal with them separately.
-Namely, there is no edge with $f(e) > 0$ adjacent to an empty vertex,
-reaching an empty vertex does not terminate the search, and there may be
-$\Omega(n)$ empty vertices at once (consider $H_{f = 0}$ \note{notation overload}, the residual graph
-of the empty flow).
-We use $A_\emptyset$ and $B_\emptyset$ to denote the empty vertices of $A$ and
-$B$ respectively.
-Vertices that are not empty are called \EMPH{non-empty vertices}.
-
-For an empty vertex $v$, either residual in-degree ($v \in A_\emptyset$) or
-residual out-degree ($v \in B_\emptyset$) is 1.
-Call a length 2 paths through $v$ to/from non-empty vertices an
-\EMPH{empty 2-path}.
-For example, if $v \in A_\emptyset$ (resp. $v \in B_\emptyset$), then its empty
-2-paths have the form $(s, v, b)$ (resp. $(a, v, t)$) for each
-$b \in B \setminus B_\emptyset$ (resp. $a \in A \setminus A_\emptyset$).
-We say that $(s, v, b)$ is an empty 2-path \EMPH{surrounding} empty vertex $v$.
-Separately, we define the length 3 $s$-$t$ paths that pass through two empty
-vertices to be \EMPH{empty 3-paths}.
-As with 2-paths, we say an empty 3-path $(s, v_1, v_2, t)$ surrounds
-$v_1 \in A_\emptyset$ and $v_2 \in B_\emptyset$.
-
-As for the costs of empty paths, consider an empty 2-path $(s, v, b)$ that
-surrounds $v \in A_\emptyset$.
-Because reduced costs telescope for residual paths, the reduced cost of
-$(s, v, b)$ does not depend on the potential of $v$.
-\begin{equation*}
-	c_\pi((s, v, b)) = c_\pi(s, v) + c_\pi(v, b) = c(v, b) - \pi(s) + \pi(b)
-\end{equation*}
-Something similar holds for empty 2-paths surrounding $B_\emptyset$ vertices,
-and empty 3-paths.
-
-We construct the \EMPH{shortcut graph} $\tilde{H}_f$ from $H_f$ by removing all
-empty vertices and their adjacent edges, and then inserting a direct arc
-between the end points of each empty path $\Pi$ of equal cost.
-We call this direct edge the \EMPH{shortcut} $\short(\Pi)$ of empty path $\Pi$.
-For example, the empty 2-path $(s, v, b)$ for $v \in A_\emptyset$ is replaced
-with a shortcut $(s, b)$ of cost $c(\short(s, v, b)) \coloneqq c(v, b)$.
-Similarly, the empty 3-path $(s, v_1, v_2, t)$ would be replaced with a
-shortcut $(s, t)$ of cost $c(\short((s, v_1, v_2 t))) \coloneqq c(v_1, v_2)$.
-
-The resulting multigraph $\tilde{H}_f$ contains only the non-empty vertices of
-$V$, and has the same connectivity between non-empty vertices as $H_f$.
-Consider a path $\Pi$ from non-empty $v$ to non-empty $w$ in $H_f$.
-Any empty vertex in $\Pi$ is surrounded by an empty 2- or 3-path contained
-in $\Pi$, since the only nontrivial residual paths through an empty vertex are
-its surrounding empty paths.
-Thus, there is a corresponding $v$-to-$w$ path $\tilde{\Pi}$ in $\tilde{H}_f$
-by replacing each empty path contained in $\Pi$ with its shortcut.
-Furthermore, we have $c(\Pi) = c(\tilde{\Pi})$.
-We argue now that $\tilde{H}_f$ is fine as a surrogate for $H_f$, by showing
-that we can recover $\eps$-optimal potentials for the non-empty vertices.
-
-\begin{lemma}
-\label{lemma:empty_correct}
-Let $\tilde{\pi}$ be a $\eps$-optimal set of potentials for non-empty
-vertices of $H_f$.
-Construct potentials $\pi$, extending $\tilde{\pi}$ to empty vertices, by
-setting $\pi(a) \gets \tilde{\pi}(s)$ for $a \in A_\emptyset$ and
-$\pi(b) \gets \tilde{\pi}(t)$ for $b \in B_\emptyset$.
-Then,
-\begin{enumerate}
-\item $\pi$ is a set of $\eps$-optimal potentials for $H_f$, and
-\item if a shortcut $\short(\Pi)$ is admissible under $\tilde{\pi}$,
-	then every arc of $\Pi$ is admissible under $\pi$.
-\end{enumerate}
-\end{lemma}
-
-\begin{proof}
-Reduced costs for non-empty to non-empty arcs are unchanged between
-$\tilde{\pi}$ and $\pi$, so $\eps$-optimality are preserved for these.
-Recall that an empty path is comprised of one $A$-to-$B$ arc, and 1 or 2
-zero-cost arcs (connecting the empty vertex/vertices to $s$ and $t$).
-With our choice of empty vertex potentials, we observe that the zero-cost arcs
-have reduced cost 0:
-for an empty $a \in A_\emptyset$, $c_\pi(s, a) = 0$, for an empty
-$b \in B_\emptyset$, $c_\pi(b, t) = 0$.
-These arcs are both $\eps$-optimal ($\geq -\eps$) and admissible ($\leq 0$), so
-it remains to prove $\eps$-optimality and admissibility for arcs $(a, b)$ where
-either $a$ or $b$ is an empty vertex.
-
-Let $(a, b) \in A \times B$ such that at least one of $a$ or $b$ is empty.
-There exists an empty path $\Pi$ that contains $(a, b)$.
-Observe that $c_\pi(a, b) = c_\pi(\Pi)$,
-which we can prove for all varieties of empty paths.
-\begin{itemize}
-\item If $\Pi = (s, a, b)$ for $a \in A_\emptyset$:
-	\begin{equation*}
-	c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b) = c(a, b) - \pi(s) + \pi(b) = c_\pi(\Pi)
-	\end{equation*}
-\item If $\Pi = (a, b, t)$ for $b \in B_\emptyset$:
-	\begin{equation*}
-	c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b) = c(a, b) - \pi(a) + \pi(t) = c_\pi(\Pi)
-	\end{equation*}
-\item If $\Pi = (s, a, b, t)$ for $a \in A_\emptyset$ and $b \in B_\emptyset$:
-	\begin{equation*}
-	c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b) = c(a, b) - \pi(s) + \pi(t) = c_\pi(\Pi)
-	\end{equation*}
-\end{itemize}
-By construction, $c_\pi(\Pi) = c_{\tilde{\pi}}(\short(\Pi))$, so we have
-$c_\pi(a, b) = c_{\tilde{\pi}}(\short(\Pi)) \geq -\eps$ and $(a, b)$ is
-$\eps$-optimal.
-Additionally, if $\short(\Pi)$ is admissible under $\tilde{\pi}$, then so is
-$(a, b)$ under $\pi$.
-Empty paths cover all arcs adjoining empty vertices, so we have proved both
-parts of the lemma for all arcs in $H_f$.
-\end{proof}
-
-In \textsc{Refine}, we do not explicitly construct $\tilde{H}_f$ for running
-\textsc{Hungarian-Search2} or \textsc{DFS}, but query its edges using BCP/NN
-oracles and min/max heaps on elements of $H_f$.
-Potentials for empty vertices are only required at the end of \textsc{Refine}
-(for the next scale), and right before an augmentation sends flow through an
-empty path, making its surrounded vertices non-empty.
-During these occasions, we use the procedure in Lemma~\ref{lemma:empty_correct}
-to find feasible, $\eps$-optimal potentials for empty vertices which
-also preserve the structure of admissibility.
-
-\begin{lemma}
-\label{lemma:empty_updates}
-The number of end-of-\textsc{Refine} empty vertex potential updates is $O(n)$.
-The number of augmentation-induced empty vertex potential updates in each
-invocation of \textsc{Refine} is $O(\sum_i N_i)$ where $N_i$ is the number
-of positive flow arcs in the $i$-th blocking flow.
-\end{lemma}
-
-\begin{proof}
-The number of end-of-\textsc{Refine} potential updates is $O(n)$.
-Each update due to flow augmentation involves a blocking flow sending positive
-flow through an empty path, causing a potential update on the surrounded
-empty vertex.
-We charge this potential update to the edges of that empty path, which are in
-turn arcs with positive flow in the blocking flow.
-For each blocking flow, no positive arc is charged more than twice.
-It follows that the number of augmentation-induced updates is $O(N_i)$ for the
-$i$-th blocking flow, and $O(\sum_i N_i)$ over the course of \textsc{Refine}.
-\end{proof}
-
-Ultimately, we prove that $\sum_i N_i = O(k\sqrt{k})$, but this requires that
-we explain the process creating each blocking flow.
-We revisit this lemma after analyzing \textsc{DFS}.
+% \subsubsection{null vertices and the shortcut network}
+%
+% \note{A figure might be helpful for this section.}
+%
+% As it turns out, there are some vertices whose relaxation events we cannot
+% charge to the support size.
+% However, we can replace $H_f$ with an equivalent graph that excludes them,
+% and run \textsc{Hungarian-Search2} and \textsc{DFS} on the resulting graph.
+%
+% We say $v \in A \cup B$ is an \EMPH{null vertex} if $\fsupply_f(v) = 0$ and no edges
+% of $\supp(f)$ adjoin $v$.
+% \note{Hmm. How do you feel about calling them "irrelavant vertices" or "null vertices"?}
+% We are unable to charge relaxation steps involving null vertices to
+% $|\supp(f)|$, so the algorithm must deal with them separately.
+% Namely, there is no edge with $f(e) > 0$ adjacent to a null vertex,
+% reaching a null vertex does not terminate the search, and there may be
+% $\Omega(n)$ null vertices at once (consider $H_{f = 0}$ \note{notation overload}, the residual graph
+% of the empty flow).
+% We use $A_\emptyset$ and $B_\emptyset$ to denote the null vertices of $A$ and
+% $B$ respectively.
+% Vertices that are not empty are called \EMPH{normal vertices}.
+%
+% For a null vertex $v$, either residual in-degree ($v \in A_\emptyset$) or
+% residual out-degree ($v \in B_\emptyset$) is 1.
+% Call a length 2 paths through $v$ to/from normal vertices an
+% \EMPH{null 2-path}.
+% For example, if $v \in A_\emptyset$ (resp. $v \in B_\emptyset$), then its empty
+% 2-paths have the form $(s, v, b)$ (resp. $(a, v, t)$) for each
+% $b \in B \setminus B_\emptyset$ (resp. $a \in A \setminus A_\emptyset$).
+% We say that $(s, v, b)$ is an null 2-path \EMPH{surrounding} null vertex $v$.
+% Separately, we define the length 3 $s$-$t$ paths that pass through two empty
+% vertices to be \EMPH{null 3-paths}.
+% As with 2-paths, we say an null 3-path $(s, v_1, v_2, t)$ surrounds
+% $v_1 \in A_\emptyset$ and $v_2 \in B_\emptyset$.
+%
+% As for the costs of null paths, consider an null 2-path $(s, v, b)$ that
+% surrounds $v \in A_\emptyset$.
+% Because reduced costs telescope for residual paths, the reduced cost of
+% $(s, v, b)$ does not depend on the potential of $v$.
+% \begin{equation*}
+% 	c_\pi((s, v, b)) = c_\pi(s, v) + c_\pi(v, b) = c(v, b) - \pi(s) + \pi(b)
+% \end{equation*}
+% Something similar holds for null 2-paths surrounding $B_\emptyset$ vertices,
+% and null 3-paths.
+%
+% We construct the \EMPH{shortcut network} $\tilde{H}_f$ from $H_f$ by removing all
+% null vertices and their adjacent edges, and then inserting a direct arc
+% between the end points of each null path $\Pi$ of equal cost.
+% We call this direct edge the \EMPH{shortcut} $\short(\Pi)$ of null path $\Pi$.
+% For example, the null 2-path $(s, v, b)$ for $v \in A_\emptyset$ is replaced
+% with a shortcut $(s, b)$ of cost $c(\short(s, v, b)) \coloneqq c(v, b)$.
+% Similarly, the null 3-path $(s, v_1, v_2, t)$ would be replaced with a
+% shortcut $(s, t)$ of cost $c(\short((s, v_1, v_2 t))) \coloneqq c(v_1, v_2)$.
+%
+% The resulting multigraph $\tilde{H}_f$ contains only the normal vertices of
+% $V$, and has the same connectivity between normal vertices as $H_f$.
+% Consider a path $\Pi$ from normal $v$ to normal $w$ in $H_f$.
+% Any null vertex in $\Pi$ is surrounded by an empty 2- or 3-path contained
+% in $\Pi$, since the only nontrivial residual paths through a null vertex are
+% its surrounding null paths.
+% Thus, there is a corresponding $v$-to-$w$ path $\tilde{\Pi}$ in $\tilde{H}_f$
+% by replacing each null path contained in $\Pi$ with its shortcut.
+% Furthermore, we have $c(\Pi) = c(\tilde{\Pi})$.
+% We argue now that $\tilde{H}_f$ is fine as a surrogate for $H_f$, by showing
+% that we can recover $\eps$-optimal potentials for the normal vertices.
+%
+% \begin{lemma}
+% \label{lemma:empty_correct}
+% Let $\tilde{\pi}$ be a $\eps$-optimal set of potentials for normal
+% vertices of $H_f$.
+% Construct potentials $\pi$, extending $\tilde{\pi}$ to null vertices, by
+% setting $\pi(a) \gets \tilde{\pi}(s)$ for $a \in A_\emptyset$ and
+% $\pi(b) \gets \tilde{\pi}(t)$ for $b \in B_\emptyset$.
+% Then,
+% \begin{enumerate}
+% \item $\pi$ is a set of $\eps$-optimal potentials for $H_f$, and
+% \item if a shortcut $\short(\Pi)$ is admissible under $\tilde{\pi}$,
+% 	then every arc of $\Pi$ is admissible under $\pi$.
+% \end{enumerate}
+% \end{lemma}
+%
+% \begin{proof}
+% Reduced costs for normal to normal arcs are unchanged between
+% $\tilde{\pi}$ and $\pi$, so $\eps$-optimality are preserved for these.
+% Recall that an null path is comprised of one $A$-to-$B$ arc, and 1 or 2
+% zero-cost arcs (connecting the null vertex/vertices to $s$ and $t$).
+% With our choice of null vertex potentials, we observe that the zero-cost arcs
+% have reduced cost 0:
+% for an empty $a \in A_\emptyset$, $c_\pi(s, a) = 0$, for an empty
+% $b \in B_\emptyset$, $c_\pi(b, t) = 0$.
+% These arcs are both $\eps$-optimal ($\geq -\eps$) and admissible ($\leq 0$), so
+% it remains to prove $\eps$-optimality and admissibility for arcs $(a, b)$ where
+% either $a$ or $b$ is a null vertex.
+%
+% Let $(a, b) \in A \times B$ such that at least one of $a$ or $b$ is empty.
+% There exists an null path $\Pi$ that contains $(a, b)$.
+% Observe that $c_\pi(a, b) = c_\pi(\Pi)$,
+% which we can prove for all varieties of null paths.
+% \begin{itemize}
+% \item If $\Pi = (s, a, b)$ for $a \in A_\emptyset$:
+% 	\begin{equation*}
+% 	c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b) = c(a, b) - \pi(s) + \pi(b) = c_\pi(\Pi)
+% 	\end{equation*}
+% \item If $\Pi = (a, b, t)$ for $b \in B_\emptyset$:
+% 	\begin{equation*}
+% 	c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b) = c(a, b) - \pi(a) + \pi(t) = c_\pi(\Pi)
+% 	\end{equation*}
+% \item If $\Pi = (s, a, b, t)$ for $a \in A_\emptyset$ and $b \in B_\emptyset$:
+% 	\begin{equation*}
+% 	c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b) = c(a, b) - \pi(s) + \pi(t) = c_\pi(\Pi)
+% 	\end{equation*}
+% \end{itemize}
+% By construction, $c_\pi(\Pi) = c_{\tilde{\pi}}(\short(\Pi))$, so we have
+% $c_\pi(a, b) = c_{\tilde{\pi}}(\short(\Pi)) \geq -\eps$ and $(a, b)$ is
+% $\eps$-optimal.
+% Additionally, if $\short(\Pi)$ is admissible under $\tilde{\pi}$, then so is
+% $(a, b)$ under $\pi$.
+% null paths cover all arcs adjoining null vertices, so we have proved both
+% parts of the lemma for all arcs in $H_f$.
+% \end{proof}
+%
+% In \textsc{Refine}, we do not explicitly construct $\tilde{H}_f$ for running
+% \textsc{Hungarian-Search2} or \textsc{DFS}, but query its edges using BCP/NN
+% oracles and min/max heaps on elements of $H_f$.
+% Potentials for null vertices are only required at the end of \textsc{Refine}
+% (for the next scale), and right before an augmentation sends flow through an
+% null path, making its surrounded vertices normal.
+% During these occasions, we use the procedure in Lemma~\ref{lemma:empty_correct}
+% to find feasible, $\eps$-optimal potentials for null vertices which
+% also preserve the structure of admissibility.
+%
+% \begin{lemma}
+% \label{lemma:empty_updates}
+% The number of end-of-\textsc{Refine} null vertex potential updates is $O(n)$.
+% The number of augmentation-induced null vertex potential updates in each
+% invocation of \textsc{Refine} is $O(\sum_i N_i)$ where $N_i$ is the number
+% of positive flow arcs in the $i$-th blocking flow.
+% \end{lemma}
+%
+% \begin{proof}
+% The number of end-of-\textsc{Refine} potential updates is $O(n)$.
+% Each update due to flow augmentation involves a blocking flow sending positive
+% flow through an null path, causing a potential update on the surrounded
+% null vertex.
+% We charge this potential update to the edges of that null path, which are in
+% turn arcs with positive flow in the blocking flow.
+% For each blocking flow, no positive arc is charged more than twice.
+% It follows that the number of augmentation-induced updates is $O(N_i)$ for the
+% $i$-th blocking flow, and $O(\sum_i N_i)$ over the course of \textsc{Refine}.
+% \end{proof}
+%
+% Ultimately, we prove that $\sum_i N_i = O(k\sqrt{k})$, but this requires that
+% we explain the process creating each blocking flow.
+% We revisit this lemma after analyzing \textsc{DFS}.
 
 \subsubsection{Hungarian search}
 
@@ -1942,7 +2073,7 @@ We revisit this lemma after analyzing \textsc{DFS}.
 \caption{Hungarian Search (cost-scaling)}
 \begin{algorithmic}[1]
 \Function{Hungarian-Search2}{$H = (V, E)$, $f$, $\pi$}
-	\State $\tilde{H}_f \gets$ the shortcut graph of $H_f$
+	\State $\tilde{H}_f \gets$ the shortcut network of $H_f$
 	\State $S \gets \{v \in V \mid \fsupply_f(v) > 0\}$
 	\Repeat
 		\State $(v', w') \gets \argmin\{c_\pi(v', w') \mid v' \in S, w' \not\in S, (v', w') \in \tilde{H}_f)\}$
@@ -1965,13 +2096,13 @@ We revisit this lemma after analyzing \textsc{DFS}.
 \end{figure*}
 
 Logically, we are executing the Hungarian search (``raise prices'') from
-\cite[Section 3.2]{GHKT17} on the shortcut graph $\tilde{H}_f$.
+\cite[Section 3.2]{GHKT17} on the shortcut network $\tilde{H}_f$.
 We describe how we can query the minimum-reduced cost arc leaving $S$ in
-$O(\polylog n)$ time, for the shortcut graph, without constructing
+$O(\polylog n)$ time, for the shortcut network, without constructing
 $\tilde{H}_f$ explicitly.
 For this purpose, let $S'$ be a set of ``reached'' vertices maintained
 alongside $S$, identical except whenever a shortcut is relaxed, we add its
-surrounded empty vertices to $S'$ in addition to its (non-empty) endpoints.
+surrounded null vertices to $S'$ in addition to its (normal) endpoints.
 Observe that the arcs of $\tilde{H}_f$ leaving $S$ fall into $O(1)$ categories.
 \begin{enumerate}
 \item Non-shortcut backward arcs $(v, w)$ with $(w, v) \in \supp(f)$.
@@ -1987,34 +2118,34 @@ Observe that the arcs of $\tilde{H}_f$ leaving $S$ fall into $O(1)$ categories.
 	For $t$, we can maintain a max-heap on the potentials of
 	$A \cap S$, queried while $t \not\in S$.
 
-\item Shortcut arcs $(s, b)$ corresponding to empty 2-paths from $s$ to
+\item Shortcut arcs $(s, b)$ corresponding to null 2-paths from $s$ to
 	$b \in (B \setminus B_\emptyset) \setminus S'$.
 	For these, we maintain a BCP data structure with $P = A_\emptyset$,
 	$Q = (B \setminus B_\emptyset) \setminus S')$ with weights
 	$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for
 	all $q \in Q$.
-	A response $(a, b)$ corresponds to th empty 2-path $(s, a, b)$.
+	A response $(a, b)$ corresponds to th null 2-path $(s, a, b)$.
 	This is only queried while $s \in S'$.
-\item Shortcut arcs $(a, t)$ corresponding to empty 2-paths from
+\item Shortcut arcs $(a, t)$ corresponding to null 2-paths from
 	$a \in (A \setminus A_\emptyset) \cap S'$ to $t$.
 	For these, we maintain a BCP data structure with
 	$P = (A \setminus A_\emptyset) \cap S'$,
 	$Q = B_\emptyset \setminus S'$ with weights $\omega(p) = \pi(p)$ for
 	all $p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
-	A response $(a, b)$ corresponds to th empty 2-path $(a, b, t)$.
+	A response $(a, b)$ corresponds to th null 2-path $(a, b, t)$.
 	This is only queried while $t \not\in S'$.
-\item Shortcut arcs $(s, t)$ corresponding to empty 3-paths.
+\item Shortcut arcs $(s, t)$ corresponding to null 3-paths.
 	For these, we maintain in a BCP data structure with
 	$P = A_\emptyset \setminus S'$, $Q = B_\emptyset \setminus S'$ with
 	weights $\omega(p) = \pi(s)$ for all
 	$p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
-	A response $(a, b)$ corresponds to th empty 3-path $(s, a, b, t)$.
+	A response $(a, b)$ corresponds to th null 3-path $(s, a, b, t)$.
 	This is only queried while $s \in S'$ and $t \not\in S'$.
 \end{enumerate}
 
 By construction, the BCP distance of each datastructure in (4-6) is equal to
 the reduced cost of the shortcut, which is equal to the reduced cost of the
-corresponding empty path.
+corresponding null path.
 Each of the above data structures requires one query per relaxation, and an
 insertion/deletion operation whenever a new vertex moves into $S$.
 The data structures above can perform both in $O(\polylog n)$ time each, so the
@@ -2029,7 +2160,7 @@ a deficit vertex is reached.
 
 \begin{proof}
 Each edge relaxation adds a new vertex to $S$, and non-shortcut relaxations
-only add non-empty vertices.
+only add normal vertices.
 The vertices of $V \setminus S$ fall into several categories:
 (i) $s$ or $t$, (ii) vertices of $A$ or $B$ with 0 imbalance, and (iii)
 deficit vertices of $A$ or $B$ ($S$ contains all excess vertices).
@@ -2040,7 +2171,7 @@ An $A$ or $B$ vertex with 0 imbalance must have an even number of $\supp(f)$
 edges.
 There is either only one positive-capacity incoming arc (for $A$) or outgoing
 arc (for $B$), so this quantity is either 0 or 2.
-Since the vertex is non-empty, this must be 2.
+Since the vertex is normal, this must be 2.
 We charge 0.5 to each of the two $\supp(f)$ arcs; the arcs of $\supp(f)$
 have no more than 1 charge each.
 Thus, the number of type (ii) vertex relaxations is $O(|\supp(f)|)$.
@@ -2055,17 +2186,17 @@ deficit vertex is reached.
 
 \begin{proof}
 Recall the categories of shortcuts from the list of datastructures above.
-We have shortcuts corresponding to (i) empty 2-paths surrounding
-$a \in A_\emptyset$, (ii) empty 2-paths surrounding $b \in B_\emptyset$, and
-(iii) empty 3-paths, which go from $s$ to $t$.
+We have shortcuts corresponding to (i) null 2-paths surrounding
+$a \in A_\emptyset$, (ii) null 2-paths surrounding $b \in B_\emptyset$, and
+(iii) null 3-paths, which go from $s$ to $t$.
 
 There is only one relaxation of type (iii), since $t$ can only be added to $S$
 once.
 The same argument holds for type (ii).
 
-Each type (i) relaxation adds some non-empty $b \in B \setminus B_\emptyset$
+Each type (i) relaxation adds some normal $b \in B \setminus B_\emptyset$
 into $S$.
-Since $b$ is non-empty, it must either have deficit or an adjacent arc of
+Since $b$ is normal, it must either have deficit or an adjacent arc of
 $\supp(f)$.
 We charge this relaxation to $b$ if it is deficit, or the adjacent arc of
 $\supp(f)$ otherwise.
@@ -2125,17 +2256,17 @@ operations over the course of \textsc{Hungarian-Search2}.
 \end{enumerate}
 
 For potential updates, we use the same trick as in Lemma~\ref{lemma:hs_time} to
-lazily update potentials after vertices leave $S$, but only for non-empty
+lazily update potentials after vertices leave $S$, but only for normal
 vertices.
-Non-empty vertices are stored in each data structure with weight
+normal vertices are stored in each data structure with weight
 $\omega(v) = \pi(v) - \delta$, and $\delta$ is increased in lieu of increasing
 the potential of all $S$ vertices.
 When vertices leave $S$ (through the rewind mechansim above), we restore
 their potentials as $\pi(v) \gets \omega(v) + \delta$.
-With lazy updates, the number of potential updates on non-empty vertices is
+With lazy updates, the number of potential updates on normal vertices is
 bounded by the number of relaxations in the Hungarian search, which is $O(k)$
 by Corollary~\ref{corollary:goldberg_hs_length}.
-Note that empty vertex potentials are not handled in
+Note that null vertex potentials are not handled in
 \textsc{Hungarian-Search2}.
 \end{proof}
 
@@ -2146,7 +2277,7 @@ Note that empty vertex potentials are not handled in
 \label{algorithm:goldberg_dfs}
 \begin{algorithmic}[1]
 \Function{DFS}{$H = (V, E)$, $f$, $\pi$}
-	\State $\tilde{H}_f \gets$ the shortcut graph of $H_f$
+	\State $\tilde{H}_f \gets$ the shortcut network of $H_f$
 	\State $f' \gets 0$.
 	\State $S \gets \{v \in V \mid \fsupply_f(v) > 0\}$
 	\State $S_0 \gets \{v \in V \mid \fsupply_f(v) > 0\}$
@@ -2179,15 +2310,15 @@ Note that empty vertex potentials are not handled in
 \end{algorithm}
 
 The depth-first search is similar to \textsc{Hungarian-Search2} in that it
-uses the relaxation of minimum-reduced cost arcs/empty paths, this time to
-identify admissible arcs/empty paths in a depth-first manner.
+uses the relaxation of minimum-reduced cost arcs/null paths, this time to
+identify admissible arcs/null paths in a depth-first manner.
 This requires some adjustments to the data structures for finding the
 minimum-reduced cost arc leaving $v' \in S$.
 Given $v' \in S$, we would like to query:
 \begin{enumerate}
 \item Non-shortcut backward arcs $(v', w')$ with $(w', v') \in \supp(f)$.
 	For these, we can maintain a min-heap on $(w', v') \in \supp(f)$ arcs
-	for each non-empty $v' \in V$.
+	for each normal $v' \in V$.
 \item Non-shortcut $A$-to-$B$ forward arcs.
 	For these, we maintain a NN data structure over
 	$P = (B \setminus B_\emptyset) \setminus S$, with weights
@@ -2200,29 +2331,29 @@ Given $v' \in S$, we would like to query:
 	For $B$-to-$t$ arcs, there is only one arc to check if $v' \in B$,
 	which we can examine manually.
 
-\item Shortcut arcs $(s, b)$ corresponding to empty 2-paths from $s$ to
+\item Shortcut arcs $(s, b)$ corresponding to null 2-paths from $s$ to
 	$b \in (B \setminus B_\emptyset) \setminus S'$.
 	For these, we maintain a BCP data structure with $P = A_\emptyset$,
 	$Q = (B \setminus B_\emptyset) \setminus S')$ with weights
 	$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for
 	all $q \in Q$.
-	A response $(a, b)$ corresponds to th empty 2-path $(s, a, b)$.
+	A response $(a, b)$ corresponds to th null 2-path $(s, a, b)$.
 	This is only queried if $v' = s$.
-\item Shortcut arcs $(a, t)$ corresponding to empty 2-paths from
+\item Shortcut arcs $(a, t)$ corresponding to null 2-paths from
 	$a \in (A \setminus A_\emptyset) \cap S'$ to $t$.
 	For these, we maintain a NN data structure over
 	$P = B_\emptyset \setminus S'$ with weights $\omega(p) = \pi(t)$ for
 	each $p \in P$.
-	A response $(v', b)$ corresponds to th empty 2-path $(v', b, t)$.
+	A response $(v', b)$ corresponds to th null 2-path $(v', b, t)$.
 	We subtract $\pi(v')$ from the NN distance to recover the reduced cost
 	of the arc from $v'$.
 	This is not queried if $t \in S$.
-\item Shortcut arcs $(s, t)$ corresponding to empty 3-paths.
+\item Shortcut arcs $(s, t)$ corresponding to null 3-paths.
 	For these, we maintain in a BCP data structure with
 	$P = A_\emptyset \setminus S'$, $Q = B_\emptyset \setminus S'$ with
 	weights $\omega(p) = \pi(s)$ for all
 	$p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
-	A response $(a, b)$ corresponds to th empty 3-path $(s, a, b, t)$.
+	A response $(a, b)$ corresponds to th null 3-path $(s, a, b, t)$.
 	This is only queried while $v' = s$ and $t \not\in S'$.
 \end{enumerate}
 
@@ -2276,7 +2407,7 @@ we can complete the proof of Lemma~\ref{lemma:goldberg_refine_time}
 (time per \textsc{Refine}) by bounding the total number of arcs whose flow is
 updated by a blocking flow during \textsc{Refine}.
 This bounds both the time spent updating the flow value of these arcs, and
-also the time spent on empty vertex potential updates
+also the time spent on null vertex potential updates
 (Lemma~\ref{lemma:empty_updates}).
 
 \begin{lemma}
@@ -2310,7 +2441,7 @@ iteration.
 once-per-\textsc{Refine} preprocessing to initialize data structures
 in $P_1(n, k) + P_2(n, k) = O(n\polylog n)$ time.
 Outside of these, we need to account for the time spent on flow value updates
-and augmentation-induced empty vertex potential updates.
+and augmentation-induced null vertex potential updates.
 By Lemma~\ref{lemma:goldberg_bf_size}, the former is $O(k\sqrt{k})$ over the
 course of \textsc{Refine}.
 Combining Lemmas~\ref{lemma:goldberg_bf_size} and \ref{lemma:empty_updates},
@@ -2460,7 +2591,7 @@ Recall that feasibility of $\pi^*$ states that, for all $a \in A$ and $b \in B$
 \[
 	c_{\pi^*}(a, b) = \norm{a-b}_p - \pi^*(a) + \pi^*(b) \geq 0.
 \]
-An arc $\arc{ab}$ is admissible when 
+An arc $\arc{ab}$ is admissible when
 \[
 	c_{\pi^*}(a, b) = \norm{a-b}_p - \pi^*(a) + \pi^*(b) = 0.
 \]
@@ -2471,7 +2602,7 @@ at $q$.
 We say two $L_p$-disks are \emph{tangent} if their boundaries intersect at
 exactly one point.
 \note{TODO not right for $L_1$ and $L_\infty$ squares} %TODO
-We say an $L_p$-disk $D_1$ \emph{proper-contains} another disk $D_2$ if 
+We say an $L_p$-disk $D_1$ \emph{proper-contains} another disk $D_2$ if
 $D_2 \subset D_1$ and $D_2$ is not tangent to $D_1$
 (i.e., there is some space between the boundary of $D_2$ and $D_1$).
 Then feasibility becomes: ``For all $a \in A$, $b \in B$, $D_a$ does not
@@ -2482,7 +2613,7 @@ We will call the admissibility situation \emph{tangent-contains}.
 We show that no disk diagram obeying feasibility can generate a pair of
 admissible arcs that cross, i.e. the natural embedding is planar.
 
-Let $\arc{a_1 b_1}$ and $\arc{a_2 b_2}$ be any pair of admissible arcs from the
+Let $\arc a_1 b_1$ and $\arc a_2 b_2$ be any pair of admissible arcs from the
 disk diagram of $\pi^*$.
 We will isolate them from the rest of the points, considering $\pi^*$
 restricted to the points $\{a_1, a_2, b_1, b_2\}$.
@@ -2491,11 +2622,11 @@ By definition of admissibility, we have $D_{a_1}$ tangent-contains $D_{b_1}$
 and $D_{a_2}$ tangent-contains $D_{b_2}$.
 Observe that we can raise $\pi^*(a_2)$ and $\pi^*(b_2)$ uniformly, until
 $D_{a_2}$ tangent-contains $D_{b_1}$, without breaking feasibility or changing
-admissibility of $\arc{a_1 b_1}$ and $\arc{a_2 b_2}$
-Henceforth, we assume that we have modified $\pi^*$ in such a way such that 
+admissibility of $\arc a_1 b_1$ and $\arc a_2 b_2$
+Henceforth, we assume that we have modified $\pi^*$ in such a way such that
 $D_{a_2}$ tangent-contains $D_{b_1}$.
-Given positions of $a_1$, $a_2$, and $b_1$, we now try to place $b_2$ such that 
-$\arc{a_1 b_1}$ and $\arc{a_2 b_2}$ cross.
+Given positions of $a_1$, $a_2$, and $b_1$, we now try to place $b_2$ such that
+$\arc a_1 b_1$ and $\arc a_2 b_2$ cross.
 
 Let $\ell$ be the bisector between $a_1$ and $a_2$ according to additively
 weighted $L_p$ distance $\norm{a - q}_p - \pi^*(a)$, $a \in \{a_1, a_2\}$.
@@ -2529,7 +2660,7 @@ Let the \EMPH{support degree} of a vertex be its degree in $E(\supp(f))$.
 \paragraph{Dead vertices.}
 We call a vertex $b \in B$ \EMPH{dead} if it has support degree 0 and is not an
 active excess or deficit.
-These are essentially equivalent to the \emph{empty vertices} of
+These are essentially equivalent to the \emph{null vertices} of
 Section~\ref{section:goldberg}.
 Since the reduction in this section does not use a super-source/super-sink,
 we can simply remove these from consideration during a Hungarian search ---
