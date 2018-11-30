@@ -1018,9 +1018,15 @@ with respect to $\pi$.
 Rearranging the terms we have that $\cost(f) \leq \cost(f^*) + 6k\eps$.
 \end{proof}
 
+\begin{toappendix}
 
 \paragraph{Multiplicative approximation.}
 Now we empoly a technique from Sharathkumar and Agarwal~\cite{SA12} to convert the additive approximation into a multiplicative one.
+
+\note{Move the whole construction to appendix}
+
+
+
 
 Let $T$ be the minimum spanning tree on input graph $G$ and order
 its edges by increasing length as $e_1, \ldots, e_{r+n-1}$.
@@ -1096,6 +1102,7 @@ To solve this issue we perform a binary search on the edges $e_1, \ldots, e_{r+n
 % \end{align*}
 % \end{proof}
 
+\end{toappendix}
 
 \subsection{High-Level Description of Cost-Scaling Algorithm}
 
@@ -1475,6 +1482,9 @@ For this purpose, let \EMPH{$S'$} be a set of ``reached'' vertices maintained,
 identical to $S$ \note{undefined} except whenever a shortcut is relaxed, we add the null vertices passed by the corresponding null path to $S'$ in addition to its (normal) endpoints. \note{$S$ should be $\tilde{S}$ and $S'$ should be $S$?}
 %
 Observe that the arcs of $\tilde{H}_f$ leaving $S$ fall into $O(1)$ categories.
+
+\begin{toappendix}
+
 \begin{enumerate}
 \item Non-shortcut backward arcs $(v, w)$ with $(w, v) \in \supp(f)$.
 	For these, we can maintain a min-heap on $\supp(f)$ arcs as each $v$
@@ -1514,6 +1524,8 @@ Observe that the arcs of $\tilde{H}_f$ leaving $S$ fall into $O(1)$ categories.
 	This is only queried while $s \in S'$ and $t \not\in S'$.
 \end{enumerate}
 
+\end{toappendix}
+
 By construction, the distance returned by
 each of the BCP data structure in (4)--(6) is equal to
 the reduced cost of the shortcut, which is equal to the reduced cost of the
@@ -1533,6 +1545,9 @@ This requires some adjustments to the data structures for finding the
 minimum-reduced cost arc leaving $v' \in S$.
 Given $v' \in S$, we would like to query:
 %
+
+\begin{toappendix}
+
 \begin{enumerate}
 \item Non-shortcut backward arcs $(v', w')$ with $(w', v') \in \supp(f)$.
 	For these, we can maintain a min-heap on $(w', v') \in \supp(f)$ arcs
@@ -1574,6 +1589,8 @@ Given $v' \in S$, we would like to query:
 	A response $(a, b)$ corresponds to th null 3-path $(s, a, b, t)$.
 	This is only queried while $v' = s$ and $t \not\in S'$.
 \end{enumerate}
+
+\end{toappendix}
 
 Each data structure above performs a constant number of queries and
 updates per relaxation, each of which can be implemented in $O(\polylog n)$ time \cite{}; so the running time is again bounded by
@@ -2971,10 +2988,15 @@ We allow augmenting paths to begin from any $a \in \hat{v} \cap A$ of an active
 excess component $\hat{v}$, and end in any $b \in \hat{w} \cap B$ of an active
 deficit component $\hat{w}$.
 
+\paragraph{Recovering optimal flow.}
+\note{Summarize the results.}
+
+\begin{toappendix}
+
 \paragraph{Recovering the optimal flow.}
 \note{use this one if we want to use exponent $>1$. } %TODO
 
-\note{Move everything to appendix and left a pointer to the socg 2016 paper.s}
+\note{Move everything to appendix and left a pointer to the socg 2016 paper.}
 
 We use a strategy from Agarwal~\etal~\cite{AFPVX17}.
 Instead of finding a max flow in the entire admissible network under $\pi^*$,
@@ -3130,6 +3152,8 @@ so by Euler's formula the number of arcs to query is $O(n)$.
 We can then find the maximum flow in time $O(n\log n)$ time, using for example the
 planar maximum-flow algorithm by Erickson~\cite{E10}. \cite{Other citations like Klein}
 
+\end{toappendix}
+
 \subsection{Dead vertices and support stars}
 
 Given Theorem~\ref{theorem:orlin_old}, our goal is to implement each
@@ -3212,7 +3236,9 @@ $b \in \Sigma_a$.
 Before describing our workaround for support stars, we analyze the number of
 relaxation steps for arcs outside of support stars.
 By prioritizing the relaxation of support arcs, we also have the following
-lemma.
+lemma. \note{Moved to appendix}
+
+\begin{toappendix}
 
 \begin{lemmarep}[(Agarwal~\etal~\cite{AFPVX17})]
 \label{lemma:orlin_acyclic}
@@ -3269,8 +3295,8 @@ and $E(\supp(f_{i+1})) \subseteq E(\supp(f_i)) \cup E(T_i)$ is acyclic.
 By induction, $E(\supp(f_i))$ is acyclic for all $i$.
 \end{proof}
 
-Let \EMPH{$E(\Sigma_a)$} be the underlying edges of the support star centered
-at $a$ and $F \coloneqq E(\supp(f)) \setminus \bigcup_{a \in A} E(\Sigma_a)$.
+Let \EMPH{$E(\Sigma_a)$} \note{only used once} be the underlying edges of the support star centered
+at $a$ and $\EMPH{$F$} \coloneqq E(\supp(f)) \setminus \bigcup_{a \in A} E(\Sigma_a)$.
 Using Lemma~\ref{lemma:orlin_acyclic}, we can show that the number of support
 arcs outside support stars ($\abs{F}$) is small.
 
@@ -3294,6 +3320,8 @@ Charge each vertex in $B$ to one of its children in $F$, which must belong to $A
 Each vertex in $A$ is charged at most once.
 Thus, the number of $B_\ell$ vertices outside of support stars is no more than $r$.
 \end{proof}
+
+\end{toappendix}
 
 \begin{lemmarep}
 \label{lemma:orlin_relax_count}
