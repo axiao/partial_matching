@@ -189,6 +189,8 @@ and $B$ the \EMPH{geometric partial matching problem}.
 % \noindent\textcolor{blue}{[Hsien: State your TODO list explicitly in the pdf file so that it's easier to read.  Make everything that you are planning to do, and put priorities on them.]}
 % \end{TODO}
 
+\note{talk about the near-linear time alg}%TODO
+
 
 \subsection{Contributions}
 
@@ -263,7 +265,8 @@ Let $A$ and $B$ be two point sets in the plane with $|A| = r$ and $|B| = n$
 satisfying $r \le n$, with supplies and demands given by the function
 $\tsupply: (A \cup B) \to \ints$ such that
 $\sum_{a \in A} \tsupply(a) = \sum_{b \in B} \tsupply(b)$.
-An optimal transportation map can be computed in $O(rn^{3/2}\polylog n)$ time.
+An optimal transportation map can be computed in
+$O(rn(r/\sqrt{n} + \sqrt{n})\polylog n)$ time.
 \end{theorem}
 
 %TODO STILL IN PROGRESS, WE DON'T HAVE A SOLUTION YET. REMOVE IF FAILS.
@@ -280,8 +283,8 @@ An optimal transportation map can be computed in $O(rn^{3/2}\polylog n)$ time.
 %% how?
 
 By nature of the BCP/NN oracles we use, these results generalize to when
-$\|a - b\|$ is any $L_p$ distance, and not just the Euclidean distance between
-$a$ and $b$.
+$\norm{a-b}$ is any $L_p$ distance, and if we use $p'$-th power costs
+$c(a, b) = \norm{a-b}^{p'}$ for any $1 \le p' < \infty$.
 
 
 \section{Preliminaries}
@@ -876,6 +879,7 @@ only on admissible arcs $\arc vw$.
 
 %Now, we can concretely state how admissible augmentations lead to a correct algorithm for $\eps > 0$.
 \begin{lemma}
+\label{lemma:eps_opt_preserve}
 Let $f$ be an $\eps$-optimal pseudoflow in $G$ and let $f'$ be an
 admissible flow in $G_f$.
 Then $f + f'$ is also $\eps$-optimal.
@@ -2803,11 +2807,14 @@ completes the proof of Theorem~\ref{theorem:gmcm}.
 % handling problem cases (stars, singletons)
 
 In this section, we give an exact algorithm which solves the transportation
-problem in $O(rn^{3/2}\polylog n)$ time, proving Theorem~\ref{theorem:orlin}.
+problem in $O(rn(r + \sqrt{n})\polylog n)$ time, proving
+Theorem~\ref{theorem:orlin}.
 This algorithm is a geometric implementation of the uncapacitated min-cost flow
 algorithm due to Orlin~\cite{O93}, combined with some of the tools developed
-in Sections~\ref{section:hung} and \ref{section:goldberg} (e.g. rewinding relaxation
-updates). \note{Be specific, since the tools have been introduced.}
+in Sections~\ref{section:hung} and \ref{section:goldberg}. 
+Mainly, we batch potential updates and use the rewinding mechanism to
+initialize each Hungarian search in time proportional to the previous
+Hungarian search.
 
 Let $A$ and $B$ be points in the plane with $r \coloneqq \abs{A}$ and
 $n \coloneqq \abs{B}$.
@@ -2829,8 +2836,7 @@ We define the cost of $\tau$ to be
 \]
 Given $A$, $B$, and $\tsupply$, the \EMPH{transportation problem} asks to find
 a feasible transportation map of minimum cost.
-Using terminology from matchings, we focus on analyzing the \EMPH{unbalanced}
-setting where $r \leq n$.
+We focus on analyzing the \EMPH{unbalanced} setting where $r \leq n$.
 
 There is a simple reduction from the transportation problem to uncapacitated
 min-cost flow.
@@ -2839,7 +2845,7 @@ directed $A$-to-$B$), set the costs $c(a, b) = \norm{a-b}$, all capacities to
 infinity, and use $\fsupply = \tsupply$.
 Any circulation $f$ in the network $N = (G, c, u, \fsupply)$ can be converted
 into a feasible transportation map $\tau_f$ by taking
-$\tau_f(a, b) \gets f(a, b)$.
+$\tau_f(a, b) \gets f(\arc ab)$.
 Furthermore, $\cost(f) = \cost(\tau_f)$.
 
 \subsection{Uncapacitated MCF by excess scaling}
@@ -2848,37 +2854,53 @@ We give an outline of the strongly polynomial algorithm for uncapacited MCF
 from Orlin~\cite{O93}.
 Orlin's algorithm follows an \EMPH{excess-scaling} paradigm originally due to
 Edmonds and Karp~\cite{EK72}.
-Recall that we can compute an optimal flow by beginning with $f = 0$, $\pi = 0$
-and repeatedly augmenting $f$ with improving flows on 0-admissible arcs.
-The excess-scaling algorithm maintain a parameter $\Delta$, and uses for its
-improving flow an augmenting path between an excess vertex with
-$\fsupply_f(v) \geq \Delta$, and a deficit vertex with $\fsupply_f(v) \leq -\Delta$.
-Vertices with $\abs{\fsupply_f(v)} \geq \Delta$ are called \EMPH{active}.
+Consider the basic primal-dual skeleton used in the previous sections:
+The algorithm begins with $f = 0$, $\pi = 0$, then repeatedly runs a
+\emph{Hungarian search} that raises potentials (while maintaing dual
+feasibility) to create an admissible augmenting excess-deficit path, on which
+it then augments flow.
+If supplies/demands are integral and each augmentation is at least one unit of
+flow, then such an algorithm terminates.
+In terms of cost, $f$ is maintained to be $0$-optimal with respect to $\pi$
+and augmentations over admissible edges preserve this by
+Lemma~\ref{lemma:eps_opt_preserve}.
+Thus, the final circulation must be optimal.
+The excess-scaling paradigm tunes this skeleton by specifying (i) between which
+excess and deficit we augment, and (ii) how much flow is sent by the
+augmentation.
+
+The excess-scaling algorithm maintains a \EMPH{scale parameter} $\Delta$,
+initially $\Delta = U$.
+Let vertices with $\abs{\fsupply_f(v)} \geq \Delta$ be \EMPH{active}.
+Each augmenting path is chosen between an active excess vertex and an active
+deficit vertex.
 Once there are either no more active excess or no more active deficit vertices,
 $\Delta$ is halved.
 Each sequence of augmentations where $\Delta$ holds a constant value is called
 an \EMPH{excess scale}.
-The algorithm initializes $\Delta = U$, so there are $O(\log U)$ excess scales
-before $\Delta < 1$ and, by integrality of supplies/demands, $f$ is a
-circulation.
+There are $O(\log U)$ excess scales before $\Delta < 1$ and, by integrality of
+supplies/demands, $f$ is a circulation.
 
 With some modifications to the excess-scaling algorithm, Orlin~\cite{O93}
 obtains an algorithm with a strongly polynomial bound on the number of
 augmentations and excess scales.
 First, an \EMPH{active} vertex is redefined to be one where
 $\abs{\fsupply_f(v)} \geq \alpha\Delta$, for a parameter $\alpha \in (1/2, 1)$.
-Second, arcs which have $f(v, w) \geq 3n\Delta$ are \EMPH{contracted},
-creating a new vertex $\hat{v}$ which inherits all the arcs of $v$ and $w$,
-and has $\fsupply(\hat{v}) \gets \fsupply(\hat{v}) + \fsupply(\hat{w})$.
+Second, arcs which have $f(\arc vw) \geq 3n\Delta$ at the beginning of a scale
+are \EMPH{contracted}, creating a new vertex $\hat{v}$ which inherits all the
+arcs of $v$ and $w$, and has
+$\fsupply(\hat{v}) \gets \fsupply(\hat{v}) + \fsupply(\hat{w})$.
 We use $\hat{G} = (\hat{V}, \hat{E})$ to denote the resulting
 \EMPH{contracted graph}, where each $\hat{v} \in \hat{V}$ is a contracted
 component of vertices from $V$.
-Third, $\Delta$ is aggressively lowered to $\max_{v \in V} \fsupply_f(v)$ if there are
-no active excess vertices, and $f(v, w) = 0$ on all non-contracted arcs
+Intuitively, the flow is so high on contracted arcs that no set of future
+augmentations can remove the arc from $\supp(f)$.
+Third, $\Delta$ is lowered to $\max_{v \in V} \fsupply_f(v)$ if there are no
+active excess vertices, and $f(v, w) = 0$ on all non-contracted arcs
 $(v, w) \in \hat{E}$.
 Finally, flow values are not tracked within contracted components, but once an
 optimal circulation is found on $\hat{G}$, optimal potentials $\pi^*$ can be
-\EMPH{recovered} for $G$ by sequentially undoing contractions.
+\EMPH{recovered} for $G$ in linear time by sequentially undoing contractions.
 The algorithm performs a post-processing step which finds the optimal
 circulation $f^*$ on $G$ by solving a max-flow problem on the set of admissible
 arcs under $\pi^*$.
@@ -2889,25 +2911,33 @@ Orlin's algorithm finds optimal potentials after $O(n\log n)$ scaling phases,
 and $O(n\log n)$ total augmentations.
 \end{theorem}
 
-\paragraph{Geometric implementation of contractions.}
-Following Agarwal~\etal~\cite{AFPVX17}, our geometric datastructures must
-utilize actual points of $A$ and $B$, rather than the contracted entities in
-$\hat{G}$.
+The remainder of the section focuses on showing that each augmentation can be
+implemented in $O(r(r/\sqrt{n} + \sqrt{n}\polylog n)$ time (after
+preprocessing).
+Additionally, we show that $f^*$ can be recovered from $\pi^*$ very quickly
+for our specific graph.
+
+\paragraph{Implementing contractions.}
+Following Agarwal~\etal~\cite{AFPVX17}, our geometric data structures must deal
+with real points ($A$, $B$), rather than the contracted components ($\hat{V}$).
 We will track the contracted components described in $\hat{G}$ (e.g. with a
-disjoint-set data structure) and label the arcs of $\supp(f)$ which were
+disjoint-set data structure) and mark the arcs of $\supp(f)$ that get
 contracted.
-We maintain potentials on the points of $A \cup B$ instead of the contracted
-entities.
+We maintain potentials on the points ($A \cup B$) directly, instead of the
+contracted components ($\hat{V}$).
 
 When conducting the Hungarian search, we initialize $S$ with all vertices from
-\EMPH{active contracted components} who (in sum) meet the respective imbalance
+\EMPH{active excess contracted components} who (in sum) meet the imbalance
 criteria.
 Upon relaxing any $v \in \hat{v}$, we immediately relax all the contracted
-$\supp(f)$ arcs which span it.
+$\supp(f)$ arcs which span $\hat{v}$.
 Since the input network is uncapacitated, each contracted component is
 strongly connected in the residual network by the admissible forward/reverse
-arcs corresponding to each $\supp(f)$ arc.
-Thus, these relaxations can be performed without further potential changes.
+arcs of each contracted arc.
+For relaxing arcs of $\hat{E}$, we relax support arcs before attempting to 
+relax any non-support arcs.
+Relaxations of support arcs can be performed without further potential changes,
+since they are admissible by invariant.
 
 During augmentations, contracted residual arcs are considered to have infinite
 capacity, and we do not update the value of flow on these arcs.
@@ -2915,83 +2945,183 @@ We allow augmenting paths to begin from any $a \in \hat{v} \cap A$ of an active
 excess component $\hat{v}$, and end in any $b \in \hat{w} \cap B$ of an active
 deficit component $\hat{w}$.
 
-\paragraph{Geometric implementation of recovery.}
+\note{use this one if we want to use exponent $>1$. } %TODO
+\paragraph{Recovering the optimal flow.}
+We use a strategy from Agarwal~\etal~\cite{AFPVX17}.
+Instead of finding a max flow in the entire admissible network under $\pi^*$,
+we claim that is sufficient to find a max flow in a \EMPH{spanning tree} of
+admissible arcs, e.g. a shortest path tree on reduced costs.
+There are some details to explain --- like where the tree should be rooted, how
+to ensure the underlying network is strongly connected by admissible arcs ---
+but we give the intuition first:
+Such a spanning tree is a maximal set of linearly independent dual LP
+constraints for the optimal dual ($\pi^*$), so there exists an optimal primal
+solution ($f^*$) with support only on these arcs.
+To see this, we can use a perturbation argument: raising the cost of each 
+non-tree edge by $\eps > 0$ does not change $\cost(\pi^*)$ or the feasibility
+of $\pi^*$, but does raise the cost of any circulation $f$ using non-tree
+edges.
+Strong duality suggests that $\cost(f^*) = \cost(\pi^*)$ is unchanged,
+therefore $f^*$ must have support only on the tree edges.
+
+\note{TODO: the SPT construction requires describing Dijkstra and promising strong connectivity} %TODO
+
+\note{use this one if we only use exponent $1$. } %TODO
+%TODO if we're not doing the p-th power, then we can use this planarity proof
+\paragraph{Recovering the optimal flow.}
 Instead of running a generic max-flow algorithm after finding the optimal
 potentials, we use the following observation.
 
 \begin{lemma}
-Let $\pi^*$ be a set of optimal potentials for the point sets $A$ and $B$.
-The set of admissible arcs under $\pi^*$ form a planar graph.
+\label{lemma:admiss_planar}
+Let $\pi^*$ be a set of optimal potentials for the point sets $A$ and $B$,
+under costs $c(a, b) = \norm{a-b}_p$.
+Then, the set of admissible arcs under $\pi^*$ form a planar graph.
 \end{lemma}
 
-\begin{proof}
-\note{TODO add general position} %TODO general position
-Without loss of generality, we assume $\pi^*$ is nonnegative (raising $\pi^*$
-does not change the objective or feasibility).
+Up until now, we have not placed restrictions on coincidence between $A$ and
+$B$, but for the next proof it is useful to do so.
+We can assume that all points within $A \cup B$ are distinct, otherwise we can
+replace all points coincident at $x \in \reals^2$ with a single point whose
+supply/demand is $\sum_{v \in A \cup B: v=x}\tsupply(v)$.
+This is roughly equivalent to transporting as much as we can between
+coincident supply and demand, and is optimal by triangle inequality.
+So without loss of generality, we assume all points of $A \cup B$ are distinct.
+
+Without loss of generality, assume $\pi^*$ is nonnegative (raising $\pi^*$
+uniformly on all points does not change the objective or feasibility).
 Recall that feasibility of $\pi^*$ states that, for all $a \in A$ and $b \in B$
 \[
 	c_{\pi^*}(a, b) = \norm{a-b}_p - \pi^*(a) + \pi^*(b) \geq 0.
 \]
-An arc $\arc{ab}$ is admissible when
+An arc $\arc ab$ is admissible when 
 \[
 	c_{\pi^*}(a, b) = \norm{a-b}_p - \pi^*(a) + \pi^*(b) = 0.
 \]
+We note that these definitions have a nice visual:
+Place disks $D_q$ of radius $\pi(q)$ at each $q \in A \cup B$.
+Feasibility states that for all $a \in A$ and $b \in B$, $D_a$ cannot contain
+$D_b$ with a gap between their boundaries.
+The arc $\arc ab$ is admissible when $D_a$ contains $D_b$ and their boundaries
+are tangent.
 
-We can visualize these conditions by placing a disk $D_q = B(q, \pi^*(q))$ for
-all $q \in A \cup B$, where $B(q, r)$ is the $L_p$-disk of radius $r$ centered
-at $q$.
-We say two $L_p$-disks are \emph{tangent} if their boundaries intersect at
-exactly one point.
-\note{TODO not right for $L_1$ and $L_\infty$ squares} %TODO
-We say an $L_p$-disk $D_1$ \emph{proper-contains} another disk $D_2$ if
-$D_2 \subset D_1$ and $D_2$ is not tangent to $D_1$
-(i.e., there is some space between the boundary of $D_2$ and $D_1$).
-Then feasibility becomes: ``For all $a \in A$, $b \in B$, $D_a$ does not
-proper-contain $D_b$.''
-The admissibility condition becomes: ``$\arc{ab}$ is admissible if and only if
-$D_b \subset D_a$, and $D_b$ is tangent to $D_a$.''
-We will call the admissibility situation \emph{tangent-contains}.
-We show that no disk diagram obeying feasibility can generate a pair of
-admissible arcs that cross, i.e. the natural embedding is planar.
-
-Let $\arc a_1 b_1$ and $\arc a_2 b_2$ be any pair of admissible arcs from the
-disk diagram of $\pi^*$.
+\begin{proof}
+We assume the points of $A \cup B$ are in general position (e.g. by symbolic
+perturbation) such that no three points are collinear.
+Let $\arc{a_1}{b_1}$ and $\arc{a_2}{b_2}$ be any pair of admissible arcs under
+$\pi^*$.
 We will isolate them from the rest of the points, considering $\pi^*$
-restricted to the points $\{a_1, a_2, b_1, b_2\}$.
+restricted to the four points $\{a_1, a_2, b_1, b_2\}$.
 Clearly, this does not change whether the two arcs cross.
-By definition of admissibility, we have $D_{a_1}$ tangent-contains $D_{b_1}$
-and $D_{a_2}$ tangent-contains $D_{b_2}$.
 Observe that we can raise $\pi^*(a_2)$ and $\pi^*(b_2)$ uniformly, until
-$D_{a_2}$ tangent-contains $D_{b_1}$, without breaking feasibility or changing
-admissibility of $\arc a_1 b_1$ and $\arc a_2 b_2$
-Henceforth, we assume that we have modified $\pi^*$ in such a way such that
-$D_{a_2}$ tangent-contains $D_{b_1}$.
-Given positions of $a_1$, $a_2$, and $b_1$, we now try to place $b_2$ such that
-$\arc a_1 b_1$ and $\arc a_2 b_2$ cross.
+$c_\pi(a_2, b_1) = 0$, without breaking feasibility or changing admissibility
+of $\arc{a_1}{b_1}$ and $\arc{a_2}{b_2}$
+Henceforth, we assume that we have modified $\pi^*$ in this way to make
+$\arc{a_2}{b_1}$ admissible.
+Given positions of $a_1$, $a_2$, and $b_1$, we now try to place $b_2$ such that 
+$\arc{a_1}{b_1}$ and $\arc{a_2}{b_2}$ cross.
+Specifically, $b_2$ must be placed within a region $\EuScript{F}$ that lies
+between the rays $\overrightarrow{a_2 a_1}$ and $\overrightarrow{a_2 b_1}$,
+and within the halfplane bounded by $\overleftrightarrow{a_1 b_1}$ that does
+not contain $a_2$.
+%TODO figure of the feasible region
 
-Let $\ell$ be the bisector between $a_1$ and $a_2$ according to additively
-weighted $L_p$ distance $\norm{a - q}_p - \pi^*(a)$, $a \in \{a_1, a_2\}$.
-%TODO
-Observe that $b_2$ lies on $\ell$.
+Let $g_a(q) \coloneqq \norm{a-q} - \pi^*(a)$ for $a \in A$ and
+$q \in \reals^2$.
+Let the \EMPH{bisector} between $a_1$ and $a_2$ be
+$\beta \coloneqq \{q \in \reals^2 \mid g_{a_1}(q) = g_{a_2}(q)$.
+$\beta$ is a curve subdividing the plane into two open faces, one where
+$g_{a_1}$ is minimized and the other where $g_{a_2}$ is.
+From these definitions, admissibility of $\arc{a_1}{b_1}$ and $\arc{a_2}{b_1}$
+imply that $b_1$ is a point of the bisector.
 
+We show that $\EuScript{F}$ lies entirely on the $g_{a_1}$ side of the
+bisector.
+First, we prove that the closed segment $\overline{a_1 b_1}$ lies entirely on
+the $g_{a_1}$ side, except $b_1$ which lies on $\beta$.
+Any $q \in \overline{a_1 b_1}$ can be written parametrically as
+$q(t) = (1-t) b_1 + t a_1$ for $t \in [0,1]$.
+Consider the single-variable functions $g_{a_1}(q(t))$ and $g_{a_2}(q(t))$.
+\begin{equation*}
+\begin{aligned}
+	g_{a_1}(q(t)) &= (1-t)\norm{a_1 - b_1} - \pi(a_1) \\
+	g_{a_2}(q(t)) &= \norm{(a_2 - b_1) - t(a_1 - b_1)} - \pi(a_2)
+\end{aligned}
+\end{equation*}
+At $t=0$, these expressions are equal.
+%TODO would like to work out this calculation; is this correct?
+Observe that the derivative with respect to $t$ of $g_{a_1}(q(t))$ is less than
+$g_{a_2}(q(t))$.
+Indeed, the value of $\frac{d}{dt}\norm{(a_2 - b_1) - t(a_1 - b_1)}$ is at
+least $-\norm{a_1 - b_1} = \frac{d}{dt}g_{a_1}(q(t))$, which is realized iff
+$\frac{(a_2 - b_1)}{\norm{a_2 - b_1}} = \frac{(a_1 - b_1)}{\norm{a_1 - b_1}}$.
+This corresponds to $\overrightarrow{a_2 b_1}$ and $\overrightarrow{a_1 b_1}$
+being parallel, but this is disallowed since $a_1, a_2, b_1$ are in general
+position.
+Thus, $g_{a_1}(q(t)) \leq g_{a_2}(q(t))$ with equality only at $b_1$.
 
+Now, we parameterize each point of $\EuScript{F}$ in terms of points on
+$\overline{a_1 b_1}$.
+Every $q \in \EuScript{F}$ can be written as $q(t') = q' + t'(q' - a_2)$ for
+some $q' \in \overline{a_1 b_1}$ and $t \geq 0$, i.e.
+$q' = \overline{a_1 b_1} \cap \overrightarrow{a_2 q}$.
+We call $q'$ the \EMPH{projection} of $q$ onto $\overline{a_1 b_1}$.
+We can write $g_{a_1}$ and $g_{a_2}$ in terms of $t'$ and observe that
+$\frac{d}{dt'}g_{a_1}(q(t')) \leq \frac{d}{dt'}g_{a_2}(q(t'))$, as the
+derivative of $g_a(q(t'))$ is maximized if $(q(t') - a)$ is parallel to
+$(q(t') - a_2)$ and lower otherwise.
+Notably, $q(t')$ with projection $b_1$ have 
+$\frac{d}{dt'}g_{a_1}(q(t')) < \frac{d}{dt'}g_{a_2}(q(t'))$, since
+$a_1, a_2, b_1$ are in general position.
+Any $q(t')$ with a different projection do not have strict inequality, but
+the projection itself has $g_{a_1}(q') < g_{a_2}(q')$ for $q' \neq b_1$ since
+it lies on $\overline{a_1 b_1}$.
+Therefore, for all $q \in \EuScript{F} \setminus\{b_1\}$,
+$g_{a_1}(q') < g_{a_2}(q')$, and $\EuScript{F}$ lies on the $g_{a_1}$ side of
+the bisector except for $b_1$ which lies on $\beta$.
+We can eliminate $b_1$ as a candidate position for $b_2$, since points of $B$
+cannot coincide.
 
+Observe that $g_{a_1}(b) < g_{a_2}(b)$ for $b \in B$ implies that 
+$c_\pi(a_1, b) < c_\pi(a_2, b)$, and $c_\pi(a_1, b) = c_\pi(a_2, b)$ if and
+only if $b$ lies on $\beta$.
+This holds for all $b \in \EuScript{F}$ including our prospective $b_2$,
+but then $c_\pi(a_1, b_2) < c_\pi(a_2, b_2) = 0$ since $\arc{a_2}{b_2}$ is
+admissible.
+This violates feasibility of $\arc{a_1}{b_2}$, so there is no feasible
+placement of $b_2$ which also crosses $\arc{a_1}{b_1}$ with $\arc{a_2}{b_2}$.
 \end{proof}
+
+We can construct the entire set of admissible arcs by repeatedly querying
+the minimum-reduced cost outgoing arc for each $a \in A$ until the result is
+not admissible.
+By Lemma~\ref{lemma:admiss_planar} the resulting arc set forms a planar graph,
+so by Euler's formula the number of arcs to query is $O(n)$.
+We can then find the maximum flow in time $O(n\log n)$ time, using e.g. the
+planar max-flow algorithm by Erickson~\cite{E10}.
 
 \subsection{Dead vertices and support stars}
 
 Given Theorem~\ref{theorem:orlin_old}, our goal is to implement each
-augmentation in $O(rn^{1/2}\polylog n)$ time.
-To find an augmenting path, we again use some form of Hungarian search with
-geometric data structures to perform relaxations quickly.
-
-Like in Section~\ref{section:goldberg}, there are vertices which cannot be charged
-to the flow support.
-Even worse, the size of the flow support have size $\Omega(n)$ for the
-transportation map (consider an instance with $r=1$, and the demand uniformly
-distributed among vertices of $B$).
-Still, by classifying vertices carefully, we can do better than an $O(n)$ bound
-on the number of relaxations.
+augmentation in $O(r(r/\sqrt{n} + n^{1/2})\polylog n)$ time.
+To find an augmenting path, we again use a Hungarian search with geometric data
+structures to perform relaxations quickly.
+Like in Section~\ref{section:goldberg}, there are vertices which cannot be
+charged to the flow support.
+Worse, the flow support may have size $\Omega(n)$ (consider an instance with
+$r=1$, and demand uniformly distributed among vertices of $B$).
+Our strategy is summarized as follows:
+\begin{itemize}
+\item Discard vertices which lead to dead ends in the search (are not on a path
+	to a deficit).
+\item Cluster parts of the flow support, such that the number of support arcs
+	outside clusters is $O(r)$.
+	The number of relaxations we perform is proportional to the number of
+	support arcs outside of clusters.
+\item Querying/updating clusters degrades our amortized time per relaxation to
+	$O((r/\sqrt{n}+\sqrt{n})\polylog n)$, from the $O(\polylog n)$ in
+	previous sections.
+\end{itemize}
 
 Let $E(\supp(f)) \coloneqq \{(v, w) \mid \arc vw \in \supp(f)\}$ be the set
 of undirected edges corresponding to the arcs in $\supp(f)$.
@@ -3000,24 +3130,30 @@ Let the \EMPH{support degree} of a vertex be its degree in $E(\supp(f))$.
 
 \paragraph{Dead vertices.}
 We call a vertex $b \in B$ \EMPH{dead} if it has support degree 0 and is not an
-active excess or deficit.
-These are essentially equivalent to the \emph{null vertices} of
+active excess or deficit and \EMPH{live} otherwise.
+Dead vertices are essentially equivalent to the \emph{null vertices} of
 Section~\ref{section:goldberg}.
 Since the reduction in this section does not use a super-source/super-sink,
 we can simply remove these from consideration during a Hungarian search ---
 they will not terminate the search, and have no outgoing residual arcs.
-They would not be relaxed by the Hungarian search even if they were included,
-so their potentials will not change as long as they are dead.
+Like null vertices, we ignore dead vertex potentials and infer feasible
+potentials when they become live again.
 We use \EMPH{$A_\ell$} and \EMPH{$B_\ell$} to denote the living
 vertices of points in $A$ and $B$, respectively.
+Note that being dead/alive is a notion strictly for vertices, and not
+contracted components.
 
+%TODO how do we efficiently identify revived vertices? 
 We say a dead vertex is \EMPH{revived} when it stops meeting either condition
 of the definition.
 Dead vertices are only revived after $\Delta$ decreases (i.e. in a
 subsequent excess scale) as no augmenting path will cross a dead vertex and
 they cannot meet the criteria for contractions.
-When a dead vertex is revived, we must add it back into a number of data
-structures.
+When a dead vertex is revived, we must add it back into each of our data
+structures and give it a feasible potential.
+For revived $b \in B$, a feasible choice of potential is
+$\pi(b) \gets \max_{a \in A} \pi(a) - c(a, b)$ which we can query by
+maintaining a weighted nearest neighbor data structure on the points of $A$.
 The total number of revivals is bounded above by the number of augmentations:
 since the final flow is a circulation on $\hat{G}$ and a newly revived vertex
 $v$ has no adjacent $\supp(f)$ arcs and cannot be contracted, there is at least
@@ -3035,8 +3171,7 @@ When the Hungarian search reaches $a$ or any $b \in \Sigma_a$, then the
 entirety of $\Sigma_a$ (as well as $a$) is also admissible-reachable and can be
 included into $S$ without further potential updates.
 Additionally, the only outgoing residual arcs of every $b \in \Sigma_a$ lead to
-$a$, so aside from $a$ there are no vertices of $A$ which can be reached by
-traveling through $\Sigma_a$.
+$a$, the only way to leave $\Sigma_a \cup \{a\}$ is through an arc leaving $a$.
 Once a relaxation step reaches some $b \in \Sigma_a$ or $a$ itself, we would
 like to quickly update the state such that the rest of $b \in \Sigma_a$ is also
 reached without performing relaxation steps to each individual
@@ -3046,10 +3181,8 @@ $b \in \Sigma_a$.
 
 Before describing our workaround for support stars, we analyze the number of
 relaxation steps for arcs outside of support stars.
-We can modify the Hungarian search slightly to ensure that $\supp(f)$ is always
-acyclic in the undirected sense, i.e. where $E(\supp(f))$ is acylic.
-Specifically, we relax support arcs before non-support arcs as they enter the
-frontier.
+By prioritizing the relaxation of support arcs, we also have the following
+lemma.
 
 \begin{lemma}[Agarwal~\etal~\cite{AFPVX17}]
 \label{lemma:orlin_acyclic}
@@ -3106,11 +3239,10 @@ and $E(\supp(f_{i+1})) \subseteq E(\supp(f_i)) \cup E(T_i)$ is acyclic.
 By induction, $E(\supp(f_i))$ is acyclic for all $i$.
 \end{proof}
 
-Let \EMPH{$E(\Sigma_a)$} be the underlying edges of the support star centered at $a$. \note{Do you really need this?}
-% Let $E(\Sigma_a) \coloneqq \{(a, b) \mid b \in \Sigma_a\}$ be the set of
-% undirected edges corresponding to arcs between $\Sigma_a$ and its center $a$.
+Let \EMPH{$E(\Sigma_a)$} be the underlying edges of the support star centered
+at $a$ and $F \coloneqq E(\supp(f)) \setminus \bigcup_{a \in A} E(\Sigma_a)$.
 Using Lemma~\ref{lemma:orlin_acyclic}, we can show that the number of support
-arcs outside support stars is small.
+arcs outside support stars ($\abs{F}$) is small.
 
 \begin{lemma}
 \label{lemma:no_star_support_size}
@@ -3118,19 +3250,19 @@ $\abs{B_\ell \setminus \bigcup_{a \in A} \Sigma_a} \leq r$.
 \end{lemma}
 
 \begin{proof}
+$F$ is constructed from $E(\supp(f))$ by eliminating edges in support stars,
+therefore all edges in $F$ must adjoin vertices in $B$ of support degree at
+least 2.
 By Lemma~\ref{lemma:orlin_acyclic}, $E(\supp(f))$ is acylic and therefore forms
-a spanning forest over $A \cup B_\ell$.
-By eliminating the edges of support stars and dead vertices, the remaining
-edges of $E(\supp(f))$ must adjoin vertices in $B$ of support degree at least 2.
-Thus, all leaves of the bipartite forest $F \coloneqq E(\supp(f)) \setminus \bigcup_{a \in A} E(\Sigma_a)$ are vertices of $A$. \note{Define $F$ outside the lemma because it is being reused.}
+a spanning forest over $A \cup B_\ell$, so $F$ is also a bipartite forest.
+All leaves of $F$ are therefore vertices of $A$.
 
-Pick an arbitrary root for each connected component of the bipartite forest $F$ to establish parent-child
-relationships for each edge.
+Pick an arbitrary root for each connected component of $F$ to establish
+parent-child relationships for each edge.
 As no vertex in $B$ is a leaf, each vertex in $B$ has at least one child.
 Charge each vertex in $B$ to one of its children in $F$, which must belong to $A$.
-Each vertex in $A$ is charged at most once because it has at most one parent in $F$.
-Thus, the number of $B_\ell$ vertices of support degree at least 2 is no more
-than $r$.
+Each vertex in $A$ is charged at most once.
+Thus, the number of $B_\ell$ vertices outside of support stars is no more than $r$.
 \end{proof}
 
 \begin{lemma}
@@ -3141,7 +3273,8 @@ is $O(r)$.
 \end{lemma}
 
 \begin{proof}
-If there are no dead vertices, then each relaxation step adds either
+If there are no dead vertices, then each non-support star relaxation step adds
+either
 (i) an active deficit vertex,
 (ii) a non-deficit vertex $a \in A_\ell$, or
 (iii) a non-deficit vertex $b \in B_\ell$ of support degree at least 2.
@@ -3162,11 +3295,11 @@ $Q = (B_\ell \setminus (\bigcup_{a \in A_\ell} \Sigma_a)) \setminus S$,
 weighted by potentials.
 This can be queried in $O(\log n)$ time and updated in $O(\polylog n)$ time per
 point.
-Since it does not involve support stars, there is at most one
+Since it doesn't deal with support stars, there is at most one
 insertion/deletion per relaxation step.
 
-For $B_\ell$-to-$A_\ell$, support backward arcs are kept admissible by invariant
-so we relax them immediately when they arrive on the frontier.
+For $B_\ell$-to-$A_\ell$, backward (support) arcs are kept admissible by
+invariant, so we relax them immediately when they arrive on the frontier.
 
 \paragraph{Relaxing a support star.}
 We classify support stars into two categories: \EMPH{big stars} are those with
@@ -3185,9 +3318,9 @@ We keep the following data structures to manage support stars.
 	$\EuScript{D}_\text{small}$ between $P = A_\ell \cap S$ and
 	$Q = (\bigcup_{a \in A_\text{small}} \Sigma_a) \setminus S$, weighted by
 	potentials.
-	When $a \in A_s$ or any vertex of $\Sigma_a$ is added to $S$,
-	we remove the points of $\Sigma_a$ from $\EuScript{D}_\text{small}$
-	using $\abs{\Sigma_a}$ deletion operations.
+	When an $a \in A_\text{small}$ or any vertex of its support star is
+	added to $S$, we remove the points of $\Sigma_a$ from
+	$\EuScript{D}_\text{small}$ using $\abs{\Sigma_a}$ deletion operations.
 \end{enumerate}
 We will update these data structures as each support star center is added into
 $S$.
@@ -3211,89 +3344,95 @@ On the other hand, there are now $O(\sqrt{n})$ data structures to query during
 each relaxation step, as there are $O(n/\sqrt{n})$ data structures
 $\EuScript{D}_\text{big}(\cdot)$.
 Thus, the query time within each relaxation step is $O(\sqrt{n}\log n)$.
+We can now bound the time spent within the Hungarian search.
+
+\begin{lemma}
+\label{lemma:orlin_hs_time}
+The Hungarian search takes $O(r\sqrt{n}\polylog n)$ time.
+\end{lemma}
+\begin{proof}
+The number of relaxation steps outside of support stars is $O(r)$ by
+Lemma~\ref{lemma:orlin_relax_count}.
+The time per relaxation outside of support stars is $O(\sqrt{n}\polylog n)$.
+The time spent processing relaxations within a support star is
+$O(\sqrt{n}\polylog n)$, and at most $r$ are relaxed during the search.
+The total time is therefore $O(r\sqrt{n}\polylog n)$.
+\end{proof}
 
 \paragraph{Updating support stars.}
 As the flow support changes, the membership of support stars may shift and
 a big star may eventually become small (or vice versa).
-To efficiently support this, introduce some leniency for when a star should be
-represented as a big star versus a small star and use \emph{fully persistent}
-versions of the $\EuScript{D}_\text{big}(\cdot)$ data structures.
+To efficiently support this, introduce some fuzziness for when a star should be
+represented as a big star versus a small star.
 
 Initially, we label stars big or small according to the $\sqrt{n}$ threshold.
-Instead of changing a star from big-to-small (or vice versa) immediately
-when crossing the $\sqrt{n}$ threshold, we keep a big star in
-$\EuScript{D}_\text{big}(a)$ so long as $\abs{\Sigma_a} \geq \sqrt{n}/2$ and keep
-a small star in $\EuScript{D}_\text{small}$ so long as
-$\abs{\Sigma_a} \leq 2\sqrt{n}$.
-Intuitively, switching data structures will incur some ``rebuilding'' expense
-which we can charge to the $O(\sqrt{n})$ insertions/deletions that were needed
-for the star to switch types.
+A star that is currently big is turned into a small star once
+$\abs{\Sigma_a} \leq \sqrt{n}/2$
+A star that is currently small is turned into a big star once
+$\abs{\Sigma_a} \geq 2\sqrt{n}$.
+This way, the time spent rebuilding/updating the respective data structures
+can be amortized to the insertions/deletions that preceeded the switch, plus
+some $O(r)$ extra work if the the update is small-to-big.
 
-%TODO figure: show how the persistence chains together
-At the beginning of the algorithm, we build a single ``empty''
-$\EuScript{D}_\text{big}(\cdot)$ containing the set $P$ (vertices of $A$) but
-omitting $Q$, which we call $\EuScript{D}_\text{root}$.
-We maintain changes in the set of active excesses (the intial set of $S$)
-by updating a single persistent branch of $\EuScript{D}_\text{root}$,
-which we call the \EMPH{root branch}.
-Within a single iteration, we create a new branch of $\EuScript{D}_\text{root}$
-which tracks $P = A_\ell \cap S$ and $Q = \emptyset$.
+A star $\Sigma_a$ that is switching from big-to-small has size
+$\abs{\Sigma_a} \leq \sqrt{n}/2$.
+When switching, we delete $\EuScript{D}_\text{big}(a)$ and insert $\Sigma_a$
+into $\EuScript{D}_\text{small}$.
+Thus, the time spent for big-to-small update is $O(\sqrt{n}\polylog n)$,
+and there were at least $\sqrt{n}/2$ points removed from $\Sigma_a$ since it
+was last big.
 
-Any ``newly-big'' star $\Sigma_a$ will make a persistent copy of the latest
-$\EuScript{D}_\text{root}$ and insert into $Q$ the points of the star,
-creating a new branch which maintains $\EuScript{D}_\text{big}(a)$.
-Note that $\abs{\Sigma_a} = \sqrt{n} + x > 2\sqrt{n}$, so we have
-$\abs{\Sigma_a} < 2x$.
-There were at least $x$ insertions into $\Sigma_a$ since $\Sigma_a$ was first
-small, so the $\abs{\Sigma_a}$ insertions to construct
-$\EuScript{D}_\text{big}(a)$ from $\EuScript{D}_\text{root}$ can be charged to
-previous changes to $\Sigma_a$.
-$\Sigma_a$ must also be deleted from $\EuScript{D}_\text{small}$;
-these deletions can be charged in the same way.
+A star $\Sigma_a$ that is switching from small-to-big has size
+$\abs{\Sigma_a} = \sqrt{n} + x \geq 2\sqrt{n}$, for some integer
+$x \geq \sqrt{n}$.
+Rearranging, we have $\abs{\Sigma_a} \leq 2x$.
+When switching, we delete all $\abs{\Sigma_a}$ points from
+$\EuScript{D}_\text{small}$ and construct a new $\EuScript{D}_\text{big}(a)$.
+Constructing $\EuScript{D}_\text{big}(a)$ requires inserting $O(r)$ points of
+$A$ (into $P$) and the $\abs{\Sigma_a}$ points of the star (into $Q$).
+Thus, the time spent for a small-to-big update is $O((r + x)\polylog n)$,
+and there were at least $x \geq \sqrt{n}$ points added to $\Sigma_a$ since it
+was last small.
 
-When a big star crosses $\abs{\Sigma_a} < \sqrt{n}/2$, we delete the branch of
-$\EuScript{D}_\text{root}$ corresponding to $\EuScript{D}_\text{big}(a)$ and
-insert its points into $\EuScript{D}_\text{small}$.
-There were at least $\sqrt{n}/2$ points removed from $\Sigma_a$ since it was
-first big, so we can charge the $\abs{\Sigma_a}$ insertions to the previous
-changes to $\Sigma_a$.
-
-In summary, switching stars from big-to-small or small-to-big can be charged to
-the star membership changes since the star last changed types.
-Membership changes can themselves be bounded above the length of augmenting
-paths (flow support must change for stars to change).
+Membership of support stars can only be changed by augmentations,
+so the number of star membership changes by a single augmenting path is
+bounded above by twice its length (each vertex may be removed from one star,
+and/or added to another star).
+Thus, individual membership changes can be performed in $O(\polylog n)$ time
+each, and there are $O(rn\log n)$ total.
+The total time spent on big-to-small updates is $O(rn\polylog n)$, and the
+total time spent on small-to-big updates is $O(r^2\sqrt{n}\polylog n)$.
 
 \paragraph{Preprocessing time.}
 To build the very first set of data structures, we take $O(rn\polylog n)$ time.
 There are $r\abs{\Sigma_a}$ points in each $\EuScript{D}_\text{big}(a)$,
-but the $\Sigma_a$ are disjoint so the sum of points is $O(rn)$.
+but the $\Sigma_a$ are disjoint, so the total points to insert is $O(rn)$.
 $\EuScript{D}_\text{small}$ also has at most $O(rn)$ points.
 Each BCP data structure can be constructed in $O(\polylog n)$ times its size,
 so the total preprocessing time is $O(rn\polylog n)$.
 
-\note{TODO just invoke persistence here? but amortized data structures\dots} %TODO
 \paragraph{Between searches.}
-After an augmentation, we must reset the above data structures to their initial
-state plus the change from the augmentation.
-Using the rewinding mechanism from the previous sections, this can be done in
-time proportional to $O(\sqrt{n}\polylog n)$ times the number of relaxations
-(to rewind), and then plus $O(\sqrt{n}\polylog n)$ time to change the initial
-set of active excesses in $S$.
-Additionally, augmentation may change the membership of some support stars.
-The number of these support star changes is bounded above by the length of the
-path, which is bounded above the number of relaxations.
-Each support star membership update updates a single data structure,
-so takes $O(\polylog n)$ time.
-There are $O(r)$ relaxations by the bound in
-Lemma~\ref{lemma:orlin_relax_count} plus at most one for each support star
-(to reach the center).
-Thus, the running time per augmentation is $O(r\sqrt{n}\polylog n)$.
+After an augmentation, we reset the above data structures to their initial
+state plus the change from the augmentation using the rewinding mechanism.
+By reversing the sequence of insertions/deletions to each data structure over
+the course of the Hungarian search, we can recover the versions data structures
+as they were when the Hungarian search began. 
+This takes time proportional to the time of the Hungarian search,
+$O(r\sqrt{n}\polylog n)$ by Lemma~\ref{lemma:orlin_hs_time}.
+The most recent augmentation may have deactivated at most one active excess and
+at most one active deficit, which we can update in the data structures in
+$O(\sqrt{n}\polylog n)$ time.
+Additionally, the augmentation may have changed the membership of some support
+stars, but we analyzed the time for membership changes earlier.
+Finally, we note that an augmenting path cannot reduce the support degree of
+a vertex to zero, and therefore no new dead vertices are created by
+augmentation.
 
 \paragraph{Between excess scales.}
-When the excess scale changes, the sets of active and living vertices may
-change.
-Notably, the sets of active/living vertices may only \emph{grow} when $\Delta$
-decreases.
+When the excess scale changes, vertices that were previously inactive may
+become active, and vertices that were dead may be revived
+(however, no active vertices deactivate, and no live vertices die as the
+result of $\Delta$ decreasing).
 If we have the data structures built on the active excesses at the end of the
 previous scale, then we can add in each newly active $a \in A$ and
 charge this insertion to the (future) augmenting path or contraction which
@@ -3303,6 +3442,21 @@ vertices.
 The time to perform data structure updates for each of them is
 $O(\sqrt{n}\polylog n)$, so the total time spent bookkeeping newly active
 vertices is $O(n^{3/2}\polylog n)$.
+
+\paragraph{Putting it together.}
+After $O(rn\polylog n)$ preprocessing, we spend $O(r\sqrt{n}\polylog n)$ time
+each Hungarian search by Lemma~\ref{lemma:orlin_hs_time}.
+After each augmentation, we spend the same amount of time (plus $O(\polylog n)$
+extra) to initialize data structures for the next Hungarian search.
+We spend up to $O((rn + r^2\sqrt{n})\polylog n)$ total time making big-small
+star switching updates.
+We spend $O(n^{3/2}\polylog n)$ time activating and reviving vertices.
+Thus, the algorithm takes $O(rn(r/\sqrt{n} + \sqrt{n})\polylog n)$ time to 
+produce optimal potentials $\pi^*$, from which we can recover $f^*$ in
+$O(r\sqrt{n}\polylog n)$ %TODO depends on which algorithm
+additional time.
+This completes the proof of Theorem~\ref{theorem:orlin}.
+
 
 {
 \bibliographystyle{abbrv}
