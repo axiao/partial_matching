@@ -5,16 +5,16 @@
 %% The original source files were:
 %%
 %% lipics.dtx  (with options: `class')
-%% 
+%%
 %% -----------------------------------------------------------------
 %% Author:     le-tex publishing services
-%% 
+%%
 %% This file is part of the lipics package for preparing
 %% LIPICS articles.
-%% 
+%%
 %%       Copyright (C) 2010--2018 Schloss Dagstuhl
 %% -----------------------------------------------------------------
-%% 
+%%
 \ProvidesClass{lipics-v2018}
     [2018/04/09 v1.5 LIPIcs articles]
 \NeedsTeXFormat{LaTeX2e}[2015/01/01]
@@ -488,7 +488,7 @@
 \RequirePackage{color}
 \definecolor{darkgray}{rgb}{0.31,0.31,0.33}
 \RequirePackage{babel}
-\RequirePackage[tbtags,fleqn]{amsmath}
+%\RequirePackage[tbtags,fleqn]{amsmath}
 \RequirePackage{enumerate}
 \def\@enum@{\list{\textcolor{darkgray}{\sffamily\bfseries\upshape\mathversion{bold}\csname label\@enumctr\endcsname}}%
            {\advance\partopsep\topsep

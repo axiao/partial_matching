@@ -17,6 +17,11 @@
 \usepackage{amsmath,mathtools,stmaryrd}
 \usepackage{enumerate}
 
+% \usepackage[title]{appendix}
+\usepackage{apxproof}
+%\usepackage[appendix=inline]{apxproof}
+\renewcommand{\appendixsectionformat}[2]{Proofs from Section~#1}
+
 % \renewcommand\theenumi{\arabic{enumi}}
 % \renewcommand\labelenumi{\theenumi.}
 %
@@ -49,10 +54,10 @@
 
 \usepackage{mathtools} % for \coloneqq
 
-%\usepackage[title]{appendix}
-%\usepackage[inline]{apxproof}
-%\renewcommand{\appendixsectionformat}[2]{Proofs from Section~#1}
-
+% \usepackage{etoolbox}
+% \makeatletter
+% \setbool{@fleqn}{false}
+% \makeatother
 
 \def\etal{\textit{et~al.}}
 \def\poly{\mathop{\mathrm{poly}}}
@@ -101,27 +106,16 @@
 \def\supp{\operatorname{supp}}
 
 
-% \theoremstyle{plain}
-% \newtheorem{lemma}{Lemma}[section]
-% \newtheorem{theorem}[lemma]{Theorem}
-% \newtheorem{corollary}[lemma]{Corollary}
+\theoremstyle{plain}
+\newtheoremrep{lemma}{Lemma}[section]
+\newtheoremrep{theorem}[lemma]{Theorem}
+\newtheoremrep{corollary}[lemma]{Corollary}
 % \newtheorem{observation}[lemma]{Observation}
 % \newtheorem{claim}[lemma]{Claim}
 % \newtheorem{definition}[lemma]{Definition}
-% \numberwithin{figure}{section}
+\numberwithin{figure}{section}
+\renewcommand{\paragraph}{\subparagraph}
 
-% \makeatletter
-% \long\def\@makecaption#1#2{
-%     \vskip 10pt
-%     \setbox\@tempboxa\hbox{{\footnotesize {\bf #1.} #2}}
-%     \ifdim \wd\@tempboxa >\hsize         % IF longer than one line:
-%         {\footnotesize {\bf #1.} #2\par}% THEN set as ordinary paragraph.
-%       \else                              %   ELSE  center.
-%         \hbox to\hsize{\hfil\box\@tempboxa\hfil}
-%     \fi}
-% %\dbltextfloatsep 18pt plus 2pt minus 4pt   % was 20pt plus 2pt minus 4pt
-% %\textfloatsep 18pt plus 2pt minus 4pt      % was 20pt plus 2pt minus 4pt
-% \makeatother
 
 % for definitions
 %\def\EMPH#1{\textbf{\boldmath #1}}
@@ -180,7 +174,7 @@
 \EventLocation{Portland, USA}
 \EventLogo{eatcs}
 \SeriesVolume{}
-\ArticleNo{100} % Set article-no=1
+\ArticleNo{1} % Set article-no=1
 
 
 \begin{document}
@@ -196,6 +190,8 @@ Using similar techniques, we give an exact algorithm for the transportation prob
 
 
 \section{Introduction}
+
+\note{REWRITE AFTER TECHNICAL SECTIONS}
 
 Consider the problem of finding a minimum-cost bichromatic matching between
 a set of red points $A$ and a set of blue points $B$ lying in the plane,
@@ -270,15 +266,13 @@ geometric partial matching in $O((n + k\sqrt{k})\polylog n \log(n/\eps))$ time.
 Let $A$ and $B$ be two point sets in the plane with $|A| = r$ and $|B| = n$
 satisfying $r \le n$, and let $k$ be a parameter.
 A $(1+\eps)$ geometric partial matching of size $k$ can be computed between
-$A$ and $B$ in $O((n + k\sqrt{k})\polylog n \log(n/\eps))$ time.
+$A$ and $B$ in $O((n + k\sqrt{k})\polylog n \log(1/\eps))$ time. % rewrite $\log(n/\eps)$ into $\log(1/\eps)$ so it compares easily to Sharathkumar and Agrawal
 \end{theorem}
 
 % add the ~O(rn^{3/2}) version
 
-Our third algorithm solves the transportation problem in the unbalanced
-setting.
-The transportation problem is a weighted generalization of the matching
-problem.
+Our third algorithm solves the transportation problem in the unbalanced setting.
+The transportation problem is a weighted generalization of the matching problem.
 Each point of $A$ is weighted with an integer \emph{supply} and each point of
 $B$ is weighted with integer \emph{demand} such that the sum of supply and
 demand are equal.
@@ -521,25 +515,25 @@ This leaves the analysis of the subroutine that updates the potentials and
 finds an admissible augmenting path; we call this subroutine the
 \EMPH{Hungarian search}.
 
-\begin{figure*}
-\centering
-\begin{minipage}{.5\linewidth}
-\begin{algorithm}[H]
-\caption{Hungarian algorithm}
-\begin{algorithmic}[1]
-\Function{Match}{$G = (A \cup B, E)$, $k$}
-	\State $M \gets \emptyset$
-	\State $\pi(v) \gets 0$ for all $v \in A \cup B$
-	\While{$|M| < k$}
-		\State $\Pi \gets$ \Call{Hungarian-Search}{$G$, $M$, $\pi$}
-		\State $M \gets M \oplus \Pi$
-	\EndWhile
-	\State\Return $M$
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-\end{minipage}
-\end{figure*}
+% \begin{figure*}
+% \centering
+% \begin{minipage}{.5\linewidth}
+% \begin{algorithm}[H]
+% \caption{Hungarian algorithm}
+% \begin{algorithmic}[1]
+% \Function{Match}{$G = (A \cup B, E)$, $k$}
+% 	\State $M \gets \emptyset$
+% 	\State $\pi(v) \gets 0$ for all $v \in A \cup B$
+% 	\While{$|M| < k$}
+% 		\State $\Pi \gets$ \Call{Hungarian-Search}{$G$, $M$, $\pi$}
+% 		\State $M \gets M \oplus \Pi$
+% 	\EndWhile
+% 	\State\Return $M$
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
+% \end{minipage}
+% \end{figure*}
 
 
 \begin{theorem}[Time for Hungarian algorithm]
@@ -573,38 +567,38 @@ update in line~\ref{line:hs_update} does not make any reduced cost negative,
 and thus preserves the dual feasibility constraint for all edges.
 The algorithm is shown below as Algorithm~\ref{algorithm:hung_hs}.
 
-\begin{figure*}
-\centering
-\begin{minipage}{.8\linewidth}
-\begin{algorithm}[H]
-\caption{Hungarian Search (matching)}
-\label{algorithm:hung_hs}
-\begin{algorithmic}[1]
-\Require{$c_\pi(a, b) = 0$ for all $(a, b) \in M$}
-%\Statex %newline
-\Function{Hungarian-Search}{$G = (A \cup B, E)$, $M$, $\pi$}
-	\State $S \gets a \in (A \setminus V(M))$ \note{arbitrary $a$?}
-	\Repeat
-		\State $(a', b') \gets \argmin\{c_\pi(a, b) \mid (a, b) \in (S \cap A) \times (B \setminus S)\}$
-		\State $\gamma \gets c_\pi(a', b')$
-		\State $\pi(v) \gets \pi(v) + \gamma, \forall v \in S$
-			\Comment{make $(a', b')$ admissible}
-			\label{line:hs_update}
-		\State $S \gets S \cup \{b'\}$
-		% \Statex %newline
-		\If{$b' \not\in V(M)$} \Comment{$b'$ unmatched}
-			\State $\Pi \gets$ alternating augmenting path from $a$ to $b'$
-			\State\Return $\Pi$
-		\Else \Comment{$b'$ is matched to some $a'' \in A \cap V(M)$}
-			\State $S \gets S \cup \{a''\}$
-		\EndIf
-	\Until{$S = A \cup B$}
-	\State\Return failure
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-\end{minipage}
-\end{figure*}
+% \begin{figure*}
+% \centering
+% \begin{minipage}{.8\linewidth}
+% \begin{algorithm}[H]
+% \caption{Hungarian Search (matching)}
+% \label{algorithm:hung_hs}
+% \begin{algorithmic}[1]
+% \Require{$c_\pi(a, b) = 0$ for all $(a, b) \in M$}
+% %\Statex %newline
+% \Function{Hungarian-Search}{$G = (A \cup B, E)$, $M$, $\pi$}
+% 	\State $S \gets a \in (A \setminus V(M))$ \note{arbitrary $a$?}
+% 	\Repeat
+% 		\State $(a', b') \gets \argmin\{c_\pi(a, b) \mid (a, b) \in (S \cap A) \times (B \setminus S)\}$
+% 		\State $\gamma \gets c_\pi(a', b')$
+% 		\State $\pi(v) \gets \pi(v) + \gamma, \forall v \in S$
+% 			\Comment{make $(a', b')$ admissible}
+% 			\label{line:hs_update}
+% 		\State $S \gets S \cup \{b'\}$
+% 		% \Statex %newline
+% 		\If{$b' \not\in V(M)$} \Comment{$b'$ unmatched}
+% 			\State $\Pi \gets$ alternating augmenting path from $a$ to $b'$
+% 			\State\Return $\Pi$
+% 		\Else \Comment{$b'$ is matched to some $a'' \in A \cap V(M)$}
+% 			\State $S \gets S \cup \{a''\}$
+% 		\EndIf
+% 	\Until{$S = A \cup B$}
+% 	\State\Return failure
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
+% \end{minipage}
+% \end{figure*}
 
 By tracking the forest of relaxed edges (e.g. back pointers), it is
 straightforward to recover the alternating augmenting path $\Pi$ once we reach
@@ -739,8 +733,9 @@ Overall, the time spent per Hungarian search is $T(n, k) = O(k\polylog n)$.
 
 
 \section{Approximating Min-Cost Partial Matching through Cost-Scaling}
+\label{section:goldberg}
 
-The goal of section is to prove Theorem~\ref{theorem:gmcm}; that is, to compute a geometric partial matching of size $k$ between two point sets $A$ and $B$ in the plane, with cost at most $(1+\eps)$ times the optimal matching, in time $O((n + k\sqrt{k})\polylog n \log(n/\eps))$.
+The goal of section is to prove Theorem~\ref{theorem:gmcm}; that is, to compute a geometric partial matching of size $k$ between two point sets $A$ and $B$ in the plane, with cost at most $(1+\eps)$ times the optimal matching, in time $O((n + k\sqrt{k})\polylog n \log(1/\eps))$.
 %
 % \begin{theorem}
 % \label{theorem:gmcm}
@@ -911,13 +906,13 @@ We say that a pseudoflow $f'$ in $G_f$ is \EMPH{admissible} if all support arcs 
 only on admissible arcs $\arc vw$.
 
 %Now, we can concretely state how admissible augmentations lead to a correct algorithm for $\eps > 0$.
-\begin{lemma}
+\begin{lemmarep}
 \label{lemma:eps_opt_preserve}
 Let $f$ be an $\eps$-optimal pseudoflow in $G$ and let $f'$ be an
 admissible flow in $G_f$.
 Then $f + f'$ is also $\eps$-optimal.
 \note{Lemma 5.3 in \cite{GT90}?}
-\end{lemma}
+\end{lemmarep}
 
 \begin{proof}
 Augmentation by $f'$ will not change the potentials, so any previously
@@ -978,12 +973,12 @@ In other words, a $(1+\eps)$-approximation to the MCF problem on the reduction g
 First we show that the number of arcs used by any integer pseudoflow
 in $H$ is asymptotically bounded by the excess of the pseudoflow.
 
-\begin{lemma}
+\begin{lemmarep}
 \label{lemma:support_size}
 Let $f$ be an integer circulation in the reduction network $N_H$.
 Then, the size of the support of $f$ is at most $3k$.
 As a corollary, the number of residual backward arcs is at most $3k$.
-\end{lemma}
+\end{lemmarep}
 
 \begin{proof}
 Because $f$ is a circulation, $\supp(f)$ can be decomposed into $k$  paths from $s$ to $t$.
@@ -994,11 +989,11 @@ the total number of residual backward arcs is at most $3k$.
 
 Using the bound on the support size, we now show that an $\eps$-optimal integral circulation gives an additive $O(k\eps)$-approximation to the MCF problem.
 
-\begin{lemma}
+\begin{lemmarep}
 \label{lemma:goldberg_cost_add}
 Let $f$ be an $\eps$-optimal integer circulation in $N_H$, and $f^*$ be an optimal integer circulation for $N_H$.
 Then, $\cost(f) \leq \cost(f^*) + 6k\eps$.
-\end{lemma}
+\end{lemmarep}
 
 \begin{proof}
 By Lemma~\ref{lemma:support_size}, the total number of backward arcs in the residual network $N_f$ is at most $3k$.
@@ -1041,7 +1036,7 @@ let $\EMPH{$A_K$} \coloneqq K \cap A$ and $\EMPH{$B_K$} \coloneqq K \cap B$, res
 We partition $A$ and $B$ into the collection of sets $A_K$ and $B_K$ according to the components $K$ of $T_j$.
 Since $j < i$, the optimal partial matching in $G$ can be partitioned into edges between $A_K$ and $B_K$ within $G_K$; no optimal matching edges lie between components.
 
-\begin{lemma}[Sharathkumar and Agarwal~{\cite[\S3.5]{SA12}}]
+\begin{lemma}[(Sharathkumar and Agarwal~{\cite[\S3.5]{SA12}})]
 \label{lemma:sa_partition}
 %
 Let $G = (A,B,E_0)$ be the input to MPM problem, and consider the partitions $A_K$ and $B_K$ defined as above.
@@ -1260,11 +1255,11 @@ The proof follows the strategy in Goldberg~\etal~\cite[Section~3.2]{GHKT17}. \no
 %
 To this end we need a bound on the size of the support of $f$ right before and throughout the execution of \textsc{Refine}.
 
-\begin{lemma}
+\begin{lemmarep}
 \label{lemma:reduction_count}
 Let $f$ be an integer pseudoflow in $N_H$ with $O(k)$ excess.
 Then, the size of the support of $f$ is at most $O(k)$.
-\end{lemma}
+\end{lemmarep}
 
 \begin{proof}
 Observe that the reduction graph $H$ is a directed acyclic graph, and thus the support of $f$ does not contain a cycle.
@@ -1281,13 +1276,13 @@ The size of $\supp(f)$ is at most $O(k)$ for pseudoflow $f$ right before or duri
 \end{corollary}
 
 
-\begin{lemma}
+\begin{lemmarep}
 \label{lemma:goldberg_refine_iterations}
 Let $f$ be a pseudoflow in $N_H$ with $O(k)$ excess.
 The procedure \textsc{Refine} runs for $O(\sqrt{k})$ iterations
 %pushes $O(\sqrt{k})$ blocking flows
 before the excess of $f$ becomes zero.
-\end{lemma}
+\end{lemmarep}
 
 \begin{proof}
 Let $f_0$ and $\pi_0$ be the flow and potential at the start of the procedure \textsc{Refine}.  Let $f$ and $\pi$ be the current flow and the potential.
@@ -1386,7 +1381,7 @@ in other words, we have $c_\pi(\Pi) = c_{\tilde\pi}(\tilde{\Pi})$. \note{Do we w
 % by replacing each null path contained in $\Pi$ with its shortcut.
 We argue now that $\tilde{H}_f$ is fine as a surrogate for $H_f$.
 
-\begin{lemma}
+\begin{lemmarep}
 \label{lemma:empty_correct}
 Let \EMPH{$\tilde{\pi}$} be an $\eps$-optimal potential on $\tilde{H}_f$.
 Construct potentials $\pi$ on $H_f$ which extends $\tilde{\pi}$ to null vertices, by
@@ -1397,7 +1392,7 @@ Then,
 \item potential $\pi$ is $\eps$-optimal on  $H_f$, and
 \item if arc $\short(\Pi)$ is admissible under $\tilde{\pi}$, then every arc in $\Pi$ is admissible under $\pi$.
 \end{enumerate}
-\end{lemma}
+\end{lemmarep}
 
 \begin{proof}
 Reduced costs for any arc from a normal vertex another is unchanged under either
@@ -1438,34 +1433,34 @@ This proves the lemma.
 
 \paragraph{Hungarian search.}
 
-\begin{figure*}
-\centering
-\begin{minipage}{.8\linewidth}
-\begin{algorithm}[H]
-\caption{Hungarian Search (cost-scaling)}
-\begin{algorithmic}[1]
-\Function{Hungarian-Search2}{$H = (V, E)$, $f$, $\pi$}
-	\State $\tilde{H}_f \gets$ the shortcut graph of $H$ with respect to $f$
-	\State $S \gets \{v \in V \mid \fsupply_f(v) > 0\}$
-	\Repeat
-		\State $(v', w') \gets \argmin\{c_\pi(v', w') \mid v' \in S, w' \not\in S, (v', w') \in \tilde{H}_f)\}$
-			\label{line:hs_relaxation}
-		\State $\gamma \gets c_\pi(v', w')$
-		\If{$\gamma > 0$}
-			\Comment{make $(v', w')$ admissible if it isn't}
-			\State $\pi(v) \gets \pi(v) + \lceil\frac{\gamma}{\eps}\rceil\cdot \eps, \forall v \in S$
-		\EndIf
-		\State $S \gets S \cup \{w'\}$
-		\If{$\fsupply_f(w') < 0$} \Comment{reached a deficit}
-			\State\Return $\pi$
-		\EndIf
-	\Until{$S = (A \setminus A_\emptyset) \cup (B \setminus B_\emptyset)$}
-	\State\Return failure
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-\end{minipage}
-\end{figure*}
+% \begin{figure*}
+% \centering
+% \begin{minipage}{.8\linewidth}
+% \begin{algorithm}[H]
+% \caption{Hungarian Search (cost-scaling)}
+% \begin{algorithmic}[1]
+% \Function{Hungarian-Search2}{$H = (V, E)$, $f$, $\pi$}
+% 	\State $\tilde{H}_f \gets$ the shortcut graph of $H$ with respect to $f$
+% 	\State $S \gets \{v \in V \mid \fsupply_f(v) > 0\}$
+% 	\Repeat
+% 		\State $(v', w') \gets \argmin\{c_\pi(v', w') \mid v' \in S, w' \not\in S, (v', w') \in \tilde{H}_f)\}$
+% 			\label{line:hs_relaxation}
+% 		\State $\gamma \gets c_\pi(v', w')$
+% 		\If{$\gamma > 0$}
+% 			\Comment{make $(v', w')$ admissible if it isn't}
+% 			\State $\pi(v) \gets \pi(v) + \lceil\frac{\gamma}{\eps}\rceil\cdot \eps \quad \forall v \in S$
+% 		\EndIf
+% 		\State $S \gets S \cup \{w'\}$
+% 		\If{$\fsupply_f(w') < 0$} \Comment{reached a deficit}
+% 			\State\Return $\pi$
+% 		\EndIf
+% 	\Until{$S = (A \setminus A_\emptyset) \cup (B \setminus B_\emptyset)$}
+% 	\State\Return failure
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
+% \end{minipage}
+% \end{figure*}
 
 
 \note{Shortly describe the Hungarian search and depth-first search implementations.}
@@ -1590,11 +1585,10 @@ $O(\polylog n)$ times the number of relaxations.
 
 \subsection{Number of relaxations}
 
-\begin{corollary}
-\label{corollary:goldberg_hs_length}
-There are $O(k)$ relaxations in \textsc{Hungarian-Search2} before a deficit
-vertex is reached.
-\end{corollary}
+\begin{lemmarep}
+\label{lemma:goldberg_hs_length}
+Hungarian Search performs $O(k)$ relaxations before a deficit vertex is reached.
+\end{lemmarep}
 
 \begin{proof}
 \note{TO BE REWRITTEN.}
@@ -1653,8 +1647,7 @@ Similarly we can prove that there are $O(k)$ relaxations during the DFS.
 
 \begin{corollary}
 \label{corollary:goldberg_dfs_length}
-There are $O(k)$ relaxations in \textsc{DFS} before a deficit vertex is
-reached.
+Depth-first search performs $O(k)$ relaxations before a deficit vertex is reached.
 \end{corollary}
 
 
@@ -1665,11 +1658,11 @@ Now we complete the time analysis
 %by proving that potentials can be maintained in $O(k)$ time over the course of the search.
 by showing that each Hungarian search and depth-first search can be implemented in $O(k \polylog n)$ time after a one-time $O(n \polylog n)$-time preprocessing.
 
-\begin{lemma}
+\begin{lemmarep}
 \label{lemma:goldberg_hs_time}
 After $O(n \polylog n)$-time preprocessing,
 each Hungarian search can be implemented in $O(k \polylog n)$ time.
-\end{lemma}
+\end{lemmarep}
 %
 \begin{proof}
 Each of the constant number of data structures used by the Hungarian search can be constructed in $O(n\polylog n)$ time.
@@ -1690,7 +1683,7 @@ Thus, we are able to initialize $S$ at the cost of one BCP deletion per excess v
 
 \item During each Hungarian search, a vertex entering $S$ may incur one BCP insertion/deletion.
 We can charge the updates to the number of relaxations over the course of Hungarian search.
-The number of relatexations in a Hungarian search is $O(k)$ by Corollary~\ref{corollary:goldberg_hs_length}.
+The number of relatexations in a Hungarian search is $O(k)$ by Lemma~\ref{lemma:goldberg_hs_length}.
 
 \item To obtain $S^t$, we keep track of the points added to $S^t$ since the last Hungarian search.  After the augmentation, we remove those points added to $S^t$.  By (2) there are $O(k)$ such points to be deleted, so reconstructing $S^t$ takes $O(k)$ BCP operations.
 \end{enumerate}
@@ -1703,7 +1696,7 @@ the potential of vertices in $S$.
 When a vertex leave $S$ (through the rewind mechanism above), we restore
 its potential as $\pi(v) \gets \omega(v) + \delta$.
 With lazy updates, the number of potential updates on normal vertices is
-bounded by the number of relaxations in the Hungarian search, which is $O(k)$ by Corollary~\ref{corollary:goldberg_hs_length}.
+bounded by the number of relaxations in the Hungarian search, which is $O(k)$ by Lemma~\ref{lemma:goldberg_hs_length}.
 Note that null vertex potentials are not handled in the Hungarian search. \note{then where? Lemma~\ref{lemma:empty_updates}}
 \end{proof}
 
@@ -1712,11 +1705,11 @@ There are no potentials to update within \textsc{DFS}, so the running time of
 \textsc{DFS} boils down to the time spent to querying and updating the data
 structures.
 
-\begin{lemma}
+\begin{lemmarep}
 \label{lemma:goldberg_dfs_time}
 After $O(n \polylog n)$-time preprocessing,
 each depth-first search can be implemented in $O(k \polylog n)$ time.
-\end{lemma}
+\end{lemmarep}
 
 \begin{proof}
 At the beginning of \textsc{Refine}, we can initialize the $O(1)$ data
@@ -1740,13 +1733,13 @@ to construct potential $\pi$ such that the flow $f$ is both $\eps$-optimal and a
 
 \note{TO BE REWRITTEN.}
 
-\begin{lemma}
+\begin{lemmarep}
 \label{lemma:empty_updates}
 The number of end-of-\textsc{Refine} null vertex potential updates is $O(n)$.
 The number of augmentation-induced null vertex potential updates in each
 invocation of \textsc{Refine} is $O(\sum_i N_i)$ where $N_i$ is the number
 of positive flow arcs in the $i$-th blocking flow.
-\end{lemma}
+\end{lemmarep}
 
 \begin{proof}
 The number of end-of-\textsc{Refine} potential updates is $O(n)$.
@@ -1769,12 +1762,12 @@ Now we bound the total number arcs whose flow is updated by a blocking flow duri
 This bounds both the time spent updating the flow on these arcs and also the time spent on null vertex potential updates
 (Lemma~\ref{lemma:empty_updates}).
 
-\begin{lemma}
+\begin{lemmarep}
 \label{lemma:goldberg_bf_size}
 Let $N_i$ be the number of positive flow arcs in the $i$-th blocking flow
 of \textsc{Refine}.
 Then, $\sum_i N_i = O(k\sqrt{k})$.
-\end{lemma}
+\end{lemmarep}
 
 \begin{proof}
 Let $i$ be fixed and consider the invocation of \textsc{DFS} which produces the
@@ -3005,12 +2998,6 @@ therefore $f^*$ must have support only on the tree edges.
 Instead of running a generic max-flow algorithm after finding the optimal
 potentials, we use the following observation.
 
-\begin{lemma}
-\label{lemma:admiss_planar}
-Let $\pi^*$ be a set of optimal potentials for the point sets $A$ and $B$,
-under costs $c(a, b) = \norm{a-b}_p$.
-Then, the set of admissible arcs under $\pi^*$ form a planar graph.
-\end{lemma}
 
 Up until now, we have not placed restrictions on coincidence between $A$ and
 $B$, but for the next proof it is useful to do so.
@@ -3037,6 +3024,13 @@ Feasibility states that for all $a \in A$ and $b \in B$, $D_a$ cannot contain
 $D_b$ with a gap between their boundaries.
 The arc $\arc ab$ is admissible when $D_a$ contains $D_b$ and their boundaries
 are tangent.
+
+\begin{lemmarep}
+\label{lemma:admiss_planar}
+Let $\pi^*$ be a set of optimal potentials for the point sets $A$ and $B$,
+under costs $c(a, b) = \norm{a-b}_p$.
+Then, the set of admissible arcs under $\pi^*$ form a planar graph.
+\end{lemmarep}
 
 \begin{proof}
 We assume the points of $A \cup B$ are in general position (e.g. by symbolic
@@ -3130,8 +3124,8 @@ the minimum-reduced cost outgoing arc for each $a \in A$ until the result is
 not admissible.
 By Lemma~\ref{lemma:admiss_planar} the resulting arc set forms a planar graph,
 so by Euler's formula the number of arcs to query is $O(n)$.
-We can then find the maximum flow in time $O(n\log n)$ time, using e.g. the
-planar max-flow algorithm by Erickson~\cite{E10}.
+We can then find the maximum flow in time $O(n\log n)$ time, using for example the
+planar maximum-flow algorithm by Erickson~\cite{E10}. \cite{Other citations like Klein}
 
 \subsection{Dead vertices and support stars}
 
@@ -3217,11 +3211,11 @@ relaxation steps for arcs outside of support stars.
 By prioritizing the relaxation of support arcs, we also have the following
 lemma.
 
-\begin{lemma}[Agarwal~\etal~\cite{AFPVX17}]
+\begin{lemmarep}[(Agarwal~\etal~\cite{AFPVX17})]
 \label{lemma:orlin_acyclic}
 If arcs of $\supp(f)$ are relaxed first as they arrive on the frontier, then
 $E(\supp(f))$ is acyclic.
-\end{lemma}
+\end{lemmarep}
 
 \begin{proof}
 Let $f_i$ be the pseudoflow after the $i$-th augmentation, and let $T_i$ be the
@@ -3277,10 +3271,10 @@ at $a$ and $F \coloneqq E(\supp(f)) \setminus \bigcup_{a \in A} E(\Sigma_a)$.
 Using Lemma~\ref{lemma:orlin_acyclic}, we can show that the number of support
 arcs outside support stars ($\abs{F}$) is small.
 
-\begin{lemma}
+\begin{lemmarep}
 \label{lemma:no_star_support_size}
 $\abs{B_\ell \setminus \bigcup_{a \in A} \Sigma_a} \leq r$.
-\end{lemma}
+\end{lemmarep}
 
 \begin{proof}
 $F$ is constructed from $E(\supp(f))$ by eliminating edges in support stars,
@@ -3298,12 +3292,12 @@ Each vertex in $A$ is charged at most once.
 Thus, the number of $B_\ell$ vertices outside of support stars is no more than $r$.
 \end{proof}
 
-\begin{lemma}
+\begin{lemmarep}
 \label{lemma:orlin_relax_count}
 Suppose we have stripped the graph of dead vertices.
 The number of relaxation steps in a Hungarian search outside of support stars
 is $O(r)$.
-\end{lemma}
+\end{lemmarep}
 
 \begin{proof}
 If there are no dead vertices, then each non-support star relaxation step adds
@@ -3379,10 +3373,11 @@ $\EuScript{D}_\text{big}(\cdot)$.
 Thus, the query time within each relaxation step is $O(\sqrt{n}\log n)$.
 We can now bound the time spent within the Hungarian search.
 
-\begin{lemma}
+\begin{lemmarep}
 \label{lemma:orlin_hs_time}
-The Hungarian search takes $O(r\sqrt{n}\polylog n)$ time.
-\end{lemma}
+Hungarian search takes $O(r\sqrt{n}\polylog n)$ time.
+\end{lemmarep}
+
 \begin{proof}
 The number of relaxation steps outside of support stars is $O(r)$ by
 Lemma~\ref{lemma:orlin_relax_count}.
@@ -3492,10 +3487,13 @@ This completes the proof of Theorem~\ref{theorem:orlin}.
 
 
 % Acknowledgment and Bibliography
-\paragraph*{Acknowledgment.}  
+\paragraph*{Acknowledgment.}
 
 \bibliographystyle{abbrv}
 \bibliography{ref}
+
+\newpage
+\appendix
 
 \end{document}
 
