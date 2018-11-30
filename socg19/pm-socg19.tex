@@ -2971,8 +2971,11 @@ We allow augmenting paths to begin from any $a \in \hat{v} \cap A$ of an active
 excess component $\hat{v}$, and end in any $b \in \hat{w} \cap B$ of an active
 deficit component $\hat{w}$.
 
-\note{use this one if we want to use exponent $>1$. } %TODO
 \paragraph{Recovering the optimal flow.}
+\note{use this one if we want to use exponent $>1$. } %TODO
+
+\note{Move everything to appendix and left a pointer to the socg 2016 paper.s}
+
 We use a strategy from Agarwal~\etal~\cite{AFPVX17}.
 Instead of finding a max flow in the entire admissible network under $\pi^*$,
 we claim that is sufficient to find a max flow in a \EMPH{spanning tree} of
@@ -2992,15 +2995,15 @@ therefore $f^*$ must have support only on the tree edges.
 
 \note{TODO: the SPT construction requires describing Dijkstra and promising strong connectivity} %TODO
 
+\paragraph{Recovering the optimal flow.}
 \note{use this one if we only use exponent $1$. } %TODO
 %TODO if we're not doing the p-th power, then we can use this planarity proof
-\paragraph{Recovering the optimal flow.}
+
+
 Instead of running a generic max-flow algorithm after finding the optimal
 potentials, we use the following observation.
 
-
-Up until now, we have not placed restrictions on coincidence between $A$ and
-$B$, but for the next proof it is useful to do so.
+Up until now, we have not placed restrictions on coincidence between $A$ and $B$, but for the next proof it is useful to do so.
 We can assume that all points within $A \cup B$ are distinct, otherwise we can
 replace all points coincident at $x \in \reals^2$ with a single point whose
 supply/demand is $\sum_{v \in A \cup B: v=x}\tsupply(v)$.
