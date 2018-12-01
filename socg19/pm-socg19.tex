@@ -199,8 +199,8 @@ in other words, the minimum-cost bipartite matching problem on the Euclidean
 complete graph $G = (A \cup B, A \times B)$.
 Let $r \coloneqq |A|$ and $n \coloneqq |B|$.
 Without loss of generality, assume that $r \leq n$.
-We consider the problem of \emph{partial matching}, where the task is to
-find a minimum-cost matching of size $k \leq r$.
+We consider the problem of \emph{partial matching} (also called \emph{imperfect matching}),
+where the task is to find a minimum-cost matching of size $k \leq r$.
 When $k = r = n$, we say the matching instance is \EMPH{balanced}.
 When $k = r < n$ ($A$ and $B$ have different sizes, but the matching is
 maximal), we say the matching instance is \EMPH{unblanced}.
@@ -312,26 +312,6 @@ $\norm{a-b}$ is any $L_p$ distance, and if we use $p'$-th power costs
 $c(a, b) = \norm{a-b}^{p'}$ for any $1 \le p' < \infty$.
 
 
-\section{Preliminaries}
-\label{section:prelim}
-
-\subsection{Matching}
-
-Let $G$ be a bipartite graph between vertex sets $A$ and $B$ and edge set $E$,
-with costs $c(v, w)$ for each edge $e$ in $E$.
-\note{Should we define the problem on point sets instead, and construct the graph afterwards?}
-We use $C \coloneqq \max_{e \in E} c(e)$, and assume that the problem is scaled such
-that $\min_{e \in E} c(e) = 1$. \note{where do we use this assumption?}
-A \EMPH{matching} $M \subseteq E$ is a set of edges where no two edges share an
-endpoint.
-We use $V(M)$ to denote the vertices matched by $M$.
-The \EMPH{size} of a matching is the number of edges in the set, and the
-\EMPH{cost} of a matching is the sum of costs of its edges.
-The \EMPH{minimum-cost partial matching problem (MPM)} asks to find a size-$k$
-matching $M^*$ of minimum cost.
-
-\note{Define LP-duality and admissibility for matchings}
-
 % \subsection{Minimum-cost flow}
 %
 % \note{Move to \S4.}
@@ -414,7 +394,7 @@ matching $M^*$ of minimum cost.
 %
 % \subsection{Primal-dual augmentation algorithms}
 %
-% The Hungarian algorithm begins with an empty matching and gradually increases its size to $k$ using \EMPH{alternating augmenting paths}.
+% The Hungarian Algorithm begins with an empty matching and gradually increases its size to $k$ using \EMPH{alternating augmenting paths}.
 % Given a non-maximal matching $M$, an alternating augmenting path $P$ is a path
 % between an unmatched vertex $a \in A$ and unmatched $b \in B$.
 % \note{What is $A$ and $B$? Remind the readers about the bipartite graph again.}
@@ -498,236 +478,187 @@ matching $M^*$ of minimum cost.
 % approximation quality of an $\eps$-optimal circulation.
 
 
-\section{Computing Min-cost Partial Matching using Hungarian algorithm}
+\section{Min-cost Partial Matching using Hungarian Algorithm}
 \label{section:hung}
 
-The Hungarian algorithm maintains a 0-optimal (initially empty) matching $M$,
-and repeatedly augments by alternating augmenting paths of admissible edges
-until $|M| = k$.
-To this end, the algorithm maintains a set of feasible potentials $\pi$ and
-updates them to find augmenting paths of admissible edges. \note{admissible augmenting path?}
-It maintains the invariant that matching edges are admissible.
-Since there are $k$ augmentations and each alternating path has length at most
-$2k-1$, the total time spent on bookkeeping the matching is $O(k^2)$.
-This leaves the analysis of the subroutine that updates the potentials and
-finds an admissible augmenting path; we call this subroutine the
+The Hungarian Algorithm~\cite{Kuhn55} is a primal-dual algorithm for min-cost
+bipartite matching in general graphs, and solves partial matching exactly if
+stopped after $k$ iterations (see e.g. \cite{RT12}).
+In this section, we prove Theorem~\ref{theorem:hung} by implementing $k$
+iterations of the Hungarian Algorithm in $O((n + k^2)\polylog n)$ time for
+geometric partial matching.
+
+\subsection{Matching definitions}
+
+Let $G$ be a bipartite graph between vertex sets $V$ and $W$ and edge set $E$,
+with costs $c(v, w)$ for each edge $(v, w) \in E$.
+Let $C \coloneqq \max_{(v, w) \in E} c(v, w)$.
+A \EMPH{matching} $M \subseteq E$ is a set of edges where no two edges share an
+endpoint.
+%We use $V(M)$ to denote the vertices matched by $M$.
+The \EMPH{size} of a matching is the number of edges in the set, and the
+\EMPH{cost} of a matching is the sum of costs of its edges.
+For a parameter $k$, the \EMPH{minimum-cost partial matching problem (MPM)}
+asks to find a size-$k$ matching $M^*$ of minimum cost.
+In geometric partial matching, we have $V = A$, $W = B$, $E = A \times B$,
+and $c(a, b) = \norm{a-b}_p^q$ for all $(a, b) \in E$.
+
+The linear programming dual to the MPM linear program uses dual variables for
+each vertex, called $\EMPH{potentials}$ $\pi: (V\cup W) \to \reals$.
+With potentials $\pi$, we define the \EMPH{reduced cost}
+$c_\pi(v, w) \coloneqq c(v, w) - \pi(v) + \pi(w)$.
+Potentials $\pi$ are \EMPH{feasible} if reduced cost is nonnegative for all
+$(v, w) \in E$.
+We say $(v, w) \in E$ is \EMPH{admissible} under potentials $\pi$ if
+$c_\pi(v, w) = 0$.
+
+Consider a matching $M$ of size less than $r$.
+An \EMPH{alternating augmenting path} (or simply \EMPH{augmenting path})
+$\Pi = a_1, b_1, \ldots, a_\ell, b_\ell$ is an odd-length path with unmatched
+endpoints ($a_1$ and $b_\ell$) and all other points matched.
+The edges of $\Pi$ alternate between unmatched ($(a_i, b_i)$) and matched
+($(b_i, a_{i+1})$).
+The symmetric difference $M' \gets M \oplus \Pi$ creates a new matching with
+size $\abs{M'} = \abs{M}+1$.
+We say that $M'$ is the result of \EMPH{augmenting} $M$ by $\Pi$.
+
+\subsection{The Hungarian Algorithm}
+
+The Hungarian Algorithm is initialized with $M = \emptyset$ and $\pi = 0$,
+and maintains the following invariants:
+(i) $\pi$ is feasible,
+(ii) all edges in $M$ are admissible,
+(iii) unmatched vertices of $A$ all have the same potential $\alpha$ with $\alpha \geq \pi(a)$ for any matched $a \in A$,
+and (iv) unmatched vertices of $B$ all have the same potential $\beta$ with $\beta \leq \pi(b)$ for any matched $b \in B$.
+Ramshaw and Tarjan~\cite{RT12} show that these conditions are sufficient to
+prove that $M$ is a minimum-cost size-$\abs{M}$ matching.
+In each iteration, the Hungarian Algorithm augments $M$ with an admissible
+augmenting path $\Pi$, discovered using a procedure called the
 \EMPH{Hungarian search}.
+Once $\abs{M} = k$, $M$ is an optimal size-$k$ matching.
 
-% \begin{figure*}
-% \centering
-% \begin{minipage}{.5\linewidth}
-% \begin{algorithm}[H]
-% \caption{Hungarian algorithm}
-% \begin{algorithmic}[1]
-% \Function{Match}{$G = (A \cup B, E)$, $k$}
-% 	\State $M \gets \emptyset$
-% 	\State $\pi(v) \gets 0$ for all $v \in A \cup B$
-% 	\While{$|M| < k$}
-% 		\State $\Pi \gets$ \Call{Hungarian-Search}{$G$, $M$, $\pi$}
-% 		\State $M \gets M \oplus \Pi$
-% 	\EndWhile
-% 	\State\Return $M$
-% \EndFunction
-% \end{algorithmic}
-% \end{algorithm}
-% \end{minipage}
-% \end{figure*}
+The Hungarian search raises $\pi$ on subsets of vertices to grow a set $S$ of
+``vertices reachable from unmatched $v \in V$ by alternating paths of
+admissible edges.''
+Once $S$ contains an unmatched $w \in W$, an admissible augmenting path exists.
+Initially, $S$ is the set of unmatched $v \in V$.
+Let the \EMPH{frontier} of $S$ be the edges of $(V \cap S) \times (W \setminus S)$.
+In each iteration, the Hungarian search first \EMPH{relaxes} the
+minimum-reduced cost edge $(v, w)$ in the frontier, raising
+$\pi(v) \gets \pi(v) + c_\pi(v, w)$ for all $v \in S$ to make $(v, w)$
+admissible, and adding $w$ into $S$.
+It is easy to verify that this potential change preserves feasibility.
+As $w \in W$ is added into $S$, we can store a backpointer to $v$, which can be
+used later to recover the admissible augmenting path through $w$.
+If $w$ is matched, say to $v'$, then we also relax $(v', w)$ by adding $v'$
+into $S$ (no potential change needed, by invariant) with backpointer to $w$.
+If $w$ is unmatched, the search finishes and we can recover an admissible
+augmenting path to $w$ by following backpointers to an unmatched $v \in V$.
 
+Each alternating augmenting path has length $O(k)$, as every other edge is a
+matching edge and $|M| \leq k$.
+Additionally, there are $k$ augmentations throughout the Hungarian algorithm,
+so the total time spent on updating the matching (during augmentations) is
+$O(k^2)$.
+The remainder of this section describes an implementation of Hungarian search
+that can run in $O(k\polylog n)$ time after a one-time $O(n\polylog n)$ time
+preprocessing.
+With this, our implementation of the Hungarian Algorithm runs in
+$O((n + k^2)\polylog n)$ time.
 
-\begin{theorem}[Time for Hungarian algorithm]
-\label{theorem:hung_orig}
-Let $G = (A \cup B, A \times B)$ be an instance of geometric partial matching
-with $r \coloneqq |A|$, $n \coloneqq |B|$, $r \leq n$, and parameter $k \leq r$.
-Suppose the Hungarian search finds each augmenting path in $T(n, k)$ time after
-a one-time $P(n, k)$ preprocessing time.
-Then, the Hungarian algorithm finds the optimal size $k$ matching in time
-$O(P(n, k) + k T(n, k) + k^2)$.
-\end{theorem}
+\subsection{Geometric implementation of Hungarian search}
 
-\subsection{Hungarian search}
+Observe that the Hungarian search makes $O(k)$ relaxations, as each
+relaxation either leads to an unmatched vertex (ending the search) or 
+adds both vertices of a matching edge.
+We will implement each relaxation step in $O(\polylog n)$ time, after
+preprocessing.
 
-Let $S$ be the set of vertices that can be reached from an unmatched $a \in A$
-by admissible residual edges, initially the unmatched vertices of $A$.
-The Hungarian search updates potentials in a Dijkstra's algorithm-like manner,
-expanding $S$ until it includes an unmatched $b \in B$ (and thus an admissible
-alternating augmenting path).
-The ``search frontier'' of the Hungarian search is
-$(S \cap A) \times (B \setminus S)$.
-We \emph{relax} the minimum-reduced cost edge in the frontier, changing the
-potentials of vertices $S$ such that the edge becomes admissible, and adding
-the head of the edge into $S$.
-\note{Well, either you add both endpoints into $S$, or an admissible augmenting path is found.}
-
-The potential update uniformly decreases the reduced costs of the frontier
-edges.
-Since $(a', b')$ is the minimum reduced cost frontier edge, the potential
-update in line~\ref{line:hs_update} does not make any reduced cost negative,
-and thus preserves the dual feasibility constraint for all edges.
-The algorithm is shown below as Algorithm~\ref{algorithm:hung_hs}.
-
-% \begin{figure*}
-% \centering
-% \begin{minipage}{.8\linewidth}
-% \begin{algorithm}[H]
-% \caption{Hungarian Search (matching)}
-% \label{algorithm:hung_hs}
-% \begin{algorithmic}[1]
-% \Require{$c_\pi(a, b) = 0$ for all $(a, b) \in M$}
-% %\Statex %newline
-% \Function{Hungarian-Search}{$G = (A \cup B, E)$, $M$, $\pi$}
-% 	\State $S \gets a \in (A \setminus V(M))$ \note{arbitrary $a$?}
-% 	\Repeat
-% 		\State $(a', b') \gets \argmin\{c_\pi(a, b) \mid (a, b) \in (S \cap A) \times (B \setminus S)\}$
-% 		\State $\gamma \gets c_\pi(a', b')$
-% 		\State $\pi(v) \gets \pi(v) + \gamma, \forall v \in S$
-% 			\Comment{make $(a', b')$ admissible}
-% 			\label{line:hs_update}
-% 		\State $S \gets S \cup \{b'\}$
-% 		% \Statex %newline
-% 		\If{$b' \not\in V(M)$} \Comment{$b'$ unmatched}
-% 			\State $\Pi \gets$ alternating augmenting path from $a$ to $b'$
-% 			\State\Return $\Pi$
-% 		\Else \Comment{$b'$ is matched to some $a'' \in A \cap V(M)$}
-% 			\State $S \gets S \cup \{a''\}$
-% 		\EndIf
-% 	\Until{$S = A \cup B$}
-% 	\State\Return failure
-% \EndFunction
-% \end{algorithmic}
-% \end{algorithm}
-% \end{minipage}
-% \end{figure*}
-
-By tracking the forest of relaxed edges (e.g. back pointers), it is
-straightforward to recover the alternating augmenting path $\Pi$ once we reach
-an unmatched $b' \in B$.
-We make the following observation about the Hungarian search:
-
-\begin{lemma}
-\label{lemma:hungsearch_length}
-There are at most $k$ edge relaxations before the Hungarian search finds an
-alternating augmenting path.
-\end{lemma}
-
-\begin{proof}
-Each edge relaxation either leads to a matched vertex in $B$ (there are at most
-$k-1$ such vertices), or finds an unmatched vertex and ends the search.
-\end{proof}
-
-In general graphs, the minimum edge is typically found by pushing all
-encountered $(S \cap A) \times (B \setminus S)$ edges into a priority queue.
-However, in the bipartite complete graph, this may take $\Theta(rn\polylog n)$
-time for each Hungarian search --- edges are being pushed into the queue even when
-they are not relaxed.
-We avoid this problem by finding an edge with minimum cost using \EMPH{bichromatic
-closest pair} (BCP) queries on an additively weighted Euclidean distances,
-for which there exist fast dynamic data structures.
+In general graphs, the expensive step is finding the minimum-reduced cost
+frontier edge --- the search must ``look at every edge'' e.g. by pushing them
+into a priority queue even if they are not relaxed.
+Since the costs are geometric, we can replace this with a query to a dynamic
+\EMPH{bichromatic closest pair} (BCP) data structure.
 Given two point sets $P$ and $Q$ in the plane, the BCP is the pair of points
-$p \in P$ and $q \in Q$ minimizing the (adjusted) distance
+$p \in P$ and $q \in Q$ minimizing the additively weighted distance
 $\|p - q\| - \omega(p) + \omega(q)$, for some real-valued vertex weights
 $\omega(p)$.
-In our setting, the vertex weights will mostly be set as the potentials; the
-adjusted distance is equal to the reduced cost.
-
+Thus, the minimum-reduced cost frontier edge is precisely the BCP of
+$P = A \cap S$ and $Q = B \setminus S$, with $\omega(p) = \pi(p)$.
 \note{Short history on BCP?}
-The state of the art dynamic BCP data structure from Kaplan, Mulzer,
-Roditty, Seiferth, and Sharir~\cite{KMRSS17} supports point insertions and deletions in
+
+The state of the art dynamic BCP data structure from Kaplan, Mulzer, Roditty,
+Seiferth, and Sharir~\cite{KMRSS17} supports point insertions and deletions in
 $O(\polylog n)$ time, and answers queries in $O(\log^2 n)$ time.
-The following lemma, combined with Theorem~\ref{theorem:hung_orig}, completes
-the proof of Theorem~\ref{theorem:hung}.
+During each relaxation, we perform at most one query and add a vertex to $S$
+incurring one BCP insertion or deletion.
+So ignoring the time to build $P, Q$ at the beginning of the search and the
+time needed for updating $\pi$, the running time for the search is $O(k\polylog n)$.
 
-\begin{lemma}
-\label{lemma:hs_time}
-Using the dynamic BCP data structure from Kaplan \etal, we can implement
-Hungarian search with $T(n, k) = O(k\polylog n)$ and
-$P(n, k) = O(n\polylog n)$.
-\end{lemma}
+\paragraph{Initial BCP sets by rewinding.}
+Recall that $S$ is initialized to the set of unmatched vertices of $V = A$,
+and therefore $Q = B \setminus S$ has size $n$.
+We cannot afford to take $O(n\polylog n)$ time to construct the BCP sets at the
+beginning of every Hungarian search beyond the first.
+However, the set of unmatched $A$ vertices has changed by exactly one
+vertex since the last Hungarian search --- the augmentation newly matched one
+vertex $a^* \in A$.
+Thus, given the initial BCP sets $P', Q'$ from the beginning of the last
+Hungarian search, we can construct the initial $P$ and $Q$ by taking
+$Q \gets Q'$ and $P \gets P' \setminus \{a^*\}$.
+In other words, we only need a single BCP deletion ($O(\polylog n)$ time),
+given $P'$ and $Q'$.
 
-\begin{proof}
-Recall that we maintain a BCP data structure between $P = (S \cap A)$ and
-$Q = (B \setminus S)$.
-Changes to the $P$ and $Q$ are entirely driven by changing $S$; that is,
-updates to $S$ incur BCP insertions/deletions.
-We first analyze the bookkeeping besides the potential updates, and then
-show how potential updates can be implemented efficiently.
+To acquire $P'$ and $Q'$, we keep a log of the points that are added to $S$
+over the course of the Hungarian search, and \emph{rewind} this log at the
+end of a Hungarian search by tracing over it in reverse order:
+If a point added to $S$ incurred a BCP insertion during the search,
+we now delete it (resp. incurred deletion, insert it).
+The number of events in the log is $O(k)$, since the number of relaxations per
+Hungarian search is $O(k)$.
+Thus, in $O(k\polylog n)$ time, we can reconstruct $P'$ and $Q'$ for each
+Hungarian search beyond the first.
 
-\note{Untangles the algorithm with the proof; move the algorithm out of the proof of the lemma.}
+We refer to this as the \EMPH{rewinding mechanism}.
+In summary, we can construct each initial BCP set in $O(k\polylog n)$ time,
+after $O(n\polylog n)$ preprocessing time for constructing the very first
+BCP sets.
 
-\begin{enumerate}
-\item Let $S^t_0$ \note{Is there a reason why you want the subscript?  Do you ever define $S^t$?} denote the initial set $S$ at the beginning of the
-	$t$-th Hungarian search, that is, the set of unmatched points in $A$
-	after $t$ augmentations.
-	At the very beginning of the Hungarian algorithm, we initialize
-	$S^0_0 \gets A$ (meaning that $P = A$ and $Q = B$), which is a
-	one-time insertion of $O(n)$ points into BCP, attributed to $P(n, k)$.
-	On each successive Hungarian search, $S^t_0$ shrinks as more
-	and more points in $A$ are matched.
-	Assume for now that, at the beginning of the $(t+1)$-th
-	Hungarian search, we are able to construct $S^t_0$ from the
-	previous iteration.
-	To construct $S^{t+1}_0$, we simply remove the point in $A$ that was
-	matched by the $t$-th augmenting path.
-	Thus, with that assumption, we are able to initialize $S$ using
-	one BCP deletion operation per augmentation.
+\paragraph{Potential updates by Vaidya's trick.}
+We modify a trick from Vaidya~\cite{Vaidya89} for batching potential updates.
+Potentials have a \EMPH{stored value}, i.e. the currently recorded value of
+$\pi(v)$, and a \EMPH{true value}, which may have changed from $\pi(v)$.
+The resulting algorithm queries the minimum-reduced cost under the true values
+of $\pi$ and updates the stored value rarely.
 
-\item During each Hungarian search, points are added to $P$ (that is, some points in $A$ are
-	added to $S$) and removed from $Q$ (points in $B$ added to $S$), which will happen at most once per edge relaxation.
-	By Lemma~\ref{lemma:hungsearch_length} the number of relaxed
-	edges is at most $k$, so the number of such BCP operations is
-	also at most $k$.
-
-\item To obtain $S^t_0$, we keep track \note{give a name to such points} of the
-	points added since $S^t_0$ in the last Hungarian search
-	(i.e.\ those of (2)). \note{Unclear}
-	After the augmentation, we use this log \note{use the name} to delete the added
-	vertices from $S$ and recover $S^t_0$.
-	By the argument in (2) there are $O(k)$ of such points to
-	delete, so reconstructing $S^t_0$ takes $O(k)$ BCP operations.
-	\note{TODO change to full persistence: loglogm overhead with $m=r$ modifications} %TODO
-\end{enumerate}
-
-We spend $P(n, k) = O(n \polylog n)$ time to build the initial BCP.
-The number of BCP operations associated with each Hungarian search is
-$O(k)$, so the time spent on BCP operations in each Hungarian search
-is $O(k \polylog n)$.
-
-As for the potential updates, we modify a trick from Vaidya~\cite{Vaidya89} to
-batch potential updates.
-Potentials have a \EMPH{stored value}, i.e. the current value of $\pi(v)$,
-and a \EMPH{true value}, which may have changed from $\pi(v)$.
-The algorithm uses the true value when dealing with reduced costs and updates
-the stored value rarely; we explain the mechanism shortly.
-
-Throughout the course of the algorithm, we maintain a nonnegative value
-$\delta$ (initially 0) which aggregates potential changes.
-Vertices that are added to $S$ are immediately added to a BCP data structure
-with weight $\omega(p) \gets \pi(p) - \delta$, for whatever value $\delta$ is
-at the time of insertion.
-When the points of $S$ have potentials increased by $\gamma$ in (2), we instead
-raise $\delta \gets \delta + \gamma$.
+Throughout the entire Hungarian Algorithm, we maintain a scalar
+$\EMPH{$\delta$} \geq 0$ (initially 0) which aggregates potential changes.
+Vertices $a \in A$ that are added to $S$ are inserted into BCP with weight
+$\omega(a) \gets \pi(a) - \delta$, for whatever value $\delta$ is at the time
+of insertion.
+Similarly, vertices $b \in B$ that are added to $S$ have $\omega(b) \gets \pi(b) - \delta$
+recorded ($B \cap S$ points aren't added into a BCP set).
+When the Hungarian search wants to raise the potentials of points in $S$,
+$\delta$ is increased by that amount instead.
 Thus, true value for any potential of a point in $S$ is $\omega(p) + \delta$.
 For points of $(A \cup B) \setminus S$, the true potential is equal to the
 stored potential.
+Since all the points of $S \cap A$ have weights uniformly offseted from their
+true potentials, the minimum edge returned by the BCP does not change.
 
-Since potentials for $S$ points are uniformly offsetted by $\delta$, the
-minimum edge returned by the BCP oracle does not change.
-Once a point is removed from $S$, we update its stored potential
-to be $\pi(p) \gets \omega(p) + \delta$, for the current value of $\delta$.
+Once a point is removed from $S$ (i.e. by an augmentation or the rewinding
+mechanism), we update its stored potential $\pi(p) \gets \omega(p) + \delta$,
+again for the current value of $\delta$.
 Importantly, $\delta$ is not reset at the end of a Hungarian search, and
-persists throughout the entire algorithm.
-This way, the unmatched points in each $S^t_0$ have their true potentials
-accurately represented by $\delta$ and $\omega(p)$.
+persists through the entire algorithm.
+Thus, the initial BCP sets contructed by the rewinding mechanism have true
+potentials accurately represented by $\delta$ and $\omega(p)$.
 
-The number of updates to $\delta$ is equal to the number of edge relaxations,
-which is $O(k)$ per Hungarian search.
-We update stored potentials when removing a point from $S$ (by the rewind
-mechanism, or due to an augmentation) which occurs $O(k)$ times per Hungarian
-search.
+We update $\delta$ once per edge relaxations, so $O(k)$ times per Hungarian search.
+There are $O(k)$ stored values updated per Hungarian search, during the rewind.
 The time spent on potential updates per Hungarian search is therefore $O(k)$.
-Overall, the time spent per Hungarian search is $T(n, k) = O(k\polylog n)$.
-
-\note{The proof gets more handwavy as the paragraph progresses.  Consider a revision after this round.}
-\end{proof}
+Combined with the previous discussion, we can implement each Hungarian search
+in $O(k\polylog n)$ time after a one-time $O(n\polylog n)$ preprocessing.
 
 
 \section{Approximating Min-Cost Partial Matching through Cost-Scaling}
@@ -860,7 +791,7 @@ In other words, the set of residual arcs  are precisely those arcs in the residu
 %
 %\note{Not sure why this section is needed; removed until discovering its use.}
 %
-% The Hungarian algorithm begins with an empty matching and gradually increases its size to $k$ using \EMPH{alternating augmenting paths}.
+% The Hungarian Algorithm begins with an empty matching and gradually increases its size to $k$ using \EMPH{alternating augmenting paths}.
 % Given a non-maximal matching $M$, an alternating augmenting path $P$ is a path
 % between an unmatched vertex $a \in A$ and unmatched $b \in B$.
 % \note{What is $A$ and $B$? Remind the readers about the bipartite graph again.}
@@ -1216,8 +1147,8 @@ In total, potential updates and backward arc desaturations, thus the whole prece
 \paragraph{Refinement.}
 
 The procedure \textsc{Refine} is implemented using a primal-dual augmentation algorithm,
-which sends flows on admissible arcs to reduce the total excess, like the Hungarian algorithm.
-Unlike the Hungarian algorithm,
+which sends flows on admissible arcs to reduce the total excess, like the Hungarian Algorithm.
+Unlike the Hungarian Algorithm,
 it uses \emph{blocking flows} instead of augmenting paths.
 %
 An \EMPH{augmenting path} is a path in the residual network from an excess vertex to a deficit vertex.
@@ -1853,7 +1784,6 @@ Summing up we have an $O(k\sqrt{k})$ bound over the course of \textsc{Refine}.
 Now combining Lemma~\ref{lemma:goldberg_hs_time}, Lemma~\ref{lemma:goldberg_dfs_time}, and
 Lemma~\ref{lemma:empty_updates}
 completes the proof of Theorem~\ref{theorem:gmcm}.
-
 
 
 \section{Unbalanced transportation}
