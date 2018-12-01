@@ -803,7 +803,7 @@ is defined to be
 %
 The \EMPH{minimum-cost flow problem (MCF)} asks to find a circulation of minimum cost inside a given directed graph.
 
-\paragraph{Residual network.}
+\paragraph{Residual graph.}
 Given a pseudoflow $f$, one can define the \emph{residual network} as follows.
 %
 Recall that the set of \emph{residual arcs $\vec{E}_f$} under $f$ are those arcs $\arc vw$ satisfying $f(\arc vw) < u(\arc vw)$.  In other words, an arc that is not saturated by $f$ is a residual arc; similarly, given an arc $\arc vw$ with positive flow value, the backward arc $\arc wv$ is a residual arc.
@@ -1342,6 +1342,7 @@ Combined with the $O(\sqrt{k})$ bound on the number of iterations we just proved
 %\note{Well, there's the null vertex potential updates.  Hide it?}
 
 
+
 \section{Fast Implementation}
 \label{S:implementation}
 
@@ -1363,9 +1364,9 @@ To overcome this issue, we replace the residual graph with an equivalent graph t
 and run the Hungarian search and depth-first search on the resulting graph instead.
 
 \paragraph{Null vertices.}
-We say a vertex $v$ in the residual graph $N_f$ is a \EMPH{null vertex} if $\fsupply_f(v) = 0$ and no edges of $\supp(f)$ is incident to $v$.
+We say a vertex $v$ in the residual graph $N_f$ is a \EMPH{null vertex} if $\fsupply_f(v) = 0$ and no arcs of $\supp(f)$ is incident to $v$.
 %We are unable to charge relaxation steps involving null vertices to $|\supp(f)|$, so the algorithm must deal with them separately.
-We use $A_\emptyset$ and $B_\emptyset$ to denote the null vertices $A$ and $B$ respectively.
+We use \EMPH{$A_\emptyset$} and \EMPH{$B_\emptyset$} to denote the null vertices $A$ and $B$ respectively.
 Vertices that are not null are called \EMPH{normal vertices}.
 %
 A \EMPH{null 2-path} is a length-$2$ subpath in $N_f$ from a normal vertex to another normal vertex, passing through a null vertex.
@@ -1378,7 +1379,7 @@ vertices to be a \EMPH{null 3-path}.
 Because reduced costs telescope for residual paths, the reduced cost of any null 2-path or null 3-path does not depend on the null vertices it passes through.
 
 \paragraph{Shortcut graph.}
-We construct the \EMPH{shortcut graph} $\tilde{H}_f$ from the reduction network $H$ by removing all
+We construct the \EMPH{shortcut graph $\tilde{H}_f$} from the reduction network $H$ by removing all
 null vertices and their incident edges, followed by inserting an arc
 from the head of each each null path $\Pi$ to its tail, with cost equals to the sum of costs on the arcs.
 We call this arc the \EMPH{shortcut} of null path $\Pi$, denoted as \EMPH{$\short(\Pi)$}.
@@ -1387,8 +1388,9 @@ We call this arc the \EMPH{shortcut} of null path $\Pi$, denoted as \EMPH{$\shor
 % Similarly, the null 3-path $(s, v_1, v_2, t)$ would be replaced with a
 % shortcut $(s, t)$ of cost $c(\short((s, v_1, v_2 t))) \coloneqq c(v_1, v_2)$.
 %
-The resulting multigraph $\tilde{H}_f$ contains only normal vertices of $H_f$, and the reduced cost of any path between normal vertices are preserved;
-in other words, we have $c_\pi(\Pi) = c_{\tilde\pi}(\tilde{\Pi})$. \note{Do we want this just for the null path, or any normal-to-normal path?  In any case $\tilde{\Pi}$ is undefined.}
+The resulting multigraph $\tilde{H}_f$ contains only normal vertices of $H_f$, and the reduced cost of any path between normal vertices are preserved.
+%in other words, we have $c_\pi(\Pi) = c_{\tilde\pi}(\tilde{\Pi})$. \note{Do we want this just for the null path, or any normal-to-normal path?  In any case $\tilde{\Pi}$ is undefined.}
+%
 %\note{Do we need the fact that every null vertex is passed by a null path? ANS: not here, do it in the proof}
 % Consider a path $\Pi$ from normal $v$ to normal $w$ in $H_f$.
 % Any null vertex in $\Pi$ is passed by an empty 2- or 3-path contained
@@ -1397,13 +1399,15 @@ in other words, we have $c_\pi(\Pi) = c_{\tilde\pi}(\tilde{\Pi})$. \note{Do we w
 % Thus, there is a corresponding $v$-to-$w$ path $\tilde{\Pi}$ in $\tilde{H}_f$
 % by replacing each null path contained in $\Pi$ with its shortcut.
 We argue now that $\tilde{H}_f$ is fine as a surrogate for $H_f$.
-
-\begin{lemmarep}
-\label{lemma:empty_correct}
-Let \EMPH{$\tilde{\pi}$} be an $\eps$-optimal potential on $\tilde{H}_f$.
+%
+Let $\tilde{\pi}$ be an $\eps$-optimal potential on $\tilde{H}_f$.
 Construct potentials $\pi$ on $H_f$ which extends $\tilde{\pi}$ to null vertices, by
 setting $\pi(a) \coloneqq \tilde{\pi}(s)$ for $a \in A_\emptyset$ and
 $\pi(b) \coloneqq \tilde{\pi}(t)$ for $b \in B_\emptyset$.
+
+\begin{lemmarep}
+\label{lemma:empty_correct}
+Consider $\tilde{\pi}$ an $\eps$-optimal potential on $\tilde{H}_f$ and $\pi$ the corresponding potential constructed on $H_f$.
 Then,
 \begin{enumerate}
 \item potential $\pi$ is $\eps$-optimal on  $H_f$, and
@@ -1485,62 +1489,63 @@ This proves the lemma.
 Conceptually, we are executing the Hungarian search
 %(``raise prices'') from \cite[Section 3.2]{GHKT17}
 on the shortcut graph $\tilde{H}_f$.
-We describe how we can query the minimum-reduced cost arc leaving $S$ in
+We describe how we can query the minimum-reduced cost arc leaving $\tilde{S}$ in
 $O(\polylog n)$ time for the shortcut graph, without constructing
 $\tilde{H}_f$ explicitly.
-For this purpose, let \EMPH{$S'$} be a set of ``reached'' vertices maintained,
-identical to $S$ \note{undefined} except whenever a shortcut is relaxed, we add the null vertices passed by the corresponding null path to $S'$ in addition to its (normal) endpoints. \note{$S$ should be $\tilde{S}$ and $S'$ should be $S$?}
+For this purpose, let \EMPH{$S$} be a set of ``reached'' vertices maintained,
+identical to $\tilde{S}$ except whenever a shortcut is relaxed, we add the null vertices passed by the corresponding null path to $S$ in addition to its (normal) endpoints.
+%\note{$S$ should be $\tilde{S}$ and $S'$ should be $S$?}
 %
-Observe that the arcs of $\tilde{H}_f$ leaving $S$ fall into $O(1)$ categories.
+Observe that the arcs of $\tilde{H}_f$ leaving $\tilde{S}$ fall into $O(1)$ categories.
 
 \begin{toappendix}
 
 \begin{enumerate}
 \item Non-shortcut backward arcs $(v, w)$ with $(w, v) \in \supp(f)$.
 	For these, we can maintain a min-heap on $\supp(f)$ arcs as each $v$
-	arrives in $S$.
+	arrives in $\tilde{S}$.
 \item Non-shortcut $A$-to-$B$ forward arcs.
 	For these, we can use a BCP data structure between
-	$(A \setminus A_\emptyset) \cap S$ and
-	$(B \setminus B_\emptyset) \setminus S$, weighted by potential.
+	$(A \setminus A_\emptyset) \cap \tilde{S}$ and
+	$(B \setminus B_\emptyset) \setminus \tilde{S}$, weighted by potential.
 \item Non-shortcut forward arcs from $s$-to-$A$ and from $B$-to-$t$.
 	For $s$, we can maintain a min-heap on the potentials of
-	$B \setminus S$, queried while $s \in S$.
+	$B \setminus \tilde{S}$, queried while $s \in \tilde{S}$.
 	For $t$, we can maintain a max-heap on the potentials of
-	$A \cap S$, queried while $t \not\in S$.
+	$A \cap \tilde{S}$, queried while $t \not\in \tilde{S}$.
 
 \item Shortcut arcs $(s, b)$ corresponding to null 2-paths from $s$ to
-	$b \in (B \setminus B_\emptyset) \setminus S'$.
+	$b \in (B \setminus B_\emptyset) \setminus S$.
 	For these, we maintain a BCP data structure with $P = A_\emptyset$,
-	$Q = (B \setminus B_\emptyset) \setminus S')$ with weights
+	$Q = (B \setminus B_\emptyset) \setminus S)$ with weights
 	$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for
 	all $q \in Q$.
 	A response $(a, b)$ corresponds to th null 2-path $(s, a, b)$.
-	This is only queried while $s \in S'$.
+	This is only queried while $s \in S$.
 \item Shortcut arcs $(a, t)$ corresponding to null 2-paths from
-	$a \in (A \setminus A_\emptyset) \cap S'$ to $t$.
+	$a \in (A \setminus A_\emptyset) \cap S$ to $t$.
 	For these, we maintain a BCP data structure with
-	$P = (A \setminus A_\emptyset) \cap S'$,
-	$Q = B_\emptyset \setminus S'$ with weights $\omega(p) = \pi(p)$ for
+	$P = (A \setminus A_\emptyset) \cap S$,
+	$Q = B_\emptyset \setminus S$ with weights $\omega(p) = \pi(p)$ for
 	all $p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
 	A response $(a, b)$ corresponds to th null 2-path $(a, b, t)$.
-	This is only queried while $t \not\in S'$.
+	This is only queried while $t \not\in S$.
 \item Shortcut arcs $(s, t)$ corresponding to null 3-paths.
 	For these, we maintain in a BCP data structure with
-	$P = A_\emptyset \setminus S'$, $Q = B_\emptyset \setminus S'$ with
+	$P = A_\emptyset \setminus S$, $Q = B_\emptyset \setminus S$ with
 	weights $\omega(p) = \pi(s)$ for all
 	$p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
 	A response $(a, b)$ corresponds to th null 3-path $(s, a, b, t)$.
-	This is only queried while $s \in S'$ and $t \not\in S'$.
+	This is only queried while $s \in S$ and $t \not\in S$.
 \end{enumerate}
 
 \end{toappendix}
 
 By construction, the distance returned by
-each of the BCP data structure in (4)--(6) is equal to
-the reduced cost of the shortcut, which is equal to the reduced cost of the
-corresponding null path.
-Each of the above data structures requires one query per relaxation, and an update operation whenever a new vertex moves into $S$.
+each of the BCP data structure
+%in (4)--(6)
+is equal to the reduced cost of the shortcut, which is equal to the reduced cost of the corresponding null path.
+Each of the above data structures requires one query per relaxation, and an update operation whenever a new vertex moves into $\tilde{S}$.
 The data structures above can perform both queries and updates in $O(\polylog n)$ time each, so the
 running time of the Hungarian search other than the potential updates can be
 charged to the number of relaxation steps.
@@ -1549,72 +1554,74 @@ charged to the number of relaxation steps.
 \paragraph{Depth-first search.}
 
 The depth-first search is similar to Hungarian search in that it
-uses the relaxation of minimum-reduced cost arcs/null paths, this time to
+uses the relaxation of minimum-reduced-cost arcs/null paths, this time to
 identify admissible arcs/null paths in a depth-first manner.
-This requires some adjustments to the data structures for finding the
-minimum-reduced cost arc leaving $v' \in S$.
-Given $v' \in S$, we would like to query:
-%
+This requires some adjustments to the data structures for finding the minimum-reduced-cost arc leaving $v' \in \tilde{S}$.
 
 \begin{toappendix}
 
+Given $v' \in \tilde{S}$, we would like to query:
+%
 \begin{enumerate}
 \item Non-shortcut backward arcs $(v', w')$ with $(w', v') \in \supp(f)$.
 	For these, we can maintain a min-heap on $(w', v') \in \supp(f)$ arcs
 	for each normal $v' \in V$.
 \item Non-shortcut $A$-to-$B$ forward arcs.
 	For these, we maintain a NN data structure over
-	$P = (B \setminus B_\emptyset) \setminus S$, with weights
+	$P = (B \setminus B_\emptyset) \setminus \tilde{S}$, with weights
 	$\omega(p) = \pi(p)$ for each $p \in P$.
 	We subtract $\pi(v')$ from the NN distance to recover the reduced cost
 	of the arc from $v'$.
 \item Non-shortcut forward arcs from $s$-to-$A$ and from $B$-to-$t$.
 	For $s$, we can maintain a min-heap on the potentials of
-	$B \setminus S$, queried only if $v' = s$.
+	$B \setminus \tilde{S}$, queried only if $v' = s$.
 	For $B$-to-$t$ arcs, there is only one arc to check if $v' \in B$,
 	which we can examine manually.
 
 \item Shortcut arcs $(s, b)$ corresponding to null 2-paths from $s$ to
-	$b \in (B \setminus B_\emptyset) \setminus S'$.
+	$b \in (B \setminus B_\emptyset) \setminus S$.
 	For these, we maintain a BCP data structure with $P = A_\emptyset$,
-	$Q = (B \setminus B_\emptyset) \setminus S')$ with weights
+	$Q = (B \setminus B_\emptyset) \setminus S)$ with weights
 	$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for
 	all $q \in Q$.
 	A response $(a, b)$ corresponds to th null 2-path $(s, a, b)$.
 	This is only queried if $v' = s$.
 \item Shortcut arcs $(a, t)$ corresponding to null 2-paths from
-	$a \in (A \setminus A_\emptyset) \cap S'$ to $t$.
+	$a \in (A \setminus A_\emptyset) \cap S$ to $t$.
 	For these, we maintain a NN data structure over
-	$P = B_\emptyset \setminus S'$ with weights $\omega(p) = \pi(t)$ for
+	$P = B_\emptyset \setminus S$ with weights $\omega(p) = \pi(t)$ for
 	each $p \in P$.
 	A response $(v', b)$ corresponds to th null 2-path $(v', b, t)$.
 	We subtract $\pi(v')$ from the NN distance to recover the reduced cost
 	of the arc from $v'$.
-	This is not queried if $t \in S$.
+	This is not queried if $t \in \tilde{S}$.
 \item Shortcut arcs $(s, t)$ corresponding to null 3-paths.
 	For these, we maintain in a BCP data structure with
-	$P = A_\emptyset \setminus S'$, $Q = B_\emptyset \setminus S'$ with
+	$P = A_\emptyset \setminus S$, $Q = B_\emptyset \setminus S$ with
 	weights $\omega(p) = \pi(s)$ for all
 	$p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
 	A response $(a, b)$ corresponds to th null 3-path $(s, a, b, t)$.
-	This is only queried while $v' = s$ and $t \not\in S'$.
+	This is only queried while $v' = s$ and $t \not\in S$.
 \end{enumerate}
 
 \end{toappendix}
 
-Each data structure above performs a constant number of queries and
-updates per relaxation, each of which can be implemented in $O(\polylog n)$ time \cite{}; so the running time is again bounded by
+Each data structure performs a constant number of queries and updates per relaxation, each of which can be implemented in $O(\polylog n)$ time \cite{}; so the running time is again bounded by
 $O(\polylog n)$ times the number of relaxations.
 %Since the pseudoflow is not changed within \textsc{DFS} we can bound the number
 %of relaxation events in a similar way as \textsc{Hungarian-Search2}.
 
+%\subsection{Number of relaxations}
 
+\subsection{Time analysis}
 
-\subsection{Number of relaxations}
+First we bound the number of relaxations performed by both the Hungarian search and the depth-first search.
+
+\begin{toappendix}
 
 \begin{lemmarep}
 \label{lemma:goldberg_hs_length}
-Hungarian Search performs $O(k)$ relaxations before a deficit vertex is reached.
+Hungarian search performs $O(k)$ relaxations before a deficit vertex is reached.
 \end{lemmarep}
 
 \begin{proof}
@@ -1677,13 +1684,20 @@ Similarly we can prove that there are $O(k)$ relaxations during the DFS.
 Depth-first search performs $O(k)$ relaxations before a deficit vertex is reached.
 \end{corollary}
 
+\end{toappendix}
 
-\subsection{Time analysis}
+\begin{lemma}
+Both Hungarian search and depth-first search performs $O(k)$ relaxations before a deficit vertex is reached.
+\end{lemma}
+
+%\subsection{Time analysis}
 
 Now we complete the time analysis
 %of the Hargarian search
 %by proving that potentials can be maintained in $O(k)$ time over the course of the search.
 by showing that each Hungarian search and depth-first search can be implemented in $O(k \polylog n)$ time after a one-time $O(n \polylog n)$-time preprocessing.
+
+\begin{toappendix}
 
 \begin{lemmarep}
 \label{lemma:goldberg_hs_time}
@@ -1748,6 +1762,14 @@ is bounded by the $O(\polylog n)$ times the number of relaxations.
 By Corollary~\ref{corollary:goldberg_dfs_length}, the running time for depth-first search is $O(k\polylog n)$.
 \end{proof}
 
+\end{toappendix}
+
+\begin{lemma}
+After $O(n \polylog n)$-time preprocessing,
+each Hungarian search and depth-first search can be implemented in $O(k \polylog n)$ time.
+\end{lemma}
+
+
 \subsection{Number of potential updates on null vertices}
 
 In our implementation of \textsc{Refine}, we do not explicitly construct $\tilde{H}_f$; instead we query its edges using BCP/NN
@@ -1755,33 +1777,8 @@ oracles and min/max heaps on elements of $H_f$.
 Potentials on the null vertices are only required right before an augmentation sends a flow through a
 null path, making the null vertices it passes normal.
 %as well as at the end of \textsc{Refine} (for the next cost-scale).
-We use Lemma~\ref{lemma:empty_correct} \note{move outside}
-to construct potential $\pi$ such that the flow $f$ is both $\eps$-optimal and admissible with respect to $\pi$.
-
-\note{TO BE REWRITTEN.}
-
-\begin{lemmarep}
-\label{lemma:empty_updates}
-The number of end-of-\textsc{Refine} null vertex potential updates is $O(n)$.
-The number of augmentation-induced null vertex potential updates in each
-invocation of \textsc{Refine} is $O(\sum_i N_i)$ where $N_i$ is the number
-of positive flow arcs in the $i$-th blocking flow.
-\end{lemmarep}
-
-\begin{proof}
-The number of end-of-\textsc{Refine} potential updates is $O(n)$.
-Each update due to flow augmentation involves a blocking flow sending positive
-flow through an null path, causing a potential update on the passed
-null vertex.
-We charge this potential update to the edges of that null path, which are in
-turn arcs with positive flow in the blocking flow.
-For each blocking flow, no positive arc is charged more than twice.
-It follows that the number of augmentation-induced updates is $O(N_i)$ for the
-$i$-th blocking flow, and $O(\sum_i N_i)$ over the course of \textsc{Refine}.
-\end{proof}
-
-Ultimately, we prove that $\sum_i N_i = O(k\sqrt{k})$, but this requires that
-we explain the process creating each blocking flow.
+We use the construction from Lemma~\ref{lemma:empty_correct}
+to obtain potential $\pi$ on $H_f$ such that the flow $f$ is both $\eps$-optimal and admissible with respect to $\pi$.
 
 \paragraph{Size of blocking flows.}
 
@@ -1791,9 +1788,10 @@ This bounds both the time spent updating the flow on these arcs and also the tim
 
 \begin{lemmarep}
 \label{lemma:goldberg_bf_size}
-Let $N_i$ be the number of positive flow arcs in the $i$-th blocking flow
-of \textsc{Refine}.
-Then, $\sum_i N_i = O(k\sqrt{k})$.
+The support of each blocking flow %\note{on which network?}
+found in $\textsc{Refine}$ is of size $O(k)$.
+%Let $N_i$ be the number of positive flow arcs in the $i$-th blocking flow of \textsc{Refine}.
+%Then, $\sum_i N_i = O(k\sqrt{k})$.
 \end{lemmarep}
 
 \begin{proof}
@@ -1804,10 +1802,31 @@ which appear as path $P$ in Algorithm~\ref{algorithm:goldberg_dfs}.
 Every arc in $P$ is an arc relaxed by \textsc{DFS}, so $N_i$ is bounded by the
 number of relaxations performed in \textsc{DFS}.
 Using Corollary~\ref{corollary:goldberg_dfs_length}, we have $N_i = O(k)$.
+% By Lemma~\ref{lemma:goldberg_refine_iterations}, there are $O(\sqrt{k})$
+% iterations of \textsc{Refine} before it terminates.
+% Summing, we see that $\sum_i N_i = O(k\sqrt{k})$.
+\end{proof}
 
-By Lemma~\ref{lemma:goldberg_refine_iterations}, there are $O(\sqrt{k})$
-iterations of \textsc{Refine} before it terminates.
-Summing, we see that $\sum_i N_i = O(k\sqrt{k})$.
+
+\begin{lemmarep}
+\label{lemma:empty_updates}
+The number of end-of-\textsc{Refine} null vertex potential updates is $O(n)$.
+The number of augmentation-induced null vertex potential updates in each
+invocation of \textsc{Refine} is $O(k\log k)$.
+\end{lemmarep}
+
+\begin{proof}
+The number of end-of-\textsc{Refine} potential updates is $O(n)$.
+Each update due to flow augmentation involves a blocking flow sending positive
+flow through an null path, causing a potential update on the passed
+null vertex.
+We charge this potential update to the edges of that null path, which are in
+turn arcs with positive flow in the blocking flow.
+For each blocking flow, no positive arc is charged more than twice.
+It follows that the number of augmentation-induced updates is at most the size of support of the blocking flow, which is $O(k)$
+by Lemma~\ref{lemma:goldberg_bf_size}.
+According to Lemma~\ref{lemma:goldberg_refine_iterations} there are $O(\sqrt{k})$ iterations of \textsc{Refine} before it terminates.
+Summing up we have an $O(k\sqrt{k})$ bound over the course of \textsc{Refine}.
 \end{proof}
 
 % We now complete the proof of Lemma~\ref{lemma:goldberg_refine_time}.
@@ -1834,8 +1853,6 @@ Summing, we see that $\sum_i N_i = O(k\sqrt{k})$.
 Now combining Lemma~\ref{lemma:goldberg_hs_time}, Lemma~\ref{lemma:goldberg_dfs_time}, and
 Lemma~\ref{lemma:empty_updates}
 completes the proof of Theorem~\ref{theorem:gmcm}.
-
-
 
 
 
@@ -1872,7 +1889,7 @@ be sent to meet demands at $b$, and we require that all supplies are sent
 and all demands are met.
 We define the cost of $\tau$ to be
 \[
-	\cost(\tau) \coloneqq \sum_{(a, b) \in A \times B} \norm{a-b} \cdot \tau(a, b).
+	\cost(\tau) \coloneqq \sum_{(a, b) \in A \times B} \norm{a-b}_p^q \cdot \tau(a, b).
 \]
 Given $A$, $B$, and $\tsupply$, the \EMPH{transportation problem} asks to find
 a feasible transportation map of minimum cost.
@@ -1881,11 +1898,11 @@ We focus on analyzing the \EMPH{unbalanced} setting where $r \leq n$.
 There is a simple reduction from the transportation problem to uncapacitated
 min-cost flow.
 Consider the complete bipartite graph $G$ between $A$ and $B$ (with all edges
-directed $A$-to-$B$), set the costs $c(a, b) = \norm{a-b}$, all capacities to
+directed $A$-to-$B$), set the costs $c(a, b) = \norm{a-b}_p^q$, all capacities to
 infinity, and use $\fsupply = \tsupply$.
 Any circulation $f$ in the network $N = (G, c, u, \fsupply)$ can be converted
 into a feasible transportation map $\tau_f$ by taking
-$\tau_f(a, b) \gets f(\arc ab)$.
+$\tau_f(a, b) \coloneqq f(\arc ab)$.
 Furthermore, $\cost(f) = \cost(\tau_f)$.
 
 \subsection{Uncapacitated MCF by excess scaling}
@@ -1987,6 +2004,10 @@ deficit component $\hat{w}$.
 
 \paragraph{Recovering optimal flow.}
 \note{Summarize the results.}
+Naively recovering an optimal flow requires $O(rn^2)$ time.
+Use a strategy from Agarwal~\etal~\cite{AFPVX17}, we can recover the optimal flow in time $O(n \polylog n)$.
+If furthermore the cost function is the $p$-norm (without the $q$-power), an even stronger result stands:
+In this case, the set of admissible arcs under an optimal potential forms a planar graph, and thus we can apply the planar maximum-flow algorithm \cite{E10,xxx} which runs in $O(n \log n)$ time.
 
 \begin{toappendix}
 
@@ -2151,6 +2172,7 @@ planar maximum-flow algorithm by Erickson~\cite{E10}. \cite{Other citations like
 
 \end{toappendix}
 
+
 \subsection{Dead vertices and support stars}
 
 Given Theorem~\ref{theorem:orlin_old}, our goal is to implement each
@@ -2159,19 +2181,17 @@ To find an augmenting path, we again use a Hungarian search with geometric data
 structures to perform relaxations quickly.
 Like in Section~\ref{section:goldberg}, there are vertices which cannot be
 charged to the flow support.
-Worse, the flow support may have size $\Omega(n)$ (consider an instance with
-$r=1$, and demand uniformly distributed among vertices of $B$).
+Even worse, the flow support may have size $\Omega(n)$ (consider an instance with
+$r=1$, and demand uniformly distributed among the vertices of $B$).
 Our strategy is summarized as follows:
 \begin{itemize}
 \item Discard vertices which lead to dead ends in the search (are not on a path
-	to a deficit).
+	to a deficit vertex).
 \item Cluster parts of the flow support, such that the number of support arcs
 	outside clusters is $O(r)$.
 	The number of relaxations we perform is proportional to the number of
 	support arcs outside of clusters.
-\item Querying/updating clusters degrades our amortized time per relaxation to
-	$O((r/\sqrt{n}+\sqrt{n})\polylog n)$, from the $O(\polylog n)$ in
-	previous sections.
+\item Querying/updating clusters degrades our amortized time per relaxation from $O(\polylog n)$ to $O((r/\sqrt{n}+\sqrt{n})\polylog n)$.
 \end{itemize}
 
 Let $E(\supp(f)) \coloneqq \{(v, w) \mid \arc vw \in \supp(f)\}$ be the set
@@ -2180,8 +2200,8 @@ Clearly, $\abs{\supp(f)} = \abs{E(\supp(f))}$.
 Let the \EMPH{support degree} of a vertex be its degree in $E(\supp(f))$.
 
 \paragraph{Dead vertices.}
-We call a vertex $b \in B$ \EMPH{dead} if it has support degree 0 and is not an
-active excess or deficit and \EMPH{live} otherwise.
+We call a vertex $b \in B$ \EMPH{dead} if it has support degree $0$ and is not an
+active excess or deficit vertex; call it \EMPH{live} otherwise.
 Dead vertices are essentially equivalent to the \emph{null vertices} of
 Section~\ref{section:goldberg}.
 Since the reduction in this section does not use a super-source/super-sink,
@@ -2197,7 +2217,7 @@ contracted components.
 %TODO how do we efficiently identify revived vertices?
 We say a dead vertex is \EMPH{revived} when it stops meeting either condition
 of the definition.
-Dead vertices are only revived after $\Delta$ decreases (i.e. in a
+Dead vertices are only revived after $\Delta$ decreases (say, in a
 subsequent excess scale) as no augmenting path will cross a dead vertex and
 they cannot meet the criteria for contractions.
 When a dead vertex is revived, we must add it back into each of our data
@@ -2232,10 +2252,11 @@ $b \in \Sigma_a$.
 
 Before describing our workaround for support stars, we analyze the number of
 relaxation steps for arcs outside of support stars.
-By prioritizing the relaxation of support arcs, we also have the following
-lemma. \note{Moved to appendix}
 
 \begin{toappendix}
+
+By prioritizing the relaxation of support arcs, we also have the following
+lemma.
 
 \begin{lemmarep}[(Agarwal~\etal~\cite{AFPVX17})]
 \label{lemma:orlin_acyclic}
@@ -2365,10 +2386,9 @@ and $A_\text{small} \subseteq A$ denote the centers of small stars.
 We keep the following data structures to manage support stars.
 \begin{enumerate}
 \item For each big star $\Sigma_a$, we use a data structure
-	$\EuScript{D}_\text{big}(a)$ to maintain the BCP between
+	$\EuScript{D}_\text{big}(a)$ to maintain BCP between
 	$P = A_\ell \cap S$ and $Q = \Sigma_a$, weighted by potentials.
-	We query this until $a \in S$ or any vertex of $\Sigma_a$ is added to
-	$S$.
+	We query this until $a \in S$ or any vertex of $\Sigma_a$ is added to~$S$.
 \item All small stars are added to a single BCP data structure
 	$\EuScript{D}_\text{small}$ between $P = A_\ell \cap S$ and
 	$Q = (\bigcup_{a \in A_\text{small}} \Sigma_a) \setminus S$, weighted by
@@ -2387,12 +2407,12 @@ data structures.
 
 Suppose a relaxation step adds some $a \in A_\ell$ to $S$.
 For the support star data structures, we must
-(i) remove $a$ from every $\EuScript{D}_\text{big}(\cdot)$,
+(i) remove $a$ from every $\EuScript{D}_\text{big}$,
 (ii) remove $a$ from $\EuScript{D}_\text{small}$.
 If $a \in A_\text{big}$, we also (iii) deactivate $\EuScript{D}_\text{big}(a)$.
 If $a \in  A_\text{small}$, we also (iv) remove the points of $\Sigma_a$ from
 $\EuScript{D}_\text{small}$.
-The operations (i), (ii), and (iii) can be performed in $O(\polylog n)$ time
+The operations (i--iii) can be performed in $O(\polylog n)$ time
 each, but (iv) may take up to $O(\sqrt{n}\polylog n)$ time.
 
 On the other hand, there are now $O(\sqrt{n})$ data structures to query during
@@ -2418,8 +2438,11 @@ The total time is therefore $O(r\sqrt{n}\polylog n)$.
 \paragraph{Updating support stars.}
 As the flow support changes, the membership of support stars may shift and
 a big star may eventually become small (or vice versa).
-To efficiently support this, introduce some fuzziness for when a star should be
-represented as a big star versus a small star.
+To efficiently support this, introduce some fuzziness to when a star should be big or small.
+%
+Standard charging argument shows that the amortized update time is $O(r\sqrt{n}(r+\sqrt{n})\polylog n)$.
+
+\begin{toappendix}
 
 Initially, we label stars big or small according to the $\sqrt{n}$ threshold.
 A star that is currently big is turned into a small star once
@@ -2450,14 +2473,16 @@ Thus, the time spent for a small-to-big update is $O((r + x)\polylog n)$,
 and there were at least $x \geq \sqrt{n}$ points added to $\Sigma_a$ since it
 was last small.
 
+\end{toappendix}
+
 Membership of support stars can only be changed by augmentations,
 so the number of star membership changes by a single augmenting path is
 bounded above by twice its length (each vertex may be removed from one star,
 and/or added to another star).
 Thus, individual membership changes can be performed in $O(\polylog n)$ time
 each, and there are $O(rn\log n)$ total.
-The total time spent on big-to-small updates is $O(rn\polylog n)$, and the
-total time spent on small-to-big updates is $O(r^2\sqrt{n}\polylog n)$.
+% The total time spent on big-to-small updates is $O(rn\polylog n)$, and the
+% total time spent on small-to-big updates is $O(r^2\sqrt{n}\polylog n)$.
 
 \paragraph{Preprocessing time.}
 To build the very first set of data structures, we take $O(rn\polylog n)$ time.
