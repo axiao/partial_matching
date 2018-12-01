@@ -1,4 +1,5 @@
 %!TEX encoding = UTF-8 Unicode
+%!TeX spellcheck = en-US
 \documentclass[a4paper,UKenglish]{socg-lipics-v2018}
 \usepackage[utf8]{inputenc}
 
@@ -148,30 +149,24 @@
 % }
 % }
 
-\title{Geometric Partial Matching and Unbalanced Transportation}
-\titlerunning{Geometric Partial Matching and Unbalanced Transportation}
-\author{Pankaj K.\ Agarwal}{Duke Univeristy, USA}{pankaj@cs.duke.edu}{}{}
-\author{Hsien-Chih Chang}{Duke Univeristy, USA}{hsienchih.chang@duke.edu}{}{}
-\author{Allen Xiao}{Duke Univeristy, USA}{axiao@cs.duke.edu}{}{}
+\title{Geometric Partial Matchings and Unbalanced Transportation Problem}
+\titlerunning{Geometric Partial Matchings and Unbalanced Transportation Problem}
+\author{Pankaj K.\ Agarwal}{Duke University, USA}{pankaj@cs.duke.edu}{}{}
+\author{Hsien-Chih Chang}{Duke University, USA}{hsienchih.chang@duke.edu}{}{}
+\author{Allen Xiao}{Duke University, USA}{axiao@cs.duke.edu}{}{}
 \date{\today}
 
 \authorrunning{P.\ K.\ Agarwal, H.-C.\ Chang, A.\ Xiao}
 \Copyright{Pankaj K.\ Agarwal, Hsien-Chih Chang, Allen Xiao}
 
 \subjclass{Theory of computation $\rightarrow$ Design and analysis of algorithms}
-\keywords{partial matchings, transportation, minimum-cost flow, }
+\keywords{partial matching, transportation, minimum-cost flow, rms-distance, bichromatic closest pair, cost scaling, excess scaling, primal-dual, }
 
-\EventEditors{}
-\EventNoEds{2}
-\EventLongTitle{The 35th International Symposium on Computational Geometry (SOCG 2019)}
-\EventShortTitle{SOCG 2019}
-\EventAcronym{SOCG}
-\EventYear{2019}
-\EventDate{June 18--21, 2019}
-\EventLocation{Portland, USA}
-\EventLogo{eatcs}
-\SeriesVolume{}
-\ArticleNo{1} % Set article-no=1
+\EventEditors{} \EventNoEds{2} \EventLongTitle{The 35th International Symposium
+on Computational Geometry (SOCG 2019)} \EventShortTitle{SOCG 2019}
+\EventAcronym{SOCG} \EventYear{2019} \EventDate{June 18--21, 2019}
+\EventLocation{Portland, USA} \EventLogo{eatcs} \SeriesVolume{} \ArticleNo{1} %
+Set article-no=1
 
 
 \begin{document}
@@ -179,9 +174,13 @@
 \maketitle
 
 \begin{abstract}
-Let $A$ and $B$ be two point sets in the plane with uneven sizes $r$ and $n$ respectively (assuming $r$ is at most $n$), and let $k$ be a parameter. The geometric partial matching problem asks to find the minimum-cost size-$k$ matching between $A$ and $B$ under powers of $L_p$ distances. Applying combinatorial algorithms for partial matching in general graphs to our setting naively requires quadratic time due to existence of many edges between point sets $A$ and $B$. Most previous work for geometric matching has focused on the setting when $k$, $r$, and $n$ are equal.  The best algorithm in this setting, due to Sharathkumar and Agarwal [STOC 2012], runs in time $O(n\polylog n \poly\eps^{-1})$, but is limited to matching objectives that are sum-of-distances.
+Let $A$ and $B$ be two point sets in the plane with uneven sizes $r$ and $n$ respectively (assuming $r$ is at most $n$), and let $k$ be a parameter. The geometric partial matching problem asks to find the minimum-cost size-$k$ matching between $A$ and $B$ under powers of $L_p$ distances.
+Applying combinatorial algorithms for partial matching in general graphs to our setting naively requires quadratic time due to existence of many edges between point sets $A$ and $B$.
+Most previous work for geometric matching has focused on the setting when $k$, $r$, and $n$ are equal.
+The best algorithm in this setting, due to Sharathkumar and Agarwal [STOC 2012], runs in time $O(n\polylog n \poly\eps^{-1})$, but is limited to matching objectives that are sum-of-distances.
 
-We present the first set of geometric algorithms which work for any powers of $L_p$-norm matching objective:  An exact algorithm which runs in $O((n + k^2)\polylog n)$ time, and a $(1 + \eps)$-approximation which runs in $O((n + k\sqrt{k})\polylog n \log\eps^{-1})$ time.  Both algorithms are based on primal-dual flow augmentation scheme; the main improvements are obtained by using dynamic data structures to achieve efficient flow augmentations.
+We present the first set of geometric algorithms which work for any powers of $L_p$-norm matching objective:  An exact algorithm which runs in $O((n + k^2)\polylog n)$ time, and a $(1 + \eps)$-approximation which runs in $O((n + k\sqrt{k})\polylog n \log\eps^{-1})$ time.
+Both algorithms are based on primal-dual flow augmentation scheme; the main improvements are obtained by using dynamic data structures to achieve efficient flow augmentations.
 Using similar techniques, we give an exact algorithm for the transportation problem in the plane, which runs in $O(rn(r + \sqrt{n})\polylog n)$ time.
 This is the first sub-quadratic time exact algorithm when $r = o(\sqrt{n})$, which improves over the state-of-art quadratic time algorithm by Agarwal~\etal\ [SOCG 2016].
 \end{abstract}
@@ -203,11 +202,11 @@ We consider the problem of \emph{partial matching} (also called \emph{imperfect 
 where the task is to find a minimum-cost matching of size $k \leq r$.
 When $k = r = n$, we say the matching instance is \EMPH{balanced}.
 When $k = r < n$ ($A$ and $B$ have different sizes, but the matching is
-maximal), we say the matching instance is \EMPH{unblanced}.
+maximal), we say the matching instance is \EMPH{unbalanced}.
 We call the geometric problem of finding a size $k$ matching of point sets $A$
 and $B$ the \EMPH{geometric partial matching problem}.
 %
-\note{talk about the near-linear time alg}%TODO
+\note{talk about the near-linear time algorithm}%TODO
 % \begin{TODO}
 % Previous work
 % \begin{itemize}\itemsep=0pt
@@ -276,7 +275,7 @@ $B$ is weighted with integer \emph{demand} such that the sum of supply and
 demand are equal.
 The goal of the transportation problem is to find a minimum-cost mapping of
 all supplies to demands, where the cost of moving a unit of supply at $a \in A$
-to satsify a unit of demand at $b \in B$ is $\|a - b\|$.
+to satisfy a unit of demand at $b \in B$ is $\|a - b\|$.
 For this, we use the strongly polynomial uncapacitated min-cost flow algorithm
 by Orlin~\cite{O93}.
 The result is an $O(n^{3/2} r \polylog n)$ time algorithm for unbalanced
@@ -461,7 +460,7 @@ $c(a, b) = \norm{a-b}^{p'}$ for any $1 \le p' < \infty$.
 % $u_f(v, w) = 0$.
 % We will verify that these arcs satisfy the $\eps$-optimality condition.
 %
-% If an arc $(v, w)$ is newly introduced this way, then by defintion of residual
+% If an arc $(v, w)$ is newly introduced this way, then by definition of residual
 % capacities $f(v, w) = u(v, w)$.
 % At the same time, $u_g(v, w) > 0$ implies that $g(v, w) < u(v, w)$.
 % This means that $f'$ augmented flow in the reverse direction of $(v, w)$
@@ -483,7 +482,7 @@ $c(a, b) = \norm{a-b}^{p'}$ for any $1 \le p' < \infty$.
 
 The Hungarian Algorithm~\cite{Kuhn55} is a primal-dual algorithm for min-cost
 bipartite matching in general graphs, and solves partial matching exactly if
-stopped after $k$ iterations (see e.g. \cite{RT12}).
+stopped after $k$ iterations (see e.g.~\cite{RT12}).
 In this section, we prove Theorem~\ref{theorem:hung} by implementing $k$
 iterations of the Hungarian Algorithm in $O((n + k^2)\polylog n)$ time for
 geometric partial matching.
@@ -569,13 +568,13 @@ $O((n + k^2)\polylog n)$ time.
 \subsection{Geometric implementation of Hungarian search}
 
 Observe that the Hungarian search makes $O(k)$ relaxations, as each
-relaxation either leads to an unmatched vertex (ending the search) or 
+relaxation either leads to an unmatched vertex (ending the search) or
 adds both vertices of a matching edge.
 We will implement each relaxation step in $O(\polylog n)$ time, after
 preprocessing.
 
 In general graphs, the expensive step is finding the minimum-reduced cost
-frontier edge --- the search must ``look at every edge'' e.g. by pushing them
+frontier edge --- the search must ``look at every edge'' e.g.\ by pushing them
 into a priority queue even if they are not relaxed.
 Since the costs are geometric, we can replace this with a query to a dynamic
 \EMPH{bichromatic closest pair} (BCP) data structure.
@@ -613,7 +612,7 @@ To acquire $P'$ and $Q'$, we keep a log of the points that are added to $S$
 over the course of the Hungarian search, and \emph{rewind} this log at the
 end of a Hungarian search by tracing over it in reverse order:
 If a point added to $S$ incurred a BCP insertion during the search,
-we now delete it (resp. incurred deletion, insert it).
+we now delete it (resp.\ incurred deletion, insert it).
 The number of events in the log is $O(k)$, since the number of relaxations per
 Hungarian search is $O(k)$.
 Thus, in $O(k\polylog n)$ time, we can reconstruct $P'$ and $Q'$ for each
@@ -626,7 +625,7 @@ BCP sets.
 
 \paragraph{Potential updates by Vaidya's trick.}
 We modify a trick from Vaidya~\cite{Vaidya89} for batching potential updates.
-Potentials have a \EMPH{stored value}, i.e. the currently recorded value of
+Potentials have a \EMPH{stored value}, i.e.\ the currently recorded value of
 $\pi(v)$, and a \EMPH{true value}, which may have changed from $\pi(v)$.
 The resulting algorithm queries the minimum-reduced cost under the true values
 of $\pi$ and updates the stored value rarely.
@@ -643,15 +642,15 @@ $\delta$ is increased by that amount instead.
 Thus, true value for any potential of a point in $S$ is $\omega(p) + \delta$.
 For points of $(A \cup B) \setminus S$, the true potential is equal to the
 stored potential.
-Since all the points of $S \cap A$ have weights uniformly offseted from their
+Since all the points of $S \cap A$ have weights uniformly offset from their
 true potentials, the minimum edge returned by the BCP does not change.
 
-Once a point is removed from $S$ (i.e. by an augmentation or the rewinding
+Once a point is removed from $S$ (i.e.\ by an augmentation or the rewinding
 mechanism), we update its stored potential $\pi(p) \gets \omega(p) + \delta$,
 again for the current value of $\delta$.
 Importantly, $\delta$ is not reset at the end of a Hungarian search, and
 persists through the entire algorithm.
-Thus, the initial BCP sets contructed by the rewinding mechanism have true
+Thus, the initial BCP sets constructed by the rewinding mechanism have true
 potentials accurately represented by $\delta$ and $\omega(p)$.
 
 We update $\delta$ once per edge relaxations, so $O(k)$ times per Hungarian search.
@@ -682,7 +681,7 @@ We postpone the fast implementation using dynamic data structures to Section~\re
 \label{SS:prelim-flow}
 
 \paragraph{Network.}
-Let $G=(V,E)$ be a directed graph, augemtned by edge costs $c$ and capacities $u$, and a supply-demand function $\fsupply$ defined on the vertices.
+Let $G=(V,E)$ be a directed graph, augmented by edge costs $c$ and capacities $u$, and a supply-demand function $\fsupply$ defined on the vertices.
 %
 One can turn the graph $G$ into a \EMPH{network $N = (V, \vec{E})$}:
 For each directed edge $(v,w)$ in $E$, insert two \EMPH{arcs} $\arc vw$ and $\arc wv$ into the arc set $\vec{E}$; the \EMPH{forward arc} $\arc vw$ inherits the capacity and cost from the directed graph $G$,
@@ -705,7 +704,7 @@ a \EMPH{pseudoflow} (or \EMPH{flow} to be short) $f\colon \vec{E} \to \ints$%
 \footnote{In general the pseudoflows are allowed to take real-values.  Here under the unit-capacity assumption any optimal flows are integer-valued. \note{cite integrality theorem?}}
 on $N$ is an antisymmetric function on the arcs of $N$ satisfying $f(\arc vw) \leq u(\arc vw)$ for every arc $\arc vw$.%
 %
-We sometimes abuse the terminology by allowing pseudoflow to be defined on a directed graph, in which case we are actually refering to the pseudoflow on the corresponding network by extending the flow values antisymmetrically to the arcs.
+We sometimes abuse the terminology by allowing pseudoflow to be defined on a directed graph, in which case we are actually referring to the pseudoflow on the corresponding network by extending the flow values antisymmetrically to the arcs.
 %
 We say that $f$ \EMPH{saturates} an arc $\arc vw$ if $f(\arc vw) = u(\arc vw)$; an arc $\arc vw$ is \EMPH{residual} if $f(\arc vw) < u(\arc vw)$.
 The \EMPH{support} of $f$ in $N$, denoted as \EMPH{$\supp(f)$}, is the set of arcs with positive flows:
@@ -718,7 +717,7 @@ The \EMPH{support} of $f$ in $N$, denoted as \EMPH{$\supp(f)$}, is the set of ar
 %
 Given a pseudoflow $f$, we define the \EMPH{imbalance} of a vertex (with respect to $f$) to be
 \[
-\EMPH{$\fsupply_f(v)$} \coloneqq \fsupply(v) + \sum_{\arc wv \in \vec{E}}{f(\arc wv)} - \sum_{\arc vw \in \vec{E}}{f(\arc vw)}.
+\EMPH{$\fsupply_f (v)$} \coloneqq \fsupply(v) + \sum_{\arc wv \in \vec{E}}{f(\arc wv)} - \sum_{\arc vw \in \vec{E}}{f(\arc vw)}.
 \]
 We call positive imbalance \EMPH{excess} and negative imbalance \EMPH{deficit};
 and vertices with positive and negative imbalance \EMPH{excess vertices} and
@@ -739,7 +738,7 @@ Given a pseudoflow $f$, one can define the \emph{residual network} as follows.
 %
 Recall that the set of \emph{residual arcs $\vec{E}_f$} under $f$ are those arcs $\arc vw$ satisfying $f(\arc vw) < u(\arc vw)$.  In other words, an arc that is not saturated by $f$ is a residual arc; similarly, given an arc $\arc vw$ with positive flow value, the backward arc $\arc wv$ is a residual arc.
 
-Let $N = (V,\vec{E},c,u,\fsupply)$ be a network constructured from graph $G$, with a pseudoflow $f$ on $N$.
+Let $N = (V,\vec{E},c,u,\fsupply)$ be a network constructed from graph $G$, with a pseudoflow $f$ on $N$.
 The \EMPH{residual graph} $G_f$ of $f$ has $V$ as its vertex set and $\vec{E}_f$ as its arc set.
 %
 The \EMPH{residual capacity $u_f$} with respect to
@@ -815,8 +814,8 @@ To solve the minimum-cost flow problem, we focus on the primal-dual algorithms u
 Let $G = (V,E)$ be a given directed graph with the corresponding network $N = (V,\vec{E},c,u,\fsupply)$.
 Formally, the
 \EMPH{potentials $\pi(v)$} are the variables of the linear program dual to the standard linear program for the minimum-cost flow problem with variables $f(v,w)$ for each directed edge in $E$.
-Assignments to the primal variables satisfying the capacity constraints extend natually into a pseudoflow on the network $N$.
-%\note{which primal problem? State the correspodning linear problems explicitly}.
+Assignments to the primal variables satisfying the capacity constraints extend naturally into a pseudoflow on the network $N$.
+%\note{which primal problem? State the corresponding linear problems explicitly}.
 Let $G_f = (V,\vec{E}_f)$ be the residual graph under pseudoflow $f$.
 The \EMPH{reduced cost} of an arc $\arc vw$ in $\vec{E}_f$ with respect to $\pi$ is defined as
 \[
@@ -829,10 +828,10 @@ The \EMPH{dual feasibility constraint} says that $c_\pi(\arc vw) \geq 0$ holds f
 % The linear programming \EMPH{optimality condition} states that, for an optimal
 % circulation $f^*$, there are feasible potentials $\pi^*$ satisfying
 % $c_{\pi^*}(\arc vw) = 0$ for every arc $\arc vw$ in the support of $f^*$.
-% \note{Move optimality conditino to last section maybe.}
+% \note{Move optimality condition to last section maybe.}
 %
 Suppose we relax the dual feasibility constraint to allow some small violation in the value of $c_\pi(\arc vw)$.
-We say that a pair of pseudoflow $f$ and potential $\pi$ is \EMPH{$\eps$-optimal} \cite{tar-spmcc-1985,be-darml-1987} if
+We say that a pair of pseudoflow $f$ and potential $\pi$ is \EMPH{$\eps$-optimal}~\cite{tar-spmcc-1985,be-darml-1987} if
 $c_\pi(\arc vw) \geq -\eps$ for every residual arc $\arc vw$ in $\vec{E}_f$.  Pseudoflow $f$ is \emph{$\eps$-optimal} if it is $\eps$-optimal with respect to some potentials $\pi$; potential $\pi$ is \emph{$\eps$-optimal} if it is $\eps$-optimal with respect to some pseudoflow $f$.
 %
 Given a pseudoflow $f$ and potentials $\pi$, a residual arc $\arc vw$ in $\vec{E}_f$ is
@@ -845,7 +844,7 @@ We say that a pseudoflow $g$ in $G_f$ is \EMPH{admissible} if all support arcs o
 Let $f$ be an $\eps$-optimal pseudoflow in $G$ and let $f'$ be an
 admissible flow in $G_f$.
 Then $f + f'$ is also $\eps$-optimal.
-\note{Lemma 5.3 in \cite{GT90}? Also, where is this used?}
+\note{Lemma 5.3 in~\cite{GT90}? Also, where is this used?}
 \end{lemmarep}
 
 \begin{proof}
@@ -855,7 +854,7 @@ However, it may introduce new arcs $\arc vw$ with $u_{f+f'}(\arc vw) > 0$, that 
 $u_f(\arc vw) = 0$.
 We will verify that these arcs satisfy the $\eps$-optimality condition.
 
-If an arc $\arc vw$ is newly introduced this way, then by defintion of residual
+If an arc $\arc vw$ is newly introduced this way, then by definition of residual
 capacities $f(\arc vw) = u(\arc vw)$.
 At the same time, $u_{f+f'}(\arc vw) > 0$ implies that $(f+f')(\arc vw) < u(\arc vw)$.
 This means that $f'$ augmented flow in the reverse direction of $\arc vw$
@@ -879,10 +878,11 @@ and thus $f+f'$ is $\eps$-optimal.
 \subsection{Reduction to Unit-Capacity Min-Cost Flow Problem}
 \label{SS:reduction}
 
-The goal of the subsection is to reduce the minimun-cost partial matching problem to the unit-capacity minimum-cost flow problem with a polynomial bound on diameter.
+The goal of the subsection is to reduce the minimum-cost partial matching problem to the unit-capacity minimum-cost flow problem with a polynomial bound on diameter.
 To this end we first provide an upper bound on the size of support of an integral pseudoflow on the standard reduction network between the two problems.
 This upper bound in turn provides an additive approximation on the cost of an $\eps$-optimal circulation.
-Next we employ a technique by Sharathkumar and Agarwal~\cite{SA12} to transform an additive $\eps$-approximate solution into a multiplicative $(1+\eps)$-approximation for the geometric partial matching problem.  The reduction does not work out of the box, as Sharathkumar and Agarwal were tackling a similar but different problem on geometric transportations.
+Next we employ a technique by Sharathkumar and Agarwal~\cite{SA12} to transform an additive $\eps$-approximate solution into a multiplicative $(1+\eps)$-approximation for the geometric partial matching problem.
+The reduction does not work out of the box, as Sharathkumar and Agarwal were tackling a similar but different problem on geometric transportations.
 
 \begin{lemma}
 \label{lemma:cost_scale_approx}
@@ -996,7 +996,9 @@ Then,
 
 To prove Lemma~\ref{lemma:cost_scale_approx}, we need to further modify the point set so that the cost of the optimal solution does not change, while the diameter of the \emph{whole} point set is bounded.
 %
-Move the points within each component in \emph{translation} so that the minimum distances between points across components are at least $kn \cdot c(e_i)$ but at most $O(n \cdot kn^2 \cdot c(e_i))$.  This will guarantee that the optimal solution still uses edges within the components by Lemma~\ref{lemma:sa_partition}.  The simpliest way of achieveing this is by aligning the components one by one into a ``straight line'', so that the distance between the two farthest components is at most $O(n)$ times the maximum diameter of the cluster.
+Move the points within each component in \emph{translation} so that the minimum distances between points across components are at least $kn \cdot c(e_i)$ but at most $O(n \cdot kn^2 \cdot c(e_i))$.
+This will guarantee that the optimal solution still uses edges within the components by Lemma~\ref{lemma:sa_partition}.
+The simplest way of achieving this is by aligning the components one by one into a ``straight line'', so that the distance between the two farthest components is at most $O(n)$ times the maximum diameter of the cluster.
 
 Now one can prove Lemma~\ref{lemma:cost_scale_approx} by computing an $(\eps c(e_i)/6k)$-optimal
 circulation $f$ on the point set after translations using additive approximation from Lemma~\ref{lemma:goldberg_cost_add}, together with the bound $c(e_i) \leq \cost(M^*)$ from
@@ -1055,7 +1057,7 @@ Each fixed value of $\eps$ is called a
 \EMPH{cost scale}.
 Once $\eps$ is sufficiently small, the $\eps$-optimal flow is a suitable
 approximation according to Lemma~\ref{lemma:cost_scale_approx}.%
-\footnote{When the costs are integers, an $\eps$-optimal circulation for a sufficiently small $\eps$ (say less than $1/n$) is itself an optimal solution \cite{GT90,GHKT17}.
+\footnote{When the costs are integers, an $\eps$-optimal circulation for a sufficiently small $\eps$ (say less than $1/n$) is itself an optimal solution~\cite{GT90,GHKT17}.
 We present this algorithm without the integral-cost assumption because in the geometric
 partial matching setting (with respect to $L_p$ norms) the costs are generally not integers.}
 
@@ -1129,19 +1131,23 @@ Using the reduction in Lemma~\ref{lemma:cost_scale_approx}, we have the diameter
 % \end{minipage}
 % \end{figure*}
 
-Recall that $H$ is the \emph{reduction graph} and $N_H$ is the \emph{reduction network}, both constructed in Section~\ref{SS:reduction}.  The vertex set of $H$ consists of two point sets $A$ and $B$, as well as two dummy vertices $s$ and $t$.  The directed edges in $H$ are pointed from $s$ to $A$, from $A$ to $B$, and from $B$ to $t$.  We call those arcs in $N_H$ whose direction is consistent with their corresponding directed edges as \EMPH{forward arcs}, and those arcs that points in the opposite direction as \EMPH{backward arcs}.
+Recall that $H$ is the \emph{reduction graph} and $N_H$ is the \emph{reduction network}, both constructed in Section~\ref{SS:reduction}.
+The vertex set of $H$ consists of two point sets $A$ and $B$, as well as two dummy vertices $s$ and $t$.  The directed edges in $H$ are pointed from $s$ to $A$, from $A$ to $B$, and from $B$ to $t$.
+We call those arcs in $N_H$ whose direction is consistent with their corresponding directed edges as \EMPH{forward arcs}, and those arcs that points in the opposite direction as \EMPH{backward arcs}.
 
-The procedure \textsc{Scale-Init} transforms a $2\eps$-optimal circulation from the previous cost scale into an $\eps$-optimal flow with $O(k)$ excess, by raising the potentials $\pi$ of all vertices in $A$ by $\eps$, those in $B$ by $2\eps$, and the potential of $t$ by $3\eps$.  The potential of $s$ remains unchanged.
+The procedure \textsc{Scale-Init} transforms a $2\eps$-optimal circulation from the previous cost scale into an $\eps$-optimal flow with $O(k)$ excess, by raising the potentials $\pi$ of all vertices in $A$ by $\eps$, those in $B$ by $2\eps$, and the potential of $t$ by $3\eps$.
+The potential of $s$ remains unchanged.
 %
 Now the reduced cost of every forward arc is dropped by $\eps$, and thus all the forward arcs have reduced cost at least~$-\eps$.
 
-As for backward arcs, the precedure \textsc{Scale-Init} continues by setting the flow on $\arc vw$ to zero for each backward arc $\arc wv$ violating the $\eps$-optimality constraint.  In other words, we set $f(\arc vw) = 0$ whenever $c_\pi(\arc wv) < -\eps$.  This ensures that all such backward arcs are no longer residual, and therefore the flow (now with excess) is $\eps$-optimal.
+As for backward arcs, the procedure \textsc{Scale-Init} continues by setting the flow on $\arc vw$ to zero for each backward arc $\arc wv$ violating the $\eps$-optimality constraint.  In other words, we set $f(\arc vw) = 0$ whenever $c_\pi(\arc wv) < -\eps$.
+This ensures that all such backward arcs are no longer residual, and therefore the flow (now with excess) is $\eps$-optimal.
 
 Because the arcs are of unit-capacity in $N_H$, each arc desaturation creates one unit of excess.
 By Lemma~\ref{lemma:support_size} the number of backward arcs is at most $3k$.
 Thus the total amount of excess created is also $O(k)$.
 
-In total, potential updates and backward arc desaturations, thus the whole precedure \textsc{Scale-Init}, take $O(n)$ time.
+In total, potential updates and backward arc desaturations, thus the whole procedure \textsc{Scale-Init}, take $O(n)$ time.
 
 
 \paragraph{Refinement.}
@@ -1251,10 +1257,10 @@ The number of iterations
 belonging to the second phase is upper bounded by the amount of total excess at the end of the first phase, because each subsequent push of a blocking flow reduces the total excess by at least one.  We now show that the amount of such excess is at most $O(\sqrt{k})$.
 %
 Consider the set of arcs $E^+ \coloneqq \Set{\arc vw \mid f(\arc vw) < f_0(\arc vw)}$.
-The total amount of excess is upper bounded by the number of arcs in $E^+$ that crosses an arbitrarily given cut $X$ that separates the excess vertices from the deficit vertices, when the network has unit-capacity \cite[Lemma~3.6]{GHKT17}.
+The total amount of excess is upper bounded by the number of arcs in $E^+$ that crosses an arbitrarily given cut $X$ that separates the excess vertices from the deficit vertices, when the network has unit-capacity~\cite[Lemma~3.6]{GHKT17}.
 %
 Consider the set of cuts $X_i \coloneqq \Set{v \mid d(v) > i}$ for $0 \le i < \sqrt{k}$; every such cut separates the excess vertices from the deficit vertices at the end of first phase.
-Each arc in $E^+$ crosses at most $3$ cuts of type $X_i$ \cite[Lemma~3.1]{GHKT17}.  So there is one $X_i$ crossed by at most $3\abs{E^+}/\sqrt{k}$ arcs in $E^+$.
+Each arc in $E^+$ crosses at most $3$ cuts of type $X_i$~\cite[Lemma~3.1]{GHKT17}.  So there is one $X_i$ crossed by at most $3\abs{E^+}/\sqrt{k}$ arcs in $E^+$.
 %
 The size of $E^+$ is bounded by the sum of support sizes of $f$ and $f_0$; by Corollary~\ref{corollary:support_size_during} the size of $E^+$ is $O(k)$.
 This implies an $O(\sqrt{k})$ bound on the total excess after the first phase, which in turn bounds the number of iterations in the second phase.
@@ -1269,7 +1275,7 @@ This implies an $O(\sqrt{k})$ bound on the total excess after the first phase, w
 
 The goal of the next section is to show that after $O(n \polylog n)$ time preprocessing, each Hungarian search and depth-first search can be implemented in $O(k \polylog n)$ time.
 %
-Combined with the $O(\sqrt{k})$ bound on the number of iterations we just proved, the procedure \textsc{Refine} can be implemented in $O((n+k\sqrt{k}) \polylog n)$ time.  Together with our analysis on scale initialation and the bound on number of cost scales, this concludes the proof to Theorem~\ref{theorem:gmcm}.
+Combined with the $O(\sqrt{k})$ bound on the number of iterations we just proved, the procedure \textsc{Refine} can be implemented in $O((n+k\sqrt{k}) \polylog n)$ time.  Together with our analysis on scale initialization and the bound on number of cost scales, this concludes the proof to Theorem~\ref{theorem:gmcm}.
 %\note{Well, there's the null vertex potential updates.  Hide it?}
 
 
@@ -1448,7 +1454,7 @@ Observe that the arcs of $\tilde{H}_f$ leaving $\tilde{S}$ fall into $O(1)$ cate
 \item Shortcut arcs $(s, b)$ corresponding to null 2-paths from $s$ to
 	$b \in (B \setminus B_\emptyset) \setminus S$.
 	For these, we maintain a BCP data structure with $P = A_\emptyset$,
-	$Q = (B \setminus B_\emptyset) \setminus S)$ with weights
+	$Q = (B \setminus B_\emptyset) \setminus S$ with weights
 	$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for
 	all $q \in Q$.
 	A response $(a, b)$ corresponds to th null 2-path $(s, a, b)$.
@@ -1512,7 +1518,7 @@ Given $v' \in \tilde{S}$, we would like to query:
 \item Shortcut arcs $(s, b)$ corresponding to null 2-paths from $s$ to
 	$b \in (B \setminus B_\emptyset) \setminus S$.
 	For these, we maintain a BCP data structure with $P = A_\emptyset$,
-	$Q = (B \setminus B_\emptyset) \setminus S)$ with weights
+	$Q = (B \setminus B_\emptyset) \setminus S$ with weights
 	$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for
 	all $q \in Q$.
 	A response $(a, b)$ corresponds to th null 2-path $(s, a, b)$.
@@ -1537,7 +1543,7 @@ Given $v' \in \tilde{S}$, we would like to query:
 
 \end{toappendix}
 
-Each data structure performs a constant number of queries and updates per relaxation, each of which can be implemented in $O(\polylog n)$ time \cite{}; so the running time is again bounded by
+Each data structure performs a constant number of queries and updates per relaxation, each of which can be implemented in $O(\polylog n)$ time~\cite{}; so the running time is again bounded by
 $O(\polylog n)$ times the number of relaxations.
 %Since the pseudoflow is not changed within \textsc{DFS} we can bound the number
 %of relaxation events in a similar way as \textsc{Hungarian-Search2}.
@@ -1587,7 +1593,7 @@ Next we prove that there are $O(k)$ shortcut relaxations.
 %in Hungarian search before a deficit vertex is reached.
 %\end{lemma}
 %
-Recall the categories of shortcuts from the list of datastructures above.
+Recall the categories of shortcuts from the list of data structures above.
 We have shortcuts corresponding to (i) null 2-paths surrounding
 $a \in A_\emptyset$, (ii) null 2-paths surrounding $b \in B_\emptyset$, and
 (iii) null 3-paths, which go from $s$ to $t$.
@@ -1655,7 +1661,7 @@ Thus, we are able to initialize $S$ at the cost of one BCP deletion per excess v
 
 \item During each Hungarian search, a vertex entering $S$ may incur one BCP insertion/deletion.
 We can charge the updates to the number of relaxations over the course of Hungarian search.
-The number of relatexations in a Hungarian search is $O(k)$ by Lemma~\ref{lemma:goldberg_hs_length}.
+The number of relaxations in a Hungarian search is $O(k)$ by Lemma~\ref{lemma:goldberg_hs_length}.
 
 \item To obtain $S^t$, we keep track of the points added to $S^t$ since the last Hungarian search.  After the augmentation, we remove those points added to $S^t$.  By (2) there are $O(k)$ such points to be deleted, so reconstructing $S^t$ takes $O(k)$ BCP operations.
 \end{enumerate}
@@ -1798,7 +1804,7 @@ problem in $O(rn(r + \sqrt{n})\polylog n)$ time, proving
 Theorem~\ref{theorem:orlin}.
 This algorithm is a geometric implementation of the uncapacitated min-cost flow
 algorithm due to Orlin~\cite{O93}, combined with some of the tools developed
-in Sections~\ref{section:hung} and \ref{section:goldberg}.
+in Sections~\ref{section:hung} and~\ref{section:goldberg}.
 Mainly, we batch potential updates and use the rewinding mechanism to
 initialize each Hungarian search in time proportional to the previous
 Hungarian search.
@@ -1808,7 +1814,7 @@ $n \coloneqq \abs{B}$.
 Let $\tsupply:A \cup B \to \ints$ be a \EMPH{supply-demand function} with
 positive value on points of $A$, negative value on points of $B$, and
 $\sum_{a \in A} \tsupply(a) = - \sum_{b \in B} \tsupply(b)$.
-We use $U \coloneqq max_{p \in A \cup B} \abs{\tsupply(p)}$.
+We use $U \coloneqq \max_{p \in A \cup B} \abs{\tsupply(p)}$.
 A \EMPH{transportation map} is a function
 $\tau: A \times B \to \reals_{\geq 0}$.
 A transportation map $\tau$ is \EMPH{feasible} if
@@ -1837,13 +1843,13 @@ Furthermore, $\cost(f) = \cost(\tau_f)$.
 
 \subsection{Uncapacitated MCF by excess scaling}
 
-We give an outline of the strongly polynomial algorithm for uncapacited MCF
+We give an outline of the strongly polynomial algorithm for uncapacitated MCF
 from Orlin~\cite{O93}.
 Orlin's algorithm follows an \EMPH{excess-scaling} paradigm originally due to
 Edmonds and Karp~\cite{EK72}.
 Consider the basic primal-dual skeleton used in the previous sections:
 The algorithm begins with $f = 0$, $\pi = 0$, then repeatedly runs a
-\emph{Hungarian search} that raises potentials (while maintaing dual
+\emph{Hungarian search} that raises potentials (while maintaining dual
 feasibility) to create an admissible augmenting excess-deficit path, on which
 it then augments flow.
 If supplies/demands are integral and each augmentation is at least one unit of
@@ -1899,7 +1905,7 @@ and $O(n\log n)$ total augmentations.
 \end{theorem}
 
 The remainder of the section focuses on showing that each augmentation can be
-implemented in $O(r(r/\sqrt{n} + \sqrt{n}\polylog n)$ time (after
+implemented in $O(r(r/\sqrt{n} + \sqrt{n})\polylog n)$ time (after
 preprocessing).
 Additionally, we show that $f^*$ can be recovered from $\pi^*$ very quickly
 for our specific graph.
@@ -1907,7 +1913,7 @@ for our specific graph.
 \paragraph{Implementing contractions.}
 Following Agarwal~\etal~\cite{AFPVX17}, our geometric data structures must deal
 with real points ($A$, $B$), rather than the contracted components ($\hat{V}$).
-We will track the contracted components described in $\hat{G}$ (e.g. with a
+We will track the contracted components described in $\hat{G}$ (e.g.\ with a
 disjoint-set data structure) and mark the arcs of $\supp(f)$ that get
 contracted.
 We maintain potentials on the points ($A \cup B$) directly, instead of the
@@ -1937,7 +1943,7 @@ deficit component $\hat{w}$.
 Naively recovering an optimal flow requires $O(rn^2)$ time.
 Use a strategy from Agarwal~\etal~\cite{AFPVX17}, we can recover the optimal flow in time $O(n \polylog n)$.
 If furthermore the cost function is the $p$-norm (without the $q$-power), an even stronger result stands:
-In this case, the set of admissible arcs under an optimal potential forms a planar graph, and thus we can apply the planar maximum-flow algorithm \cite{E10,xxx} which runs in $O(n \log n)$ time.
+In this case, the set of admissible arcs under an optimal potential forms a planar graph, and thus we can apply the planar maximum-flow algorithm~\cite{E10,xxx} which runs in $O(n \log n)$ time.
 
 \begin{toappendix}
 
@@ -1949,7 +1955,7 @@ In this case, the set of admissible arcs under an optimal potential forms a plan
 We use a strategy from Agarwal~\etal~\cite{AFPVX17}.
 Instead of finding a max flow in the entire admissible network under $\pi^*$,
 we claim that is sufficient to find a max flow in a \EMPH{spanning tree} of
-admissible arcs, e.g. a shortest path tree on reduced costs.
+admissible arcs, e.g.\ a shortest path tree on reduced costs.
 There are some details to explain --- like where the tree should be rooted, how
 to ensure the underlying network is strongly connected by admissible arcs ---
 but we give the intuition first:
@@ -2006,7 +2012,7 @@ Then, the set of admissible arcs under $\pi^*$ form a planar graph.
 \end{lemmarep}
 
 \begin{proof}
-We assume the points of $A \cup B$ are in general position (e.g. by symbolic
+We assume the points of $A \cup B$ are in general position (e.g.\ by symbolic
 perturbation) such that no three points are collinear.
 Let $\arc{a_1}{b_1}$ and $\arc{a_2}{b_2}$ be any pair of admissible arcs under
 $\pi^*$.
@@ -2053,7 +2059,7 @@ At $t=0$, these expressions are equal.
 Observe that the derivative with respect to $t$ of $g_{a_1}(q(t))$ is less than
 $g_{a_2}(q(t))$.
 Indeed, the value of $\frac{d}{dt}\norm{(a_2 - b_1) - t(a_1 - b_1)}$ is at
-least $-\norm{a_1 - b_1} = \frac{d}{dt}g_{a_1}(q(t))$, which is realized iff
+least $-\norm{a_1 - b_1} = \frac{d}{dt}g_{a_1}(q(t))$, which is realized if and only if
 $\frac{(a_2 - b_1)}{\norm{a_2 - b_1}} = \frac{(a_1 - b_1)}{\norm{a_1 - b_1}}$.
 This corresponds to $\overrightarrow{a_2 b_1}$ and $\overrightarrow{a_1 b_1}$
 being parallel, but this is disallowed since $a_1, a_2, b_1$ are in general
@@ -2076,7 +2082,7 @@ $a_1, a_2, b_1$ are in general position.
 Any $q(t')$ with a different projection do not have strict inequality, but
 the projection itself has $g_{a_1}(q') < g_{a_2}(q')$ for $q' \neq b_1$ since
 it lies on $\overline{a_1 b_1}$.
-Therefore, for all $q \in \EuScript{F} \setminus\{b_1\}$,
+Therefore, for all $q \in \EuScript{F} \setminus \{b_1\}$,
 $g_{a_1}(q') < g_{a_2}(q')$, and $\EuScript{F}$ lies on the $g_{a_1}$ side of
 the bisector except for $b_1$ which lies on $\beta$.
 We can eliminate $b_1$ as a candidate position for $b_2$, since points of $B$
@@ -2098,7 +2104,7 @@ not admissible.
 By Lemma~\ref{lemma:admiss_planar} the resulting arc set forms a planar graph,
 so by Euler's formula the number of arcs to query is $O(n)$.
 We can then find the maximum flow in time $O(n\log n)$ time, using for example the
-planar maximum-flow algorithm by Erickson~\cite{E10}. \cite{Other citations like Klein}
+planar maximum-flow algorithm by Erickson~\cite{E10}. \note{cite others like Klein}
 
 \end{toappendix}
 
@@ -2257,7 +2263,7 @@ $\abs{B_\ell \setminus \bigcup_{a \in A} \Sigma_a} \leq r$.
 $F$ is constructed from $E(\supp(f))$ by eliminating edges in support stars,
 therefore all edges in $F$ must adjoin vertices in $B$ of support degree at
 least 2.
-By Lemma~\ref{lemma:orlin_acyclic}, $E(\supp(f))$ is acylic and therefore forms
+By Lemma~\ref{lemma:orlin_acyclic}, $E(\supp(f))$ is acyclic and therefore forms
 a spanning forest over $A \cup B_\ell$, so $F$ is also a bipartite forest.
 All leaves of $F$ are therefore vertices of $A$.
 
@@ -2380,7 +2386,7 @@ $\abs{\Sigma_a} \leq \sqrt{n}/2$
 A star that is currently small is turned into a big star once
 $\abs{\Sigma_a} \geq 2\sqrt{n}$.
 This way, the time spent rebuilding/updating the respective data structures
-can be amortized to the insertions/deletions that preceeded the switch, plus
+can be amortized to the insertions/deletions that preceded the switch, plus
 some $O(r)$ extra work if the the update is small-to-big.
 
 A star $\Sigma_a$ that is switching from big-to-small has size
