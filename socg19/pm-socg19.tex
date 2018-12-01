@@ -1,4 +1,4 @@
-%!TEX encoding = UTF-8 Unicode
+Hungarian algorithm%!TEX encoding = UTF-8 Unicode
 %!TeX spellcheck = en-US
 \documentclass[a4paper,UKenglish]{socg-lipics-v2018}
 \usepackage[utf8]{inputenc}
@@ -175,13 +175,13 @@ Set article-no=1
 
 \begin{abstract}
 Let $A$ and $B$ be two point sets in the plane with uneven sizes $r$ and $n$ respectively (assuming $r$ is at most $n$), and let $k$ be a parameter. The geometric partial matching problem asks to find the minimum-cost size-$k$ matching between $A$ and $B$ under powers of $L_p$ distances.
-Applying combinatorial algorithms for partial matching in general graphs to our setting naively requires quadratic time due to existence of many edges between point sets $A$ and $B$.
-Most previous work for geometric matching has focused on the setting when $k$, $r$, and $n$ are equal.
-The best algorithm in this setting, due to Sharathkumar and Agarwal [STOC 2012], runs in time $O(n\polylog n \poly\eps^{-1})$, but is limited to matching objectives that are sum-of-distances.
+Applying combinatorial algorithms for partial matching in general graphs to our setting na\"ively requires quadratic time due to existence of many edges between point sets $A$ and $B$.
+Most previous work for geometric matching has focused on the setting when $k$, $r$, and $n$ are all equal.
+The best algorithm in this setting, due to Sharathkumar and Agarwal [STOC 2012], runs in time $O(n\polylog n \cdot \poly\eps^{-1})$, but is limited to matching objectives that are sum-of-distances.
 
-We present the first set of geometric algorithms which work for any powers of $L_p$-norm matching objective:  An exact algorithm which runs in $O((n + k^2)\polylog n)$ time, and a $(1 + \eps)$-approximation which runs in $O((n + k\sqrt{k})\polylog n \log\eps^{-1})$ time.
+We present the first set of geometric algorithms which work for any powers of $L_p$-norm matching objective:  An exact algorithm which runs in $O((n + k^2)\polylog n)$ time, and a $(1 + \eps)$-approximation which runs in $O((n + k\sqrt{k})\polylog n \cdot \log\eps^{-1})$ time.
 Both algorithms are based on primal-dual flow augmentation scheme; the main improvements are obtained by using dynamic data structures to achieve efficient flow augmentations.
-Using similar techniques, we give an exact algorithm for the transportation problem in the plane, which runs in $O(rn(r + \sqrt{n})\polylog n)$ time.
+Using similar techniques, we give an exact algorithm for the planar transportation problem, which runs in $O(rn(r + \sqrt{n})\polylog n)$ time.
 This is the first sub-quadratic time exact algorithm when $r = o(\sqrt{n})$, which improves over the state-of-art quadratic time algorithm by Agarwal~\etal\ [SOCG 2016].
 \end{abstract}
 
@@ -311,259 +311,92 @@ $\norm{a-b}$ is any $L_p$ distance, and if we use $p'$-th power costs
 $c(a, b) = \norm{a-b}^{p'}$ for any $1 \le p' < \infty$.
 
 
-% \subsection{Minimum-cost flow}
-%
-% \note{Move to \S4.}
-%
-% \paragraph{Network.}
-% For minimum-cost flow, let $G_0 = (V, E_0)$ be a directed graph with
-% nonnegative arc capacities $u(v, w)$ and costs $c(v, w)$ for each arc
-% $(v, w) \in E_0$.
-% We say $G_0$ has \EMPH{unit-capacity} if $u(v, w)~=~1$ holds for every arc $(v, w)$.
-% Let $\fsupply: V \to \ints_{\geq 0}$ be a supply-demand function, satisfying $\sum_{v \in V} \fsupply(v) = 0$.
-% The positive values of $\fsupply(v)$ are referred to as \EMPH{supply}, and the negative values of $\fsupply(v)$ as \EMPH{demand}.
-%
-% We augment $G_0$ to make it \EMPH{symmetric}
-% %for every arc $(v, w) \in E_0$ its reverse $(w, v)$ is also an arc;
-% and the costs
-% \EMPH{antisymmetric}
-% %$c(v, w) = -c(w, v)$).
-% by creating an arc $(w, v)$ for each $(v, w) \in E_0$ and define $u(w, v) = 0$
-% and $c(w, v) = -c(v, w)$.
-% Denote this set of new \EMPH{backward arcs} by \EMPH{$E^R$}.
-% \note{How do you feel about using darts and arcs to describe the distinction?}
-% Let $E$ be the union of $E_0$ and $E^R$. \note{Do you need to define $E$?}
-% From here forward, we work with the symmetric multigraph $G = (V, E)$.
-% A \EMPH{network $(G, c, u, \fsupply)$} is a graph $G$ augmented with arc
-% costs, capacities, and a supply-demand function on vertices of $G$.
-%
-% \paragraph{Pseudoflows.}
-% A \EMPH{pseudoflow} $f:E \to \ints$ is an antisymmetric function on arcs
-% satisfying $f(v, w) \leq u(v, w)$ for all arcs $(v, w)$.
-% We say that $f$ \EMPH{saturates} an arc $e$ if $f(v, w) = u(v, w)$.
-% The \EMPH{support} of $f$ is $\EMPH{$\supp(f)$} \coloneqq \{(v, w) \mid f(v, w) > 0\}$.
-% All our algorithms will handle integer-valued pseudoflows, so in the
-% unit-capacity setting an arc is either saturated or has zero flow.
-% Given a pseudoflow $f$, we define the \EMPH{imbalance} of a vertex to be
-% \[
-% \EMPH{$\fsupply_f(v)$} \coloneqq \fsupply(v) + \sum_{(w, v) \in E}{f(w, v)} - \sum_{(v, w) \in E}{f(v, w)}.
-% \]
-% We call positive imbalance \EMPH{excess} and negative imbalance \EMPH{deficit};
-% and vertices with positive and negative imbalance \EMPH{excess vertices} and
-% \EMPH{deficit vertices}, respectively.
-% A vertex is \EMPH{balanced} if it has zero imbalance.
-% If all vertices are balanced, the pseudoflow is a \EMPH{circulation}.
-% The cost of a pseudoflow is
-% \[
-% \EMPH{$\cost(f)$} \coloneqq \sum_{(v, w) \in E} c(v, w) \cdot f(v, w).
-% \]
-% The \EMPH{minimum-cost flow problem (MCF)} asks to find the circulation $f^*$ of
-% minimum cost.
-%
-% \paragraph{Residual network.}
-% For each arc $(v, w)$, the \EMPH{residual capacity} with respect to
-% pseudoflow $f$ is defined to be $u_f(v, w) \coloneqq u(v, w) - f(v, w)$.
-% The set of \EMPH{residual arcs} is defined as
-% \[
-% \EMPH{$E_f$} \coloneqq \{(v, w) \in E \mid u_f(v, w) > 0\}.
-% \]
-% Let $G_f = (V, E_f)$.
-% We call \EMPH{$G_f$} the \EMPH{residual graph} with respect to pseudoflow $f$.
-% A pseudoflow $f'$ in $G_f$ can be ``added'' or ``augmented'' to $f$ to produce
-% a new pseudoflow (that is, the arc-wise addition $f + f'$ is a valid pseudoflow
-% in $G$).
-% A pseudoflow $f'$ in $G_f$ is an \EMPH{improving flow} if
-% \begin{enumerate}[(1)]\itemsep=0pt
-% \item
-% $0 \leq |\fsupply_{f'}(v)| \leq |\fsupply_f(v)|$ for every vertex $v$,
-% \item
-% $\fsupply_{f'}(v)$ and $\fsupply_f(v)$ share the same sign for every vertex $v$, and
-% %\item
-% % if $\fsupply_f(v) = 0$ then $\fsupply_{f'}(v) = 0$, \note{this follows from (1) or (2)} and
-% \item $\sum_{v \in V} |\fsupply_{f'}(v)| < \sum_{v \in V} |\fsupply_f(v)|$ holds. \note{emphasize the strict inequality}
-% \end{enumerate}
-% If improving flow $f'$ is on a simple path (from an excess vertex to a deficit
-% vertex), we call it an \EMPH{augmenting-path flow} \note{path flow for short? only used twice throughout the paper} and its underlying support path \note{support undefined} an
-% \EMPH{augmenting path}.
-% If $f'$ saturates at least one residual arc in every augmenting path in $G_f$,
-% we call $f'$ a \EMPH{blocking flow}.
-% In other words, for blocking flow $f'$, there is no augmenting-path flow
-% $f''$ in $G_f$ for which $f + (f' + f'')$ is a feasible pseudoflow in $G$.
-% \note{Move to Section 4.4 where blocking flow is first used.}
-%
-% \subsection{Primal-dual augmentation algorithms}
-%
-% The Hungarian Algorithm begins with an empty matching and gradually increases its size to $k$ using \EMPH{alternating augmenting paths}.
-% Given a non-maximal matching $M$, an alternating augmenting path $P$ is a path
-% between an unmatched vertex $a \in A$ and unmatched $b \in B$.
-% \note{What is $A$ and $B$? Remind the readers about the bipartite graph again.}
-% Then, $M' = M \oplus P$ is a matching of size 1 greater.
-% \note{$\oplus$ undefined.  Personally I believe it's easier to define in words; using notation is fine too.}
-% By restricting alternating augmenting paths to edges \note{when do you use edges and when do you use arcs?}
-% which satisfy a certain cost condition, we can prove that each intermediate matching of size $j \leq k$ is of minimum-cost among matchings of size $j$.
-%
-% There is a similar augmentation procedure for flows, which sends improving
-% flows to gradually reduce the imbalance for all vertices to 0, making it a
-% circulation.
-% By restricting augmentations to residual arcs satisfying a certain cost
-% condition (admissibility), one can prove that the resulting circulation is
-% minimum cost.
-%
-% \note{The above paragraph might be clearer if you put it after the definition of admissibility; because you can actually provide a formal proof.  Sketch of ideas are not that useful because for experts they don't need to read it, for beginners they won't understand without former definitions.}
-%
-% \paragraph{LP-duality and admissability.}
-% Formally, the
-% \EMPH{potentials $\pi(v)$} are the variables of the linear program dual to \note{which primal problem? State the correspodning linear problems explicitly}.
-% The \EMPH{reduced cost} of an arc $(v, w)$ in $E_f$ with respect to $\pi$ is
-% \[
-% \EMPH{$c_\pi(v, w)$} \coloneqq c(v, w) - \pi(v) + \pi(w).
-% \]
-% Note that reduced costs are antisymmetric: $c_\pi(v, w) = -c_\pi(w, v)$.
-% The \EMPH{dual feasibility constraint} is that $c_\pi(v, w) \geq 0$ holds for all
-% residual arcs \note{naturally, not the backward arcs; thus the distinction between arcs and darts}; potentials which satisfy this constraint are said to be \EMPH{feasible}.
-% The linear programming \EMPH{optimality conditions} state that, for an optimal
-% circulation $f^*$, there are feasible potentials $\pi^*$ which satisfy
-% $c_{\pi^*}(v, w) = 0$ on all arcs with $f^*(v, w) > 0$.
-% We can similarly define potentials and reduced costs for matchings, using
-% $c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b)$ for edges $(a, b)$ from $A$ to $B$.
-%
-% Suppose we relax the dual feasibility constraint to allow for a violation of
-% $\eps > 0$.
-% We say that a pseudoflow $f$ is \EMPH{$\eps$-optimal} \note{with respect to $\pi$} if
-% $c_\pi(v, w) \geq -\eps$ for all arcs $(v, w)$ in $E_f$ with $u_f(v, w) > 0$.
-% We say that a residual arc $(v ,w)$ satisfying $c_\pi(v, w) \leq 0$ is
-% \EMPH{admissible}.
-% We say that an improving flow $f'$ is \EMPH{admissible} if $f'(v, w) > 0$
-% only on admissible arcs $(v, w)$.
-%
-% For matchings, we say that matching $M$ is \EMPH{$\eps$-optimal} if $c_\pi(a, b) \leq \eps$ for
-% $(a, b) \in M$ and $c_\pi(a, b) \geq -\eps$ $(a, b) \in E \setminus M$.
-% \note{This definition is never used.}
-% Matching edges (resp.\ nonmatching edges) are \EMPH{admissible} if $c_\pi(a, b) \geq 0$ (resp.\ $c_\pi(a, b) \leq 0$); and an alternating augmenting path is \EMPH{admissible}
-% if all its edges are.
-% For both matching and flows, 0-optimal $f$ implies the admissibility condition
-% is with equality, instead ($c_\pi(v, w) = 0$).
-%
-% \note{I got the sense that it might be helpful to define admissibility at the start of the flow section and the matching section separately.}
-%
-% %Now, we can concretely state how admissible augmentations lead to a correct algorithm for $\eps > 0$.
-% \begin{lemma}
-% Let $f$ be an $\eps$-optimal pseudoflow in $G$ and let $f'$ be an
-% admissible improving flow in $G_f$.
-% Then $g = f + f'$ is also $\eps$-optimal.
-% \end{lemma}
-% \note{This must have been known.  Citations.}
-% \begin{proof}
-% Augmentation by $f'$ will not change the potentials, so any previously
-% $\eps$-optimal arcs remain $\eps$-optimal.
-% However, it may introduce new arcs with $u_g(v, w) > 0$, that previously had
-% $u_f(v, w) = 0$.
-% We will verify that these arcs satisfy the $\eps$-optimality condition.
-%
-% If an arc $(v, w)$ is newly introduced this way, then by definition of residual
-% capacities $f(v, w) = u(v, w)$.
-% At the same time, $u_g(v, w) > 0$ implies that $g(v, w) < u(v, w)$.
-% This means that $f'$ augmented flow in the reverse direction of $(v, w)$
-% ($f'(w, v) > 0$).
-% By assumption, the arcs of $\supp(f')$ are admissible, so $(w, v)$ was an
-% admissible arc ($c_\pi(w, v) \leq 0$).
-% By antisymmetry of reduced costs, this implies $c_\pi(v, w) \geq 0$.
-% Finally, $c_\pi(v, w) \geq 0 \geq -\eps$.
-% Thus, all arcs with $u_g(v, w) > 0$ respect the $\eps$-optimality condition,
-% and $g$ is $\eps$-optimal.
-% \end{proof}
-%
-% In Section~\ref{section:goldberg}, we use $\eps$-optimality to prove the
-% approximation quality of an $\eps$-optimal circulation.
-
-
-\section{Min-cost Partial Matching using Hungarian Algorithm}
+\section{Minimum-Cost Partial Matchings using Hungarian Algorithm}
 \label{section:hung}
 
-The Hungarian Algorithm~\cite{Kuhn55} is a primal-dual algorithm for min-cost
-bipartite matching in general graphs, and solves partial matching exactly if
-stopped after $k$ iterations (see e.g.~\cite{RT12}).
-In this section, we prove Theorem~\ref{theorem:hung} by implementing $k$
-iterations of the Hungarian Algorithm in $O((n + k^2)\polylog n)$ time for
-geometric partial matching.
+The Hungarian algorithm~\cite{Kuhn55} is a primal-dual algorithm for min-cost
+bipartite matching in general graphs that can be adapted to solve the partial matching problem exactly if
+one terminates the algorithm after $k$ iterations (see e.g.~\cite{RT12}).
+In this section, we prove Theorem~\ref{theorem:hung} by implementing the Hungarian algorithm in $O((n + k^2)\polylog n)$ time.
 
-\subsection{Matching definitions}
+\subsection{Matching Terminologies}
 
-Let $G$ be a bipartite graph between vertex sets $V$ and $W$ and edge set $E$,
-with costs $c(v, w)$ for each edge $(v, w) \in E$.
-Let $C \coloneqq \max_{(v, w) \in E} c(v, w)$.
+Let $G$ be a bipartite graph between vertex sets $A$ and $B$ and edge set $E$,
+with costs $c(v, w)$ for each edge $(v, w)$ in $G$.
+Let $C \coloneqq \max_{(v, w) \in E} c(v, w)$. \note{When is this used?}
 A \EMPH{matching} $M \subseteq E$ is a set of edges where no two edges share an
 endpoint.
+A vertex $v$ is \EMPH{matched} by $M$ if $v$ is the endpoint of some matching edge in $M$;
+otherwise $v$ is \EMPH{unmatched}.
 %We use $V(M)$ to denote the vertices matched by $M$.
 The \EMPH{size} of a matching is the number of edges in the set, and the
 \EMPH{cost} of a matching is the sum of costs of its edges.
 For a parameter $k$, the \EMPH{minimum-cost partial matching problem (MPM)}
-asks to find a size-$k$ matching $M^*$ of minimum cost.
-In geometric partial matching, we have $V = A$, $W = B$, $E = A \times B$,
-and $c(a, b) = \norm{a-b}_p^q$ for all $(a, b) \in E$.
+asks to find a size-$k$ matching of minimum cost.
+In the geometric partial matching setting, we have $E = A \times B$
+and $c(a, b) = \Paren{\norm{a-b}_p}^q$ for every edge $(a, b)$ in $G$.
 
-The linear programming dual to the MPM linear program uses dual variables for
-each vertex, called $\EMPH{potentials}$ $\pi: (V\cup W) \to \reals$.
-With potentials $\pi$, we define the \EMPH{reduced cost}
-$c_\pi(v, w) \coloneqq c(v, w) - \pi(v) + \pi(w)$.
-Potentials $\pi$ are \EMPH{feasible} if reduced cost is nonnegative for all
-$(v, w) \in E$.
-We say $(v, w) \in E$ is \EMPH{admissible} under potentials $\pi$ if
-$c_\pi(v, w) = 0$.
+The linear program dual to the standard linear program for MPM has dual variables for
+each vertex, called \EMPH{potentials $\pi$}.
+Given potentials $\pi$, we can define the \EMPH{reduced cost} on the edges to be
+$\EMPH{$c_\pi(v, w)$} \coloneqq c(v, w) - \pi(v) + \pi(w)$.
+Potentials $\pi$ are \EMPH{feasible} if the reduced costs are nonnegative for all edges in $G$.
+We say that an edge $(v, w)$ is \EMPH{admissible} under potentials $\pi$ if$c_\pi(v, w) = 0$.
 
 Consider a matching $M$ of size less than $r$.
-An \EMPH{alternating augmenting path} (or simply \EMPH{augmenting path})
-$\Pi = a_1, b_1, \ldots, a_\ell, b_\ell$ is an odd-length path with unmatched
+An \EMPH{augmenting path}
+$\Pi = (a_1, b_1, \ldots, a_\ell, b_\ell)$ is an odd-length path with unmatched
 endpoints ($a_1$ and $b_\ell$) and all other points matched.
-The edges of $\Pi$ alternate between unmatched ($(a_i, b_i)$) and matched
-($(b_i, a_{i+1})$).
-The symmetric difference $M' \gets M \oplus \Pi$ creates a new matching with
-size $\abs{M'} = \abs{M}+1$.
-We say that $M'$ is the result of \EMPH{augmenting} $M$ by $\Pi$.
+The edges of $\Pi$ alternate between edges outside and inside of matching $M$.
+The symmetric difference $M \oplus \Pi$ creates a new matching of size $\abs{M}+1$.
+We say that $M \oplus \Pi$ is the result of \EMPH{augmenting} $M$ by $\Pi$.
 
 \subsection{The Hungarian Algorithm}
 
-The Hungarian Algorithm is initialized with $M = \emptyset$ and $\pi = 0$,
-and maintains the following invariants:
-(i) $\pi$ is feasible,
-(ii) all edges in $M$ are admissible,
-(iii) unmatched vertices of $A$ all have the same potential $\alpha$ with $\alpha \geq \pi(a)$ for any matched $a \in A$,
-and (iv) unmatched vertices of $B$ all have the same potential $\beta$ with $\beta \leq \pi(b)$ for any matched $b \in B$.
+The Hungarian algorithm is initialized with $M = \emptyset$ and $\pi = 0$.
+It maintains the following invariants:
+\begin{enumerate}[(i)]\itemsep=0pt
+\item $\pi$ is feasible,
+\item all edges in $M$ are admissible,
+\item unmatched vertices of $A$ all have the same potential $\alpha$ satisfying $\alpha \geq \pi(a)$ for any matched vertex $a \in A$, and
+\item unmatched vertices of $B$ all have the same potential $\beta$ satisfying $\beta \leq \pi(b)$ for any matched vertex $b \in B$.
+\end{enumerate}
 Ramshaw and Tarjan~\cite{RT12} show that these conditions are sufficient to
-prove that $M$ is a minimum-cost size-$\abs{M}$ matching.
-In each iteration, the Hungarian Algorithm augments $M$ with an admissible
+guarantee that $M$ is a minimum-cost matching.
+Each iteration the Hungarian algorithm augments $M$ with an admissible
 augmenting path $\Pi$, discovered using a procedure called the
 \EMPH{Hungarian search}.
-Once $\abs{M} = k$, $M$ is an optimal size-$k$ matching.
+The algorithm terminates once $M$ has size $k$, in which case $M$ is an optimal matching.
 
-The Hungarian search raises $\pi$ on subsets of vertices to grow a set $S$ of
-``vertices reachable from unmatched $v \in V$ by alternating paths of
-admissible edges.''
-Once $S$ contains an unmatched $w \in W$, an admissible augmenting path exists.
-Initially, $S$ is the set of unmatched $v \in V$.
-Let the \EMPH{frontier} of $S$ be the edges of $(V \cap S) \times (W \setminus S)$.
+The Hungarian search tries grow a set of \EMPH{reachable vertices $S$}
+% from unmatched vertex $v \in A$
+by augmenting paths consisting of admissible edges.
+Initially, $S$ is the set of unmatched vertices in $A$.
+Let the \EMPH{frontier} of $S$ be the edges in $(A \cap S) \times (B \setminus S)$.
 In each iteration, the Hungarian search first \EMPH{relaxes} the
-minimum-reduced cost edge $(v, w)$ in the frontier, raising
-$\pi(v) \gets \pi(v) + c_\pi(v, w)$ for all $v \in S$ to make $(v, w)$
-admissible, and adding $w$ into $S$.
+minimum-reduced-cost edge $(a, b)$ in the frontier, raising
+$\pi(a)$ by $c_\pi(a, b)$ for all $a \in S$ to make $(a, b)$
+admissible, and adding $b$ into $S$.
 It is easy to verify that this potential change preserves feasibility.
-As $w \in W$ is added into $S$, we can store a backpointer to $v$, which can be
-used later to recover the admissible augmenting path through $w$.
-If $w$ is matched, say to $v'$, then we also relax $(v', w)$ by adding $v'$
-into $S$ (no potential change needed, by invariant) with backpointer to $w$.
-If $w$ is unmatched, the search finishes and we can recover an admissible
-augmenting path to $w$ by following backpointers to an unmatched $v \in V$.
+As $b \in B$ is added into $S$, we can store a backpointer to $a$, which can be
+used later to recover the admissible augmenting path through $b$.
+If $b$ is matched, say to vertex $a'$, then we also relax $(a', b)$ by adding $a'$
+into $S$ (no potential change needed, by invariant) with backpointer to $b$.
+If $b$ is unmatched, the search finishes and we can recover an admissible
+augmenting path to $b$ by following backpointers to an unmatched vertex $a \in A$.
+%Once $S$ contains an unmatched $b \in B$, an admissible augmenting path exists.
 
-Each alternating augmenting path has length $O(k)$, as every other edge is a
+Each augmenting path has length $O(k)$, as every other edge is a
 matching edge and $|M| \leq k$.
 Additionally, there are $k$ augmentations throughout the Hungarian algorithm,
 so the total time spent on updating the matching (during augmentations) is
 $O(k^2)$.
 The remainder of this section describes an implementation of Hungarian search
-that can run in $O(k\polylog n)$ time after a one-time $O(n\polylog n)$ time
+that runs in $O(k\polylog n)$ time after an $O(n\polylog n)$ time
 preprocessing.
-With this, our implementation of the Hungarian Algorithm runs in
-$O((n + k^2)\polylog n)$ time.
+With this, our implementation of the Hungarian algorithm runs in
+$O((n + k^2)\polylog n)$ time, which proves Theorem~\ref{theorem:hung}.
+
 
 \subsection{Geometric implementation of Hungarian search}
 
@@ -573,65 +406,65 @@ adds both vertices of a matching edge.
 We will implement each relaxation step in $O(\polylog n)$ time, after
 preprocessing.
 
-In general graphs, the expensive step is finding the minimum-reduced cost
-frontier edge --- the search must ``look at every edge'' e.g.\ by pushing them
-into a priority queue even if they are not relaxed.
-Since the costs are geometric, we can replace this with a query to a dynamic
+In general graphs, the most expensive step is to find the minimum-reduced-cost
+frontier edge --- the search must ``look at every edge''.
+%e.g.\ by pushing them into a priority queue even if they are not relaxed.
+However in the geometric setting, we can achieve this with a query to a dynamic
 \EMPH{bichromatic closest pair} (BCP) data structure.
-Given two point sets $P$ and $Q$ in the plane, the BCP is the pair of points
+Given two point sets $P$ and $Q$ in the plane, the bichromatic closest pair are two points
 $p \in P$ and $q \in Q$ minimizing the additively weighted distance
-$\|p - q\| - \omega(p) + \omega(q)$, for some real-valued vertex weights
-$\omega(p)$.
-Thus, the minimum-reduced cost frontier edge is precisely the BCP of
+$\|p - q\| - \omega(p) + \omega(q)$ for some real-valued vertex weights
+$\omega$.
+Thus, the minimum reduced-cost among the frontier edges is precisely the cost of the BCP of point sets
 $P = A \cap S$ and $Q = B \setminus S$, with $\omega(p) = \pi(p)$.
-\note{Short history on BCP?}
 
+%\note{Short history on BCP?}
 The state of the art dynamic BCP data structure from Kaplan, Mulzer, Roditty,
 Seiferth, and Sharir~\cite{KMRSS17} supports point insertions and deletions in
 $O(\polylog n)$ time, and answers queries in $O(\log^2 n)$ time.
 During each relaxation, we perform at most one query and add a vertex to $S$
 incurring one BCP insertion or deletion.
-So ignoring the time to build $P, Q$ at the beginning of the search and the
-time needed for updating $\pi$, the running time for the search is $O(k\polylog n)$.
+% So ignoring the time to build $P, Q$ at the beginning of the search and the time needed for updating $\pi$,
+Thus the running time for the search is $O(k\polylog n)$.
 
 \paragraph{Initial BCP sets by rewinding.}
 Recall that $S$ is initialized to the set of unmatched vertices of $V = A$,
 and therefore $Q = B \setminus S$ has size $n$.
-We cannot afford to take $O(n\polylog n)$ time to construct the BCP sets at the
+We cannot afford to take $O(n\polylog n)$ time initialize the BCP data struture at the
 beginning of every Hungarian search beyond the first.
 However, the set of unmatched $A$ vertices has changed by exactly one
 vertex since the last Hungarian search --- the augmentation newly matched one
 vertex $a^* \in A$.
 Thus, given the initial BCP sets $P', Q'$ from the beginning of the last
-Hungarian search, we can construct the initial $P$ and $Q$ by taking
-$Q \gets Q'$ and $P \gets P' \setminus \{a^*\}$.
-In other words, we only need a single BCP deletion ($O(\polylog n)$ time),
-given $P'$ and $Q'$.
+Hungarian search, we can construct $P$ and $Q$ for the current iteration
+%by taking $Q \gets Q'$ and $P \gets P' \setminus \{a^*\}$.
+%In other words, we only need
+using a single BCP deletion in $O(\polylog n)$ time.
 
-To acquire $P'$ and $Q'$, we keep a log of the points that are added to $S$
-over the course of the Hungarian search, and \emph{rewind} this log at the
-end of a Hungarian search by tracing over it in reverse order:
-If a point added to $S$ incurred a BCP insertion during the search,
-we now delete it (resp.\ incurred deletion, insert it).
-The number of events in the log is $O(k)$, since the number of relaxations per
-Hungarian search is $O(k)$.
+To acquire $P'$ and $Q'$, we keep track of a list of the points added to $S$
+over the course of the Hungarian search.
+At the end of each Hungarian search we \emph{rewind} the BCP data struture by tracing the list in reverse order.
+%If a point added to $S$ incurred a BCP insertion during the search,
+%we now delete it (resp.\ incurred deletion, insert it).
+The number of points in the list is at most $O(k)$ as it is bounded by the number of relaxations per
+Hungarian search.
 Thus, in $O(k\polylog n)$ time, we can reconstruct $P'$ and $Q'$ for each
 Hungarian search beyond the first.
-
-We refer to this as the \EMPH{rewinding mechanism}.
-In summary, we can construct each initial BCP set in $O(k\polylog n)$ time,
-after $O(n\polylog n)$ preprocessing time for constructing the very first
-BCP sets.
+%
+We refer to this procedure as the \EMPH{rewinding mechanism}.
+% In summary, we can construct each initial BCP set in $O(k\polylog n)$ time,
+% after $O(n\polylog n)$ preprocessing time for constructing the very first
+% BCP sets.
 
 \paragraph{Potential updates by Vaidya's trick.}
 We modify a trick from Vaidya~\cite{Vaidya89} for batching potential updates.
 Potentials have a \EMPH{stored value}, i.e.\ the currently recorded value of
 $\pi(v)$, and a \EMPH{true value}, which may have changed from $\pi(v)$.
-The resulting algorithm queries the minimum-reduced cost under the true values
-of $\pi$ and updates the stored value rarely.
+The resulting algorithm queries the minimum-reduced-cost under the true values
+of $\pi$ and updates the stored value occasionally.
 
-Throughout the entire Hungarian Algorithm, we maintain a scalar
-$\EMPH{$\delta$} \geq 0$ (initially 0) which aggregates potential changes.
+Throughout the entire Hungarian algorithm, we maintain a nonnegative scalar
+$\EMPH{$\delta$}$ (initially set to $0$) which aggregates potential changes.
 Vertices $a \in A$ that are added to $S$ are inserted into BCP with weight
 $\omega(a) \gets \pi(a) - \delta$, for whatever value $\delta$ is at the time
 of insertion.
@@ -639,25 +472,27 @@ Similarly, vertices $b \in B$ that are added to $S$ have $\omega(b) \gets \pi(b)
 recorded ($B \cap S$ points aren't added into a BCP set).
 When the Hungarian search wants to raise the potentials of points in $S$,
 $\delta$ is increased by that amount instead.
-Thus, true value for any potential of a point in $S$ is $\omega(p) + \delta$.
+Thus, true value for any potential of a point in $S$ is always $\omega(p) + \delta$.
 For points of $(A \cup B) \setminus S$, the true potential is equal to the
 stored potential.
-Since all the points of $S \cap A$ have weights uniformly offset from their
-true potentials, the minimum edge returned by the BCP does not change.
+Since all the points of $A \cap S$ have weights uniformly offset from their
+true potentials, the minimum edge returned by the BCP does not change. \note{why?}
 
 Once a point is removed from $S$ (i.e.\ by an augmentation or the rewinding
 mechanism), we update its stored potential $\pi(p) \gets \omega(p) + \delta$,
 again for the current value of $\delta$.
-Importantly, $\delta$ is not reset at the end of a Hungarian search, and
+Most importantly, $\delta$ is not reset at the end of a Hungarian search and
 persists through the entire algorithm.
 Thus, the initial BCP sets constructed by the rewinding mechanism have true
 potentials accurately represented by $\delta$ and $\omega(p)$.
 
-We update $\delta$ once per edge relaxations, so $O(k)$ times per Hungarian search.
-There are $O(k)$ stored values updated per Hungarian search, during the rewind.
+We update $\delta$ once per edge relaxations; thus $O(k)$ times in total per Hungarian search.
+There are $O(k)$ stored values updated per Hungarian search during the rewinding process.
 The time spent on potential updates per Hungarian search is therefore $O(k)$.
-Combined with the previous discussion, we can implement each Hungarian search
+
+In summary, we can implement each Hungarian search
 in $O(k\polylog n)$ time after a one-time $O(n\polylog n)$ preprocessing.
+
 
 
 \section{Approximating Min-Cost Partial Matching through Cost-Scaling}
@@ -676,6 +511,7 @@ The goal of section is to prove Theorem~\ref{theorem:gmcm}; that is, to compute 
 After introducing the necessary terminologies in Section~\ref{SS:prelim-flow}, we reduce the partial matching problem to computing an approximate minimum-cost flow on a unit-capacity reduction network in Section~\ref{SS:reduction}.
 In Section~\ref{SS:cost-scaling} we outline the high-level overview of the cost-scaling algorithm.
 We postpone the fast implementation using dynamic data structures to Section~\ref{S:implementation}.
+
 
 \subsection{Preliminaries on Network Flows}
 \label{SS:prelim-flow}
@@ -748,7 +584,7 @@ We can define residual arcs differently using residual capacities:
 \[
 \vec{E}_f = \{\arc vw \mid u_f(\arc vw) > 0\}.
 \]
-In other words, the set of residual arcs  are precisely those arcs in the residual graph, each of which has nonzero residual capacity.
+In other words, the set of residual arcs are precisely those arcs in the residual graph, each of which has nonzero residual capacity.
 %
 %Notice that the network defined that naturally corresponds to a given directed graph is in fact the residual network with respect to the zero flow.
 %
@@ -758,55 +594,6 @@ In other words, the set of residual arcs  are precisely those arcs in the residu
 % Define \EMPH{$N_f$} to be the \EMPH{residual network} with respect to pseudoflow $f$, consisting of residual graph $(V,A_f)$, together with antisymmetric cost function $c$ \note{Hmm, we need reduced costs}, residual capacities $u_f$, and the supply-demand function $\fsupply_f$.
 %\note{Maybe I want to define costs later, so the definition of residual network can be done?}
 
-%%% improving flows, omit for now
-% A pseudoflow $f'$ in $G_f$ can be ''added'' to $f$ to produce
-% a new pseudoflow in $G$ (that is, the edge-wise addition $f + f'$ is a valid pseudoflow in $G$).
-% A pseudoflow $f'$ in $G_f$ is an \EMPH{improving flow} if
-% \begin{enumerate}[(1)]\itemsep=0pt
-% \item
-% $0 \leq |\fsupply_{f'}(v)| \leq |\fsupply_f(v)|$ for every vertex $v$,
-% \item
-% $\fsupply_{f'}(v)$ and $\fsupply_f(v)$ share the same sign on every vertex $v$ \note{This is false, some imbalanced vertex might become balanced}, and
-% %\item
-% % if $\fsupply_f(v) = 0$ then $\fsupply_{f'}(v) = 0$, \note{this follows from (1) or (2)} and
-% \item $\sum_{v \in V} |\fsupply_{f'}(v)|$ is strictly less than $\sum_{v \in V} |\fsupply_f(v)|$.
-% \end{enumerate}
-% \note{Why do we need this definition?}
-% \note{Define \EMPH{augmenting path}.}
-%
-% If improving flow $f'$ is on a simple path (from an excess vertex to a deficit
-% vertex), we call it an \EMPH{augmenting-path flow} \note{path flow for short? only used twice throughout the paper} and its underlying support path \note{support undefined} an
-% \EMPH{augmenting path}.
-%
-% If $f'$ saturates at least one residual arc in every augmenting path in $G_f$,
-% we call $f'$ a \EMPH{blocking flow}.
-% In other words, for a blocking flow $f'$, there is no augmenting-path flow
-% $f''$ in $G_f$ for which $f + (f' + f'')$ is a feasible pseudoflow in $G$.
-% \note{Move to where blocking flows are first used.}
-%
-% \note{TO be honest, we never need the notion of improving flows?  Just need to prove that an augmenting path or a blocking flow does not change the $\eps$-optimality.}
-
-% \subsubsection{Primal-dual augmentation algorithms}
-%
-%\note{Not sure why this section is needed; removed until discovering its use.}
-%
-% The Hungarian Algorithm begins with an empty matching and gradually increases its size to $k$ using \EMPH{alternating augmenting paths}.
-% Given a non-maximal matching $M$, an alternating augmenting path $P$ is a path
-% between an unmatched vertex $a \in A$ and unmatched $b \in B$.
-% \note{What is $A$ and $B$? Remind the readers about the bipartite graph again.}
-% Then, $M' = M \oplus P$ is a matching of size 1 greater.
-% \note{$\oplus$ undefined.  Personally I believe it's easier to define in words; using notation is fine too.}
-% By restricting alternating augmenting paths to edges \note{when do you use edges and when do you use arcs?}
-% which satisfy a certain cost condition, we can prove that each intermediate matching of size $j \leq k$ is of minimum-cost among matchings of size $j$.
-%
-% There is a similar augmentation procedure for flows, which sends improving
-% flows to gradually reduce the imbalance for all vertices to 0, making it a
-% circulation.
-% By restricting augmentations to residual arcs satisfying a certain cost
-% condition (admissibility), one can prove that the resulting circulation is
-% minimum cost.
-%
-% \note{The above paragraph might be clearer if you put it after the definition of admissibility; because you can actually provide a formal proof.  Sketch of ideas are not that useful because for experts they don't need to read it, for beginners they won't understand without former definitions.}
 
 
 \paragraph{LP-duality and admissibility.}
@@ -1153,8 +940,8 @@ In total, potential updates and backward arc desaturations, thus the whole proce
 \paragraph{Refinement.}
 
 The procedure \textsc{Refine} is implemented using a primal-dual augmentation algorithm,
-which sends flows on admissible arcs to reduce the total excess, like the Hungarian Algorithm.
-Unlike the Hungarian Algorithm,
+which sends flows on admissible arcs to reduce the total excess, like the Hungarian algorithm.
+Unlike the Hungarian algorithm,
 it uses \emph{blocking flows} instead of augmenting paths.
 %
 An \EMPH{augmenting path} is a path in the residual network from an excess vertex to a deficit vertex.
@@ -1269,7 +1056,7 @@ This implies an $O(\sqrt{k})$ bound on the total excess after the first phase, w
 % \note{This paragraph is hard to follow}
 % Both procedures traverse the residual graph using admissible arcs from the set
 % of excess vertices.
-% Each step of these procedures \EMPH{relaxes} a minimum-reduced cost arc from a
+% Each step of these procedures \EMPH{relaxes} a minimum-reduced-cost arc from a
 % visited vertex to an unvisited vertex, until a deficit vertex is visited.
 % We associate each relaxation step with its newly-visited vertex.
 
@@ -1426,7 +1213,7 @@ This proves the lemma.
 Conceptually, we are executing the Hungarian search
 %(``raise prices'') from \cite[Section 3.2]{GHKT17}
 on the shortcut graph $\tilde{H}_f$.
-We describe how we can query the minimum-reduced cost arc leaving $\tilde{S}$ in
+We describe how we can query the minimum-reduced-cost arc leaving $\tilde{S}$ in
 $O(\polylog n)$ time for the shortcut graph, without constructing
 $\tilde{H}_f$ explicitly.
 For this purpose, let \EMPH{$S$} be a set of ``reached'' vertices maintained,
@@ -2099,7 +1886,7 @@ placement of $b_2$ which also crosses $\arc{a_1}{b_1}$ with $\arc{a_2}{b_2}$.
 \end{proof}
 
 We can construct the entire set of admissible arcs by repeatedly querying
-the minimum-reduced cost outgoing arc for each $a \in A$ until the result is
+the minimum-reduced-cost outgoing arc for each $a \in A$ until the result is
 not admissible.
 By Lemma~\ref{lemma:admiss_planar} the resulting arc set forms a planar graph,
 so by Euler's formula the number of arcs to query is $O(n)$.
