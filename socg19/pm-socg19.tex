@@ -1,4 +1,4 @@
-Hungarian algorithm%!TEX encoding = UTF-8 Unicode
+%!TEX encoding = UTF-8 Unicode
 %!TeX spellcheck = en-US
 \documentclass[a4paper,UKenglish]{socg-lipics-v2018}
 \usepackage[utf8]{inputenc}
@@ -6,8 +6,8 @@ Hungarian algorithm%!TEX encoding = UTF-8 Unicode
 \usepackage{graphicx,wrapfig}
 \DeclareGraphicsExtensions{.pdf,.png,.jpg}
 
-\usepackage[charter]{mathdesign}
-\usepackage{berasans,beramono}
+%\usepackage[charter]{mathdesign}
+%\usepackage{berasans,beramono}
 \usepackage{microtype}
 
 \RequirePackage{hyperref}
@@ -116,8 +116,10 @@ Hungarian algorithm%!TEX encoding = UTF-8 Unicode
 
 
 % for definitions
+\definecolor{DarkRed}{rgb}{0.50,0.00,0.00}
+\def\EMPH#1{\textcolor{DarkRed}{{\emph{#1}}}}
 %\def\EMPH#1{\textbf{\boldmath #1}}
-\def\EMPH#1{\textbf{\emph{\boldmath #1}}}
+%\def\EMPH#1{\textbf{\emph{\boldmath #1}}}
 \pdfstringdefDisableCommands{\let\boldmath\relax} % allow \boldmath in section titles
 
 % ----------------------------------------------------------------------
@@ -160,13 +162,19 @@ Hungarian algorithm%!TEX encoding = UTF-8 Unicode
 \Copyright{Pankaj K.\ Agarwal, Hsien-Chih Chang, Allen Xiao}
 
 \subjclass{Theory of computation $\rightarrow$ Design and analysis of algorithms}
-\keywords{partial matching, transportation, minimum-cost flow, rms-distance, bichromatic closest pair, cost scaling, excess scaling, primal-dual, }
+\keywords{partial matching, transportation, minimum-cost flow, rms-distance, bichromatic closest pair, cost scaling, excess scaling, primal-dual}
 
-\EventEditors{} \EventNoEds{2} \EventLongTitle{The 35th International Symposium
-on Computational Geometry (SOCG 2019)} \EventShortTitle{SOCG 2019}
-\EventAcronym{SOCG} \EventYear{2019} \EventDate{June 18--21, 2019}
-\EventLocation{Portland, USA} \EventLogo{eatcs} \SeriesVolume{} \ArticleNo{1} %
-Set article-no=1
+\EventEditors{}
+\EventNoEds{2}
+\EventLongTitle{The 35th International Symposium on Computational Geometry (SOCG 2019)}
+\EventShortTitle{SOCG 2019}
+\EventAcronym{SOCG}
+\EventYear{2019}
+\EventDate{June 18--21, 2019}
+\EventLocation{Portland, USA}
+\EventLogo{eatcs}
+\SeriesVolume{}
+\ArticleNo{1} %Set article-no=1
 
 
 \begin{document}
@@ -1579,29 +1587,29 @@ Lemma~\ref{lemma:empty_updates}
 completes the proof of Theorem~\ref{theorem:gmcm}.
 
 
-\section{Unbalanced transportation}
+\section{Unbalanced Transportation}
 
 % definitions
 % introduce the excess scaling algorithm/Orlin's
 % time per hungarian search
 % handling problem cases (stars, singletons)
 
-In this section, we give an exact algorithm which solves the transportation
-problem in $O(rn(r + \sqrt{n})\polylog n)$ time, proving
+In this section, we give an exact algorithm which solves the planar transportation
+problem in $O(rn^{3/2} \polylog n)$ time, proving
 Theorem~\ref{theorem:orlin}.
-This algorithm is a geometric implementation of the uncapacitated min-cost flow
+We describe a geometric implementation of the uncapacitated min-cost flow
 algorithm due to Orlin~\cite{O93}, combined with some of the tools developed
 in Sections~\ref{section:hung} and~\ref{section:goldberg}.
 Mainly, we batch potential updates and use the rewinding mechanism to
 initialize each Hungarian search in time proportional to the previous
 Hungarian search.
 
-Let $A$ and $B$ be points in the plane with $r \coloneqq \abs{A}$ and
-$n \coloneqq \abs{B}$.
+Let $A$ and $B$ be point sets in the plane.
+%with $r \coloneqq \abs{A}$ and $n \coloneqq \abs{B}$.
 Let $\tsupply:A \cup B \to \ints$ be a \EMPH{supply-demand function} with
-positive value on points of $A$, negative value on points of $B$, and
+positive value on points of $A$, negative value on points of $B$, satisfying
 $\sum_{a \in A} \tsupply(a) = - \sum_{b \in B} \tsupply(b)$.
-We use $U \coloneqq \max_{p \in A \cup B} \abs{\tsupply(p)}$.
+Define $U \coloneqq \max_{p \in A \cup B} \abs{\tsupply(p)}$.
 A \EMPH{transportation map} is a function
 $\tau: A \times B \to \reals_{\geq 0}$.
 A transportation map $\tau$ is \EMPH{feasible} if
@@ -1610,51 +1618,52 @@ $\sum_{a \in A} \tau(a, b) = -\tsupply(b)$ for all $b \in B$.
 In other words, the value $\tau(a, b)$ describes how much supply at $a$ should
 be sent to meet demands at $b$, and we require that all supplies are sent
 and all demands are met.
-We define the cost of $\tau$ to be
+We define the \EMPH{cost} of $\tau$ to be
 \[
-	\cost(\tau) \coloneqq \sum_{(a, b) \in A \times B} \norm{a-b}_p^q \cdot \tau(a, b).
+	\EMPH{$\cost(\tau)$} \coloneqq \sum_{(a, b) \in A \times B} \norm{a-b}_p^q \cdot \tau(a, b).
 \]
 Given $A$, $B$, and $\tsupply$, the \EMPH{transportation problem} asks to find
 a feasible transportation map of minimum cost.
-We focus on analyzing the \EMPH{unbalanced} setting where $r \leq n$.
+We focus on the case when the point sets are \EMPH{unbalanced}; that is,
+the given point sets have different sizes $r$ and $n$; without loss of generality assuming $r \le n$.
 
-There is a simple reduction from the transportation problem to uncapacitated
-min-cost flow.
+There is a simple reduction from the transportation problem to the uncapacitated
+min-cost flow problem.
 Consider the complete bipartite graph $G$ between $A$ and $B$ (with all edges
-directed $A$-to-$B$), set the costs $c(a, b) = \norm{a-b}_p^q$, all capacities to
-infinity, and use $\fsupply = \tsupply$.
+directed from $A$ to $B$).
+Set the costs $c(a, b)$ to be  $\norm{a-b}_p^q$, all capacities $u(a, b)$ to
+infinity, and the supply-demand function $\fsupply = \tsupply$.
 Any circulation $f$ in the network $N = (G, c, u, \fsupply)$ can be converted
 into a feasible transportation map $\tau_f$ by taking
-$\tau_f(a, b) \coloneqq f(\arc ab)$.
-Furthermore, $\cost(f) = \cost(\tau_f)$.
+$\tau_f(a, b) \coloneqq f(\arc ab)$ for every edges $(a, b)$.
+One simply has $\cost(f) = \cost(\tau_f)$.
 
 \subsection{Uncapacitated MCF by excess scaling}
 
-We give an outline of the strongly polynomial algorithm for uncapacitated MCF
+We give an outline of the strongly polynomial algorithm for uncapacitated min-cost flow problem
 from Orlin~\cite{O93}.
 Orlin's algorithm follows an \EMPH{excess-scaling} paradigm originally due to
 Edmonds and Karp~\cite{EK72}.
-Consider the basic primal-dual skeleton used in the previous sections:
-The algorithm begins with $f = 0$, $\pi = 0$, then repeatedly runs a
-\emph{Hungarian search} that raises potentials (while maintaining dual
+Consider the basic primal-dual framework used in the previous sections:
+The algorithm begins with both flow $f$ and potentials $\pi$ set to zero.
+Repeatedly runs a \emph{Hungarian search} that raises potentials (while maintaining dual
 feasibility) to create an admissible augmenting excess-deficit path, on which
-it then augments flow.
-If supplies/demands are integral and each augmentation is at least one unit of
-flow, then such an algorithm terminates.
+we perform flow augmentations.
+%If supplies/demands are integral and at least one unit of flow is pushed every time, then such an algorithm terminates.
 In terms of cost, $f$ is maintained to be $0$-optimal with respect to $\pi$
-and augmentations over admissible edges preserve this by
+and each augmentation over admissible edges preserve such property by
 Lemma~\ref{lemma:eps_opt_preserve}.
 Thus, the final circulation must be optimal.
-The excess-scaling paradigm tunes this skeleton by specifying (i) between which
-excess and deficit we augment, and (ii) how much flow is sent by the
+The excess-scaling paradigm builds on top of this skeleton by specifying (i) between which
+excess and deficit vertices we send flows, and (ii) how much flow is sent by the
 augmentation.
 
 The excess-scaling algorithm maintains a \EMPH{scale parameter} $\Delta$,
-initially $\Delta = U$.
-Let vertices with $\abs{\fsupply_f(v)} \geq \Delta$ be \EMPH{active}.
+initially set to $U$.
+A vertex $v$ with $\abs{\fsupply_f(v)} \geq \Delta$ is called \EMPH{active}.
 Each augmenting path is chosen between an active excess vertex and an active
 deficit vertex.
-Once there are either no more active excess or no more active deficit vertices,
+Once there are no more active excess or deficit vertices,
 $\Delta$ is halved.
 Each sequence of augmentations where $\Delta$ holds a constant value is called
 an \EMPH{excess scale}.
@@ -1662,75 +1671,73 @@ There are $O(\log U)$ excess scales before $\Delta < 1$ and, by integrality of
 supplies/demands, $f$ is a circulation.
 
 With some modifications to the excess-scaling algorithm, Orlin~\cite{O93}
-obtains an algorithm with a strongly polynomial bound on the number of
+obtains a strongly polynomial bound on the number of
 augmentations and excess scales.
-First, an \EMPH{active} vertex is redefined to be one where
-$\abs{\fsupply_f(v)} \geq \alpha\Delta$, for a parameter $\alpha \in (1/2, 1)$.
-Second, arcs which have $f(\arc vw) \geq 3n\Delta$ at the beginning of a scale
-are \EMPH{contracted}, creating a new vertex $\hat{v}$ which inherits all the
-arcs of $v$ and $w$, and has
-$\fsupply(\hat{v}) \gets \fsupply(\hat{v}) + \fsupply(\hat{w})$.
+First, an \EMPH{active} vertex is redefined to be one satisfying
+$\abs{\fsupply_f(v)} \geq \alpha\Delta$, for a fixed parameter $\alpha \in (0.5, 1)$.
+Second, arcs with flow value at least $3n\Delta$ at the beginning of a scale
+are \EMPH{contracted} to create a new vertex, whose supply-demand is
+the sum of those on the two endpoints of the contracted arc.
+%$\fsupply(\hat{v}) \gets \fsupply(\hat{v}) + \fsupply(\hat{w})$.
 We use $\hat{G} = (\hat{V}, \hat{E})$ to denote the resulting
 \EMPH{contracted graph}, where each $\hat{v} \in \hat{V}$ is a contracted
 component of vertices from $V$.
 Intuitively, the flow is so high on contracted arcs that no set of future
 augmentations can remove the arc from $\supp(f)$.
-Third, $\Delta$ is lowered to $\max_{v \in V} \fsupply_f(v)$ if there are no
-active excess vertices, and $f(v, w) = 0$ on all non-contracted arcs
-$(v, w) \in \hat{E}$.
+Third, in additional to halving, $\Delta$ is aggressively lowered to $\max_{v \in V} \fsupply_f(v)$ if there are no
+active excess vertices and $f(\arc vw) = 0$ holds for every arc $\arc vw \in \hat{E}$.
 Finally, flow values are not tracked within contracted components, but once an
 optimal circulation is found on $\hat{G}$, optimal potentials $\pi^*$ can be
-\EMPH{recovered} for $G$ in linear time by sequentially undoing contractions.
-The algorithm performs a post-processing step which finds the optimal
+\EMPH{recovered} for $G$ by sequentially undoing the contractions.
+The algorithm then performs a post-processing step which finds the optimal
 circulation $f^*$ on $G$ by solving a max-flow problem on the set of admissible
 arcs under $\pi^*$.
 
-\begin{theorem}[Orlin~\cite{O93}, Theorems 2 and 3]
+\begin{theorem}[(Orlin~{\cite[Theorems~2 and 3]{O93}})]
 \label{theorem:orlin_old}
-Orlin's algorithm finds optimal potentials after $O(n\log n)$ scaling phases,
+Orlin's algorithm finds a set of optimal potentials after $O(n\log n)$ scaling phases
 and $O(n\log n)$ total augmentations.
 \end{theorem}
 
 The remainder of the section focuses on showing that each augmentation can be
-implemented in $O(r(r/\sqrt{n} + \sqrt{n})\polylog n)$ time (after
+implemented in $O(r\sqrt{n}\polylog n)$ time (after
 preprocessing).
 Additionally, we show that $f^*$ can be recovered from $\pi^*$ very quickly
-for our specific graph.
+in our setting.
 
 \paragraph{Implementing contractions.}
 Following Agarwal~\etal~\cite{AFPVX17}, our geometric data structures must deal
-with real points ($A$, $B$), rather than the contracted components ($\hat{V}$).
+with real points in the plane instead of the the contracted components.
 We will track the contracted components described in $\hat{G}$ (e.g.\ with a
-disjoint-set data structure) and mark the arcs of $\supp(f)$ that get
+disjoint-set data structure) and mark the arcs of $\supp(f)$ that are
 contracted.
-We maintain potentials on the points ($A \cup B$) directly, instead of the
-contracted components ($\hat{V}$).
+We maintain potentials on the points $A$ and $B$ directly, instead of the
+contracted components.
 
-When conducting the Hungarian search, we initialize $S$ with all vertices from
+When conducting the Hungarian search, we initialize $S$ to be the set of vertices from
 \EMPH{active excess contracted components} who (in sum) meet the imbalance
-criteria.
+criteria. \note{unclear}
 Upon relaxing any $v \in \hat{v}$, we immediately relax all the contracted
-$\supp(f)$ arcs which span $\hat{v}$.
+support arcs which span $\hat{v}$.
 Since the input network is uncapacitated, each contracted component is
-strongly connected in the residual network by the admissible forward/reverse
-arcs of each contracted arc.
-For relaxing arcs of $\hat{E}$, we relax support arcs before attempting to
-relax any non-support arcs.
+strongly connected in the residual network by the admissible forward/backward
+arcs of each contracted arc. \note{unparsable}
+To relax arcs in $\hat{E}$, we relax the support arcs before attempting to
+relax any non-support arcs.  \note{mention the reason to make support acyclic}
 Relaxations of support arcs can be performed without further potential changes,
 since they are admissible by invariant.
 
-During augmentations, contracted residual arcs are considered to have infinite
-capacity, and we do not update the value of flow on these arcs.
-We allow augmenting paths to begin from any $a \in \hat{v} \cap A$ of an active
-excess component $\hat{v}$, and end in any $b \in \hat{w} \cap B$ of an active
+During the augmentations, contracted residual arcs are considered to have infinite
+capacity, and we do not update the value of flows on these arcs.
+We allow augmenting paths to begin from any point $a \in \hat{v} \cap A$ in an active
+excess component $\hat{v}$, and end at any point $b \in \hat{w} \cap B$ in an active
 deficit component $\hat{w}$.
 
 \paragraph{Recovering optimal flow.}
-\note{Summarize the results.}
-Naively recovering an optimal flow requires $O(rn^2)$ time.
+Rewinding contracted components to recover an optimal flow na\"ively takes $O(rn^2)$ time.
 Use a strategy from Agarwal~\etal~\cite{AFPVX17}, we can recover the optimal flow in time $O(n \polylog n)$.
-If furthermore the cost function is the $p$-norm (without the $q$-power), an even stronger result stands:
-In this case, the set of admissible arcs under an optimal potential forms a planar graph, and thus we can apply the planar maximum-flow algorithm~\cite{E10,xxx} which runs in $O(n \log n)$ time.
+If furthermore the cost function is just the $p$-norm (without the $q$th-power), an even stronger result stands:
+In this case, the set of admissible arcs under an optimal potential forms a planar graph, and thus we can apply the planar maximum-flow algorithm~\cite{E10,xxx} which runs in $O(n \log n)$ time.  For details see the appendix.
 
 \begin{toappendix}
 
@@ -1898,59 +1905,58 @@ planar maximum-flow algorithm by Erickson~\cite{E10}. \note{cite others like Kle
 
 \subsection{Dead vertices and support stars}
 
-Given Theorem~\ref{theorem:orlin_old}, our goal is to implement each
-augmentation in $O(r(r/\sqrt{n} + n^{1/2})\polylog n)$ time.
+%Given Theorem~\ref{theorem:orlin_old},
+Our goal is to implement each augmentation in $O(r\sqrt{n}\polylog n)$ time.
 To find an augmenting path, we again use a Hungarian search with geometric data
 structures to perform relaxations quickly.
 Like in Section~\ref{section:goldberg}, there are vertices which cannot be
 charged to the flow support.
-Even worse, the flow support may have size $\Omega(n)$ (consider an instance with
-$r=1$, and demand uniformly distributed among the vertices of $B$).
+Even worse, the flow support for the transportation problem may have size $\Omega(n)$ (consider when $A$ has one point, and demands are uniformly distributed among the vertices of $B$).
 Our strategy is summarized as follows:
 \begin{itemize}
-\item Discard vertices which lead to dead ends in the search (are not on a path
+\item Discard vertices which lead to dead ends in the search (not on a path
 	to a deficit vertex).
 \item Cluster parts of the flow support, such that the number of support arcs
 	outside clusters is $O(r)$.
 	The number of relaxations we perform is proportional to the number of
 	support arcs outside of clusters.
-\item Querying/updating clusters degrades our amortized time per relaxation from $O(\polylog n)$ to $O((r/\sqrt{n}+\sqrt{n})\polylog n)$.
 \end{itemize}
-
-Let $E(\supp(f)) \coloneqq \{(v, w) \mid \arc vw \in \supp(f)\}$ be the set
-of undirected edges corresponding to the arcs in $\supp(f)$.
-Clearly, $\abs{\supp(f)} = \abs{E(\supp(f))}$.
-Let the \EMPH{support degree} of a vertex be its degree in $E(\supp(f))$.
+Querying/updating clusters degrades our amortized time per relaxation from $O(\polylog n)$ to $O(\sqrt{n}\polylog n)$.
+Thus overall each augmentation takes $O(r\sqrt{n}\polylog n)$ time.
 
 \paragraph{Dead vertices.}
-We call a vertex $b \in B$ \EMPH{dead} if it has support degree $0$ and is not an
+% Let $E(\supp(f)) \coloneqq \{(v, w) \mid \arc vw \in \supp(f)\}$ be the set
+% of undirected edges corresponding to the arcs in $\supp(f)$.
+% Clearly, $\abs{\supp(f)} = \abs{E(\supp(f))}$.
+Let the \EMPH{support degree} of a vertex be its degree in the graph induced by the underlying edges of $\supp(f)$.
+We call a vertex $b \in B$ \EMPH{dead} if $b$ has support degree $0$ and is not an
 active excess or deficit vertex; call it \EMPH{live} otherwise.
 Dead vertices are essentially equivalent to the \emph{null vertices} of
 Section~\ref{section:goldberg}.
-Since the reduction in this section does not use a super-source/super-sink,
+However, since the reduction in this section does not use a super-source/super-sink,
 we can simply remove these from consideration during a Hungarian search ---
 they will not terminate the search, and have no outgoing residual arcs.
-Like null vertices, we ignore dead vertex potentials and infer feasible
+Like the null vertices, we ignore dead vertex potentials and infer feasible
 potentials when they become live again.
 We use \EMPH{$A_\ell$} and \EMPH{$B_\ell$} to denote the living
 vertices of points in $A$ and $B$, respectively.
-Note that being dead/alive is a notion strictly for vertices, and not
+Note that being dead/alive is a notion strictly defined only for vertices, and not for
 contracted components.
 
 %TODO how do we efficiently identify revived vertices?
 We say a dead vertex is \EMPH{revived} when it stops meeting either condition
 of the definition.
-Dead vertices are only revived after $\Delta$ decreases (say, in a
+Dead vertices are only revived after $\Delta$ decreases (at the start of a
 subsequent excess scale) as no augmenting path will cross a dead vertex and
 they cannot meet the criteria for contractions.
 When a dead vertex is revived, we must add it back into each of our data
 structures and give it a feasible potential.
 For revived $b \in B$, a feasible choice of potential is
-$\pi(b) \gets \max_{a \in A} \pi(a) - c(a, b)$ which we can query by
+$\pi(b) \gets \max_{a \in A} (\pi(a) - c(a, b))$ which we can query by
 maintaining a weighted nearest neighbor data structure on the points of $A$.
 The total number of revivals is bounded above by the number of augmentations:
 since the final flow is a circulation on $\hat{G}$ and a newly revived vertex
-$v$ has no adjacent $\supp(f)$ arcs and cannot be contracted, there is at least
+$v$ has no incident arcs in $\supp(f)$ and cannot be contracted, there is at least
 one subsequent augmentation which uses $v$ as its beginning or end.
 Thus, the total number of revivals is $O(n\log n)$.
 
@@ -1958,14 +1964,14 @@ Thus, the total number of revivals is $O(n\log n)$.
 The vertices of $B$ with support degree 1 are partitioned into subsets
 $\Sigma_a \subset B$ by the $a \in A$ lying on the other end of their single
 support arc.
-We call $\Sigma_a$ the \EMPH{support star} centered around $a \in A$.
+We call \EMPH{$\Sigma_a$} the \EMPH{support star} centered at $a \in A$.
 
 Roughly speaking, we would like to handle each support star as a single unit.
-When the Hungarian search reaches $a$ or any $b \in \Sigma_a$, then the
-entirety of $\Sigma_a$ (as well as $a$) is also admissible-reachable and can be
+When the Hungarian search reaches $a$ or any $b \in \Sigma_a$, the
+entirety of $\Sigma_a$ (as well as $a$) is also admissibly-reachable and can be
 included into $S$ without further potential updates.
 Additionally, the only outgoing residual arcs of every $b \in \Sigma_a$ lead to
-$a$, the only way to leave $\Sigma_a \cup \{a\}$ is through an arc leaving $a$.
+$a$, thus the only way to leave $\Sigma_a \cup \{a\}$ is through an arc leaving $a$.
 Once a relaxation step reaches some $b \in \Sigma_a$ or $a$ itself, we would
 like to quickly update the state such that the rest of $b \in \Sigma_a$ is also
 reached without performing relaxation steps to each individual
