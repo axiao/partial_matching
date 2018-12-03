@@ -1752,49 +1752,161 @@ In this case, the set of admissible arcs under an optimal potential forms a plan
 
 \begin{toappendix}
 
-\paragraph{Recovering the optimal flow.}
-\note{use this one if we want to use exponent $>1$. } %TODO
+\subsection{Recovering the optimal flow.}
 
-\note{Move everything to appendix and left a pointer to the socg 2016 paper.}
-
-We use a strategy from Agarwal~\etal~\cite{AFPVX17}.
-Instead of finding a max flow in the entire admissible network under $\pi^*$,
-we claim that is sufficient to find a max flow in a \EMPH{spanning tree} of
-admissible arcs, e.g.\ a shortest path tree on reduced costs.
-There are some details to explain --- like where the tree should be rooted, how
-to ensure the underlying network is strongly connected by admissible arcs ---
-but we give the intuition first:
-Such a spanning tree is a maximal set of linearly independent dual LP
+We use the recovery strategy from Agarwal~\etal~\cite{AFPVX17}, which runs in
+$O(n\polylog n)$ time.
+The main idea is that, if $\EuScript{T}$ is an undirected \emph{spanning tree of admissible edges}
+under optimal potentials $\pi^*$, then there exists an optimal flow $f^*$ with
+support only on arcs corresponding to edges of $\EuScript{T}$.
+Intuitively, $\EuScript{T}$ is a maximal set of linearly independent dual LP
 constraints for the optimal dual ($\pi^*$), so there exists an optimal primal
 solution ($f^*$) with support only on these arcs.
 To see this, we can use a perturbation argument: raising the cost of each
 non-tree edge by $\eps > 0$ does not change $\cost(\pi^*)$ or the feasibility
-of $\pi^*$, but does raise the cost of any circulation $f$ using non-tree
-edges.
+of $\pi^*$, but does raise the cost of any circulation $f$ using non-tree edges.
 Strong duality suggests that $\cost(f^*) = \cost(\pi^*)$ is unchanged,
 therefore $f^*$ must have support only on the tree edges.
 
-\note{TODO: the SPT construction requires describing Dijkstra and promising strong connectivity} %TODO
+Since the arcs corresponding to edges of $\EuScript{T}$ have no cycles, we can
+solve the maximum flow in linear time using the following greedy algorithm.
+Let $\par(v)$ be the parent of vertex $v$ in $\EuScript{T}$.
+We begin with $f^* = 0$ and process $\EuScript{T}$ from its leaves upwards.
+For a supply leaf $v$, we satisfy its supply by choosing
+$f^*(\arc{v}{\par(v)}) \gets \fsupply(v)$.
+Otherwise if leaf $v$ is a demand vertex, we choose
+$f^*(\arc{\par(v)}{v}) \gets -\fsupply(v)$.
+Once we've solved the supplies/demands for each leaf, then we can \EMPH{trim}
+the leaves, removing them from $\EuScript{T}$ and setting the supply/demand
+of each parent-of-a-leaf to its current imbalance.
+Then, we can recurse on this smaller tree and its new set of leaves.
 
-\paragraph{Recovering the optimal flow.}
-\note{use this one if we only use exponent $1$. } %TODO
-%TODO if we're not doing the p-th power, then we can use this planarity proof
+\begin{lemma}
+\label{lemma:orlin_tree_flow}
+Let $G(\EuScript{T})$ be the subnetwork of $G$ corresponding to edges of the
+undirected spanning tree $\EuScript{T}$.
+If there exists a flow in $G(\EuScript{T})$ which satisfies every supply and demand,
+then the greedy algorithm finds the maximum flow in $G(\EuScript{T})$ in $O(n)$ time.
+\end{lemma}
+\begin{proof}
+Observe that, for any flow $f$ in $G$, $\supp(f)$ has no paths of length longer
+than one.
+Thus, if a flow $f^*$ satisfying supplies/demands exists within $G(\EuScript{T})$,
+then each supply vertex has flow paths that terminate at its parent/children.
+Similarly, each demand vertex receive all its flow from its parent/children.
+Since there is only one option for a supply leaf (resp. demand leaf) to send
+its flow (resp. receive its flow), the greedy algorithm correctly identifies
+the values of $f^*$ for arcs adjoining $\EuScript{T}$ leaves.
+Trimming these leaves, we can apply this argument recursively for their parents.
+The running time of the greedy algorithm is $O(n)$, as leaves can be identified
+in $O(n)$ time and no vertex becomes a leaf more than once.
+\end{proof}
 
+It remains to show how we construct $\EuScript{T}$.
+We begin with a (spanning) \EMPH{shortest path tree} (SPT) $T$ in the residual
+network of $f$, under reduced costs and rooted at an arbitrary vertex $r$.
+For the SPT to span, we need the additional assumption that $G$ is strongly
+connected.
+We make can make $G$ strongly connected by adding a 0-supply vertex $s$ with
+arcs $\arc sa$ for all $a \in A$ and $\arc ba$ for all $b \in B$, with some
+high cost $M$.
+Following Orlin~\cite{O93}, these arcs cannot appear in an optimal flow if $M$
+is sufficiently high, and we can extend $\pi^*$ to include $s$ using
+$\pi^*(s) = 0$ if $M > \max_{b \in B} \pi^*(b)$.
+This extension to $\pi^*$ preserves feasibility.
 
-Instead of running a generic max-flow algorithm after finding the optimal
-potentials, we use the following observation.
+The edges corresponding to arcs of $T$ do not suffice for $\EuScript{T}$, since
+some SPT arcs may be inadmissble.
+Let $d_r(v)$ be the shortest path distance of $v \in A \cup B \cup \{s\}$ from
+$r$, and consider potentials $\pi^# = \pi^* - d_r$.
 
-Up until now, we have not placed restrictions on coincidence between $A$ and $B$, but for the next proof it is useful to do so.
+\begin{lemma}[Orlin~\cite{O93} Lemma 3]
+\label{lemma:orlin_spt_dist}
+Let $f$ be a flow satisfying the optimality conditions with respect to $\pi^*$.
+Then, (i) $f$ satisfies the optimality conditions with respect to $\pi^#$, and
+(ii) all SPT arcs are admissible under $\pi^#$.
+\end{lemma}
+
+We can use this lemma to argue that $\pi^#$ is still optimal.
+Recall that $f$ has values defined only on the un-contracted residual arcs;
+we can apply the first part of Lemma~\ref{lemma:orlin_spt_dist} on these arcs.
+For arcs within contracted components, we use a different argument.
+Observe that each $\hat{v} \in \hat{V}$ is spanned by a set of $\supp(f)$ arcs,
+which are admissible by invariant.
+Thus, all $v \in \hat{v}$ are equidistant from $r$, and they will have the same
+value $d_r(v)$.
+It follows that the reduced costs of arcs with both endpoints in $\hat{v}$
+do not change when replacing $\pi^*$ with $\pi^#$, so arcs contained in
+$\hat{v}$ that met the optimality conditions for $\pi^*$ still meet them for
+$\pi^#$.
+
+From the second part of Lemma~\ref{lemma:orlin_spt_dist}, the SPT $T$ is a
+spanning tree of admissible arcs under $\pi^#$.
+We set $\EuScript{T}$ to be the set of undirected edges corresponding to $T$.
+
+\paragraph{Computing the SPT.}
+We conclude by describing the procedure for building the SPT, i.e. by
+running Dijkstra's algorithm in the residual network.
+We use a geometric implementation that is very similar to Hungarian search.
+We begin with $S = \{r\}$ and $d_r(r) = 0$, where $r$ is our arbitrary root.
+For all other vertices, $d_r(v)$ is initially unknown.
+In each iteration, we relax the minimum-reduced cost arc $\arc vw$ in the
+frontier $S \times (A \cup B) \setminus S$, adding $w$ to $S$, and setting
+$d_r(w) = d_r(v) + c_{\pi^*}(v, w)$.
+Once $S = A \cup B$, the SPT $T$ is the set of relaxed arcs.
+
+If an either direction of an arc of $\supp(f)$ enters the frontier, we relax it
+immediately.
+To detect support arcs, we build a list for each $v \in A \cup B$ of the
+support arcs which use $v$ as an endpoint, and once $v \in S$ we check its list.
+There are $O(n)$ support arcs in total (by acyclicity of $E(\supp(f))$), so
+the total time spent searching these lists is $O(n)$.
+Such relaxations are correct for the shortest path tree, since the support
+edges are admissible and reduced costs are nonnegative.
+
+Other edges appearing in the frontier can be split into three categories:
+\begin{enumerate}
+\item Forward $A$-to-$B$ arcs.
+	We query these using a BCP with $P = A \cap S$ and $Q = B \setminus S$.
+\item $B$-to-$s$ arcs.
+	These will never have flow support.
+	We can query the minimum with a max-heap on potentials of $B \cap S$.
+	We query these while $s \in S$.
+\item $s$-to-$A$ arcs.
+	These will also never have flow support.
+	We can query the minimum with a min-heap on potentials of $A \setminus S$.
+	We query these while $s \in S$.
+\end{enumerate}
+We perform $O(n)$ relaxations and takes $O(\polylog n)$ time per relaxation,
+for non-support relxations.
+An additional $O(n)$ time is spent relaxing support edges.
+The total running time of Dijkstra's algorithm is $O(n\polylog n)$.
+Combining with Lemma~\ref{lemma:orlin_tree_flow}, we obtain the following.
+
+\begin{lemma}
+Given optimal potentials $\pi^*$ and an optimal contracted flow $f$, the
+optimal flow $f^*$ can be computed in $O(n\polylog n)$ time.
+\end{lemma}
+
+\subsection{Recovering the optimal flow for $1$-power.}
+
+When the matching objective uses the $1$-power of $p$-norms, we can prove that
+the subgraph formed by admissible arcs is planar.
+Planarity gives us two things towards a simple $f^*$ recovery:
+there are only a linear number of admissible arcs, and the max-flow on them can
+be solved in near-linear time with planar graph max-flow algorithms.
+
+Up until now, we have not placed restrictions on coincidence between $A$ and $B$,
+but for the next proof it is useful to do so.
 We can assume that all points within $A \cup B$ are distinct, otherwise we can
 replace all points coincident at $x \in \reals^2$ with a single point whose
 supply/demand is $\sum_{v \in A \cup B: v=x}\tsupply(v)$.
 This is roughly equivalent to transporting as much as we can between
 coincident supply and demand, and is optimal by triangle inequality.
-So without loss of generality, we assume all points of $A \cup B$ are distinct.
 
 Without loss of generality, assume $\pi^*$ is nonnegative (raising $\pi^*$
 uniformly on all points does not change the objective or feasibility).
-Recall that feasibility of $\pi^*$ states that, for all $a \in A$ and $b \in B$
+Recall that $\pi^*$ is feasibility if for all $a \in A$ and $b \in B$
 \[
 	c_{\pi^*}(a, b) = \norm{a-b}_p - \pi^*(a) + \pi^*(b) \geq 0.
 \]
@@ -1910,6 +2022,12 @@ By Lemma~\ref{lemma:admiss_planar} the resulting arc set forms a planar graph,
 so by Euler's formula the number of arcs to query is $O(n)$.
 We can then find the maximum flow in time $O(n\log n)$ time, using for example the
 planar maximum-flow algorithm by Erickson~\cite{E10}. \note{cite others like Klein}
+
+\begin{lemma}
+If the transportation objective is sum-of-costs, then given the optimal
+potentials $\pi^*$, we can compute an optimal flow $f^*$ in $O(n\polylog n)$
+time.
+\end{lemma}
 
 \end{toappendix}
 
@@ -2109,8 +2227,7 @@ maintain a BCP to query the minimum $A_\ell$-to-$B_\ell$ arc.
 To elaborate, this is the BCP between $P = A_\ell \cap S$ and
 $Q = (B_\ell \setminus (\bigcup_{a \in A_\ell} \Sigma_a)) \setminus S$,
 weighted by potentials.
-This can be queried in $O(\log n)$ time and updated in $O(\polylog n)$ time per
-point.
+This can be queried in $O(\log^2 n)$ time and updated in $O(\polylog n)$ time per point.
 Since it doesn't deal with support stars, there is at most one
 insertion/deletion per relaxation step.
 
@@ -2158,7 +2275,7 @@ each, but (iv) may take up to $O(\sqrt{n}\polylog n)$ time.
 On the other hand, there are now $O(\sqrt{n})$ data structures to query during
 each relaxation step, as there are $O(n/\sqrt{n})$ data structures
 $\EuScript{D}_\text{big}(\cdot)$.
-Thus, the query time within each relaxation step is $O(\sqrt{n}\log n)$.
+Thus, the query time within each relaxation step is $O(\sqrt{n}\log^2 n)$.
 We can now bound the time spent within the Hungarian search.
 
 \begin{lemmarep}
