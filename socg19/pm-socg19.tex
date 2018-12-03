@@ -278,12 +278,34 @@ $A$ and $B$ in $O((n + k\sqrt{k})\polylog n \log(1/\eps))$ time. % rewrite $\log
 
 Our third algorithm solves the transportation problem in the unbalanced setting.
 The transportation problem is a weighted generalization of the matching problem.
-Each point of $A$ is weighted with an integer \emph{supply} and each point of
-$B$ is weighted with integer \emph{demand} such that the sum of supply and
-demand are equal.
-The goal of the transportation problem is to find a minimum-cost mapping of
-all supplies to demands, where the cost of moving a unit of supply at $a \in A$
-to satisfy a unit of demand at $b \in B$ is $\|a - b\|$.
+Let $A$ and $B$ be point sets in the plane.
+%with $r \coloneqq \abs{A}$ and $n \coloneqq \abs{B}$.
+Let $\tsupply:A \cup B \to \ints$ be a \EMPH{supply-demand function} with
+positive value on points of $A$, negative value on points of $B$, satisfying
+$\sum_{a \in A} \tsupply(a) = - \sum_{b \in B} \tsupply(b)$.
+Define $U \coloneqq \max_{p \in A \cup B} \abs{\tsupply(p)}$.
+A \EMPH{transportation map} is a function
+$\tau: A \times B \to \reals_{\geq 0}$.
+A transportation map $\tau$ is \EMPH{feasible} if
+$\sum_{b \in B} \tau(a, b) = \tsupply(a)$ for all $a \in A$, and
+$\sum_{a \in A} \tau(a, b) = -\tsupply(b)$ for all $b \in B$.
+In other words, the value $\tau(a, b)$ describes how much supply at $a$ should
+be sent to meet demands at $b$, and we require that all supplies are sent
+and all demands are met.
+We define the \EMPH{cost} of $\tau$ to be
+\[
+	\EMPH{$\cost(\tau)$} \coloneqq \sum_{(a, b) \in A \times B} \norm{a-b}_p^q \cdot \tau(a, b).
+\]
+Given $A$, $B$, and $\tsupply$, the \EMPH{transportation problem} asks to find
+a feasible transportation map of minimum cost.
+We focus on the case when the point sets are \EMPH{unbalanced}; that is,
+the given point sets have different sizes $r$ and $n$; without loss of generality assuming $r \le n$.
+% Each point of $A$ is weighted with an integer \emph{supply} and each point of
+% $B$ is weighted with integer \emph{demand} such that the sum of supply and
+% demand are equal.
+% The goal of the transportation problem is to find a minimum-cost mapping of
+% all supplies to demands, where the cost of moving a unit of supply at $a \in A$
+% to satisfy a unit of demand at $b \in B$ is $\|a - b\|$.
 For this, we use the strongly polynomial uncapacitated min-cost flow algorithm
 by Orlin~\cite{O93}.
 The result is an $O(n^{3/2} r \polylog n)$ time algorithm for unbalanced
@@ -1680,46 +1702,21 @@ completes the proof of Theorem~\ref{theorem:gmcm}.
 In this section, we give an exact algorithm which solves the planar transportation
 problem in $O(rn^{3/2} \polylog n)$ time, proving
 Theorem~\ref{theorem:orlin}.
-We describe a geometric implementation of the uncapacitated min-cost flow
-algorithm due to Orlin~\cite{O93}, combined with some of the tools developed
-in Sections~\ref{section:hung} and~\ref{section:goldberg}.
-Mainly, we batch potential updates and use the rewinding mechanism to
-initialize each Hungarian search in time proportional to the previous
-Hungarian search.
+Our strategy is to use the standard reduction to the uncapacitated
+min-cost flow problem, and provide a fast implementation under the geometric setting for the uncapacitated min-cost flow
+algorithm by Orlin~\cite{O93}, combined with some of the tools developed in Sections~\ref{section:hung} and~\ref{section:goldberg}.
+%Mainly, we batch potential updates and use the rewinding mechanism to initialize each Hungarian search in time proportional to the previous Hungarian search.
 
-Let $A$ and $B$ be point sets in the plane.
-%with $r \coloneqq \abs{A}$ and $n \coloneqq \abs{B}$.
-Let $\tsupply:A \cup B \to \ints$ be a \EMPH{supply-demand function} with
-positive value on points of $A$, negative value on points of $B$, satisfying
-$\sum_{a \in A} \tsupply(a) = - \sum_{b \in B} \tsupply(b)$.
-Define $U \coloneqq \max_{p \in A \cup B} \abs{\tsupply(p)}$.
-A \EMPH{transportation map} is a function
-$\tau: A \times B \to \reals_{\geq 0}$.
-A transportation map $\tau$ is \EMPH{feasible} if
-$\sum_{b \in B} \tau(a, b) = \tsupply(a)$ for all $a \in A$, and
-$\sum_{a \in A} \tau(a, b) = -\tsupply(b)$ for all $b \in B$.
-In other words, the value $\tau(a, b)$ describes how much supply at $a$ should
-be sent to meet demands at $b$, and we require that all supplies are sent
-and all demands are met.
-We define the \EMPH{cost} of $\tau$ to be
-\[
-	\EMPH{$\cost(\tau)$} \coloneqq \sum_{(a, b) \in A \times B} \norm{a-b}_p^q \cdot \tau(a, b).
-\]
-Given $A$, $B$, and $\tsupply$, the \EMPH{transportation problem} asks to find
-a feasible transportation map of minimum cost.
-We focus on the case when the point sets are \EMPH{unbalanced}; that is,
-the given point sets have different sizes $r$ and $n$; without loss of generality assuming $r \le n$.
-
-There is a simple reduction from the transportation problem to the uncapacitated
-min-cost flow problem.
-Consider the complete bipartite graph $G$ between $A$ and $B$ (with all edges
-directed from $A$ to $B$).
-Set the costs $c(a, b)$ to be  $\norm{a-b}_p^q$, all capacities $u(a, b)$ to
-infinity, and the supply-demand function $\fsupply = \tsupply$.
-Any circulation $f$ in the network $N = (G, c, u, \fsupply)$ can be converted
-into a feasible transportation map $\tau_f$ by taking
-$\tau_f(a, b) \coloneqq f(\arc ab)$ for every edges $(a, b)$.
-One simply has $\cost(f) = \cost(\tau_f)$.
+% There is a simple reduction from the transportation problem to the uncapacitated
+% min-cost flow problem.
+% Consider the complete bipartite graph $G$ between $A$ and $B$ (with all edges
+% directed from $A$ to $B$).
+% Set the costs $c(a, b)$ to be  $\norm{a-b}_p^q$, all capacities $u(a, b)$ to
+% infinity, and the supply-demand function $\fsupply = \tsupply$.
+% Any circulation $f$ in the network $N = (G, c, u, \fsupply)$ can be converted
+% into a feasible transportation map $\tau_f$ by taking
+% $\tau_f(a, b) \coloneqq f(\arc ab)$ for every edges $(a, b)$.
+% One simply has $\cost(f) = \cost(\tau_f)$.
 
 \subsection{Uncapacitated MCF by excess scaling}
 
@@ -1789,6 +1786,7 @@ Additionally, we show that $f^*$ can be recovered from $\pi^*$ very quickly
 in our setting.
 
 \paragraph{Implementing contractions.}
+\note{REWRITE}
 Following Agarwal~\etal~\cite{AFPVX17}, our geometric data structures must deal
 with real points in the plane instead of the the contracted components.
 We will track the contracted components described in $\hat{G}$ (e.g.\ with a
@@ -1819,12 +1817,12 @@ deficit component $\hat{w}$.
 \paragraph{Recovering optimal flow.}
 Rewinding contracted components to recover an optimal flow na\"ively takes $O(rn^2)$ time.
 Use a strategy from Agarwal~\etal~\cite{AFPVX17}, we can recover the optimal flow in time $O(n \polylog n)$.
-If furthermore the cost function is just the $p$-norm (without the $q$th-power), an even stronger result stands:
+If furthermore the coinadmissiblee is just the $p$-norm (without the $q$th-power), an even stronger result stands:
 In this case, the set of admissible arcs under an optimal potential forms a planar graph, and thus we can apply the planar maximum-flow algorithm~\cite{E10,xxx} which runs in $O(n \log n)$ time.  For details see the appendix.
 
 \begin{toappendix}
 
-\subsection{Recovering the optimal flow.}
+\subsection{Recovering the optimal flow}
 
 We use the recovery strategy from Agarwal~\etal~\cite{AFPVX17}, which runs in
 $O(n\polylog n)$ time.
@@ -1866,7 +1864,7 @@ than one.
 Thus, if a flow $f^*$ satisfying supplies/demands exists within $G(\EuScript{T})$,
 then each supply vertex has flow paths that terminate at its parent/children.
 Similarly, each demand vertex receive all its flow from its parent/children.
-Since there is only one option for a supply leaf (resp. demand leaf) to send
+Since there is only one option for a supply leaf (resp.\ demand leaf) to send
 its flow (resp. receive its flow), the greedy algorithm correctly identifies
 the values of $f^*$ for arcs adjoining $\EuScript{T}$ leaves.
 Trimming these leaves, we can apply this argument recursively for their parents.
@@ -1888,7 +1886,7 @@ $\pi^*(s) = 0$ if $M > \max_{b \in B} \pi^*(b)$.
 This extension to $\pi^*$ preserves feasibility.
 
 The edges corresponding to arcs of $T$ do not suffice for $\EuScript{T}$, since
-some SPT arcs may be inadmissble.
+some SPT arcs may be inadmissible.
 Let $d_r(v)$ be the shortest path distance of $v \in A \cup B \cup \{s\}$ from
 $r$, and consider potentials $\pi^# = \pi^* - d_r$.
 
@@ -1900,7 +1898,7 @@ Then, (i) $f$ satisfies the optimality conditions with respect to $\pi^#$, and
 \end{lemma}
 
 We can use this lemma to argue that $\pi^#$ is still optimal.
-Recall that $f$ has values defined only on the un-contracted residual arcs;
+Recall that $f$ has values defined only on the non-contracted residual arcs;
 we can apply the first part of Lemma~\ref{lemma:orlin_spt_dist} on these arcs.
 For arcs within contracted components, we use a different argument.
 Observe that each $\hat{v} \in \hat{V}$ is spanned by a set of $\supp(f)$ arcs,
@@ -1917,7 +1915,7 @@ spanning tree of admissible arcs under $\pi^#$.
 We set $\EuScript{T}$ to be the set of undirected edges corresponding to $T$.
 
 \paragraph{Computing the SPT.}
-We conclude by describing the procedure for building the SPT, i.e. by
+We conclude by describing the procedure for building the SPT, i.e.\ by
 running Dijkstra's algorithm in the residual network.
 We use a geometric implementation that is very similar to Hungarian search.
 We begin with $S = \{r\}$ and $d_r(r) = 0$, where $r$ is our arbitrary root.
@@ -1950,7 +1948,7 @@ Other edges appearing in the frontier can be split into three categories:
 	We query these while $s \in S$.
 \end{enumerate}
 We perform $O(n)$ relaxations and takes $O(\polylog n)$ time per relaxation,
-for non-support relxations.
+for non-support relaxations.
 An additional $O(n)$ time is spent relaxing support edges.
 The total running time of Dijkstra's algorithm is $O(n\polylog n)$.
 Combining with Lemma~\ref{lemma:orlin_tree_flow}, we obtain the following.
@@ -1960,10 +1958,10 @@ Given optimal potentials $\pi^*$ and an optimal contracted flow $f$, the
 optimal flow $f^*$ can be computed in $O(n\polylog n)$ time.
 \end{lemma}
 
-\subsection{Recovering the optimal flow for $1$-power.}
+\subsection{Recovering the optimal flow for sum-of-distances.}
 
-When the matching objective uses the $1$-power of $p$-norms, we can prove that
-the subgraph formed by admissible arcs is planar.
+When the matching objective uses the just the $p$-norms (that is, when $q=1$), we can prove that
+the subgraph formed by admissible arcs is in fact \emph{planar}.
 Planarity gives us two things towards a simple $f^*$ recovery:
 there are only a linear number of admissible arcs, and the max-flow on them can
 be solved in near-linear time with planar graph max-flow algorithms.
@@ -2470,6 +2468,7 @@ This completes the proof of Theorem~\ref{theorem:orlin}.
 
 % Acknowledgment and Bibliography
 \paragraph*{Acknowledgment.}
+We thank Haim Kaplan for useful discussion and suggesting to use Goldberg~\etal~\cite{GHKT17} for our approximation algorithm.
 
 \bibliographystyle{newuser}
 \bibliography{ref}
