@@ -196,122 +196,175 @@ This is the first sub-quadratic time exact algorithm when $r = o(\sqrt{n})$, whi
 
 \section{Introduction}
 
-\note{REWRITE AFTER TECHNICAL SECTIONS}
+Given two point sets $A, B$ in the plane, we consider the problem of finding
+the minimum-cost size-$k$ matching between $A$ and $B$.
+Formally, suppose $\abs{A} = r$ and $\abs{B} = n$, with $r \leq n$.
+Let $G(A, B)$ be the undirected complete bipartite graph between
+$A$ and $B$, and let the cost of $(a, b) \in A \times B$ be
+$c(a, b) = \norm{a-b}_p^q$, for some $1 \leq p < \infty$ and $q \geq 1$.
+Define $C \coloneqq \max_{(a, b) \in A \times B} c(a, b)$.
+A \EMPH{matching} $M$ in $G(A, B)$ is a set of edges sharing no endpoints,
+and the cost of $M$ is 
+\begin{equation*}
+	\EMPH{$\cost(M)$} = \sum_{(a, b) \in A \times B} \norm{a-b}_p^q.
+\end{equation*}
+For a parameter $k \leq r$, we call the problem of finding the minimum-cost
+size-$k$ matching in $G(A, B)$ the \EMPH{geometric partial matching} problem.
+We call the respective problem in general bipartite graphs (with arbitrary
+edge costs) the \EMPH{partial matching} problem.
+This has also been called the \EMPH{imperfect matching} problem.
 
-Consider the problem of finding a minimum-cost bichromatic matching between
-a set of red points $A$ and a set of blue points $B$ lying in the plane,
-where the cost of a matching edge $(a, b)$ is the Euclidean distance
-$\|a - b\|$;
-in other words, the minimum-cost bipartite matching problem on the Euclidean
-complete graph $G = (A \cup B, A \times B)$.
-Let $r \coloneqq |A|$ and $n \coloneqq |B|$.
-Without loss of generality, assume that $r \leq n$.
-We consider the problem of \emph{partial matching} (also called \emph{imperfect matching}),
-where the task is to find a minimum-cost matching of size $k \leq r$.
-When $k = r = n$, we say the matching instance is \EMPH{balanced}.
-When $k = r < n$ ($A$ and $B$ have different sizes, but the matching is
-maximal), we say the matching instance is \EMPH{unbalanced}.
-We call the geometric problem of finding a size $k$ matching of point sets $A$
-and $B$ the \EMPH{geometric partial matching problem}.
-%
-\note{talk about the near-linear time algorithm}%TODO
-% \begin{TODO}
-% Previous work
-% \begin{itemize}\itemsep=0pt
-% 	\item on matching
-% 	\item on geometric matching
-% 	\item on unbalanced/partial problems (GHKT, the push-relabel one, the tech report)
-% \end{itemize}
-% \noindent\textcolor{blue}{[Hsien: State your TODO list explicitly in the pdf file so that it's easier to read.  Make everything that you are planning to do, and put priorities on them.]}
-% \end{TODO}
+The second problem we consider is a vertex-weighted variant of bipartite
+matching called the \emph{transportation problem}.
+Let $\tsupply:A \cup B \to \ints$ be a \EMPH{supply-demand function} with
+positive value on points of $A$, negative value on points of $B$, satisfying
+$\sum_{a \in A} \tsupply(a) = - \sum_{b \in B} \tsupply(b)$.
+Define $U \coloneqq \max_{p \in A \cup B} \abs{\tsupply(p)}$.
+A \EMPH{transportation map} is a function $\tau: A \times B \to \reals_{\geq 0}$.
+A transportation map $\tau$ is \EMPH{feasible} if
+$\sum_{b \in B} \tau(a, b) = \tsupply(a)$ for all $a \in A$, and
+$\sum_{a \in A} \tau(a, b) = -\tsupply(b)$ for all $b \in B$.
+In other words, the value $\tau(a, b)$ describes how much supply at $a$ should
+be sent to meet demands at $b$, and $\tau$ is feasible if all supplies are sent
+and all demands are met.
+We define the cost of $\tau$ to be
+\begin{equation*}
+	\EMPH{$\cost(\tau)$} \coloneqq \sum_{(a, b) \in A \times B} \norm{a-b}_p^q \cdot \tau(a, b).
+\end{equation*}
+The \EMPH{transportation problem} asks to find a feasible transportation map of
+minimum cost.
+The cost itself is called the \EMPH{optimal transport cost} or the
+\EMPH{earth mover's distance}.
+We focus on the setting where $r < n$, i.e. the point sets are \EMPH{unbalanced}
+(although the total supply and demand are balanced).
 
+\subsection{Related work}
+
+Non-geometric algorithms for partial matching can be applied to $G(A, B)$,
+which is a graph with $r+n$ vertices and $m \coloneqq rn$ edges.
+There is a wealth of literature on general min-cost bipartite matching between 
+\EMPH{balanced} vertex sets ($r = n$) finding a \EMPH{perfect matching}
+($k = r = n$).
+Not all algorithms for perfect matching can be easily modified to solve partial
+matching, with a notable exception being the celebrated primal-dual
+\EMPH{Hungarian Algorithm}~\cite{Kuhn55}.
+The Hungarian Algorithm can be ``stopped after $k$ iterations'' to solve partial
+matching in $O(km + k^2\log r) = O(knr + k^2\log r)$ time, see e.g. \cite{RT12}.
+Ramshaw and Tarjan~\cite{RT12} give a cost-scaling algorithm for partial
+matching which runs in time $O(m\sqrt{n}\log(nC)) = O(n^{3/2}r\log(nC)$,
+but only when costs are integral (for distances, they generally are not).
+By reduction to unit-capacity min-cost flow, Goldberg~\etal~\cite{GHKT17}
+give a cost-scaling algorithm for partial matching which runs in
+$O(m\sqrt{k}\log(kC)) = O(nr\sqrt{k}\log(kC))$ time, again only for integral
+costs.
+
+Similarly, many geometric perfect matching algorithms do not convert easily
+into geometric partial matching algorithms.
+However, the $(1+\eps)$-approximation algorithm due to Sharathkumar and
+Agarwal~\cite{SA12m} can be modified to solve partial matching by ``stopping at
+the $k$-th iteration,'' to solve geometric partial matching in
+$O(n\poly(\log n, 1/\eps))$ time, when costs are the $p$-norm.
+We note that these costs are less general than the setting in this paper
+(``$q$-th power of the $p$-norm'').
+For instance, Sharathkumar-Agarwal does not support squared Euclidean costs,
+i.e. \EMPH{root mean squared} (RMS) matching costs.
+
+The transportation problem can similarly be formulated as a
+\EMPH{minimum-cost flow} problem on $G(A, B)$.
+Thus, the strongly polynomial uncapacitated min-cost flow algorithm by
+Orlin~\cite{O93} solves transportation in
+$O((m + n\log n)n\log n) = O(n^3\log n + n^2\log^2 n)$ time.
+Lee and Sidford give a weakly polynomial algorithm which runs in
+$O(m\sqrt{n}\polylog(n, U)) = O(n^{3/2}r\polylog(n, U))$ time.
+
+Another line of approximation algorithms for transportation use an entropy
+regularizer to pose it as a \EMPH{matrix scaling problem}, following the work
+of Cuturi~\cite{C13}.
+The regularized problem admits a simple iterative algorithm called the
+\EMPH{Sinkhorn-Knopp algorithm}.
+Theoretical bounds for the Sinkhorn-Knopp algorithm have emerged only recently:
+Sinkhorn-Knopp finds an additive $\eps$-approximation in time
+$O(\frac{n^2}{\eps^2}\polylog n)$ due first to Altschuler~\etal~\cite{AWR17}
+and improved by Dvurechensky~\etal~\cite{DGK18}, under the very general setting
+of \emph{nonnegative cost matrices}.
+For costs $\norm{\cdot}_2^2$ (RMS costs) Altschuler~\etal~\cite{ABRW18} are
+able to modify the additive approximation to run in
+$O(\frac{n}{\eps}(\log n/\eps)^d)$ time, for points in dimension $d$.
+
+In terms of geometric specialty algorithms, Agarwal~\etal~\cite{AFPVX17}
+give an expected $O(\log^2(1/\eps))$ approximation running in $O(n^{1+\eps})$
+expected time, an $(1+\eps)$-approximation algorithm running in
+$O(n^{3/2}\polylog(n, U))$ time, and an exact $O(n^2\polylog n)$ time algorithm.
+Whether a near-linear time algorithm exists for $(1+\eps)$-approximating the
+transportation problem with geometric costs is still open.
 
 \subsection{Contributions}
 
-In this paper, we present two algorithms for geometric partial matching
-that are based on fitting nearest-neighbor (NN) and geometric closest pair
-(BCP) oracles into primal-dual algorithms for non-geometric bipartite matching
-and minimum-cost flow.
-This pattern is not new, see for example
-(\dots)\note{TODO cite}.
-Unlike these previous works, we focus on obtaining running time dependencies on
-$k$ or $r$ instead of $n$, that is, faster for inputs with small $r$ or $k$.
-We begin in Section~\ref{section:prelim} by introducing notation for matching
-and minimum-cost flow.
+We present two algorithms for geometric partial matching that are based on
+fitting nearest-neighbor (NN) and geometric closest pair (BCP) oracles into
+primal-dual algorithms for non-geometric bipartite matching and minimum-cost flow.
+This pattern is not new, see for example \cite{Vaidya89,AV95,SA12,AFPVX17},
+but allows us to push the analysis further elsewhere.
 
 % O((n + k^2)\polylog n)
 
 First in Section~\ref{section:hung}, we show that the Hungarian
 algorithm~\cite{Kuhn55} combined with a BCP oracle solves geometric partial
 matching exactly in time $O((n + k^2)\polylog n)$.
-Mainly, we show that we can separate the $O(n\polylog n)$ preprocessing time
-for building the BCP data structure from the augmenting paths' search time,
-and update duals in a lazy fashion such that the number of dual updates per
-augmenting path is $O(k)$.
+Our main technique is something we call a \emph{rewinding mechanism} to 
+quickly initialize the (size $O(n)$) data structures in each iteration.
+Roughly, the initial data structures for two consecutive iterations differ by
+only one point, so we can generate the new initialization by ``undoing'' the
+sequence of insertions/deletions from the last iteration and performing one
+additional update operation.
 
 \begin{theorem}
 \label{theorem:hung}
-Let $A$ and $B$ be two point sets in the plane with $|A| = r$ and $|B| = n$ satisfying $r \le n$, and let $k$ be a
-parameter.  A minimum-cost geometric partial matching of size $k$
-can be computed between $A$ and $B$ in $O((n + k^2)\polylog n)$ time.
+A minimum-cost geometric partial matching of size $k$ can be computed between
+$A$ and $B$ in $O((n + k^2)\polylog n)$ time.
 \end{theorem}
-
-\note{State the settings separately so no need to repeat in the theorem statement.}
 
 % O((n + k\sqrt{k})\polylog n\log(n/\eps))
 
 Next in Section~\ref{section:goldberg}, we apply a similar technique to the
-unit-capacity min-cost circulation algorithm of Goldberg, Hed, Kaplan, and
+unit-capacity min-cost flow algorithm of Goldberg, Hed, Kaplan, and
 Tarjan~\cite{GHKT17}.
-The resulting algorithm finds a $(1 + \eps)$-approximation to the optimal
+The resulting algorithm finds a $(1+\eps)$-approximation to the optimal
 geometric partial matching in $O((n + k\sqrt{k})\polylog n \log(n/\eps))$ time.
+The main issue for this algorithm is what we call \emph{null vertices}, which
+do not contribute to an augmentation, but for which the algorithm may waste
+time examining.
+Instead, we run the unit-capacity min-cost flow algorithm on a
+\emph{shortcut network} which has paths circumventing all null vertices.
+The shortcut graph itself may have $O(n^2)$ arcs, but we can query its minimum
+arcs efficiently using a BCP oracle without explicit construction.
+Once we have done this, we are able to charge the execution time of the
+iteration to the size of the \emph{flow support}, the set of arcs with positive
+flow, which turns out to be size $O(k)$.
 
 \begin{theorem}
 \label{theorem:gmcm}
-Let $A$ and $B$ be two point sets in the plane with $|A| = r$ and $|B| = n$
-satisfying $r \le n$, and let $k$ be a parameter.
 A $(1+\eps)$ geometric partial matching of size $k$ can be computed between
-$A$ and $B$ in $O((n + k\sqrt{k})\polylog n \log(1/\eps))$ time. % rewrite $\log(n/\eps)$ into $\log(1/\eps)$ so it compares easily to Sharathkumar and Agrawal
+$A$ and $B$ in $O((n + k\sqrt{k})\log(1/\eps)\polylog n)$ time.
 \end{theorem}
 
 % add the ~O(rn^{3/2}) version
 
-Our third algorithm solves the transportation problem in the unbalanced setting.
-The transportation problem is a weighted generalization of the matching problem.
-Let $A$ and $B$ be point sets in the plane.
-%with $r \coloneqq \abs{A}$ and $n \coloneqq \abs{B}$.
-Let $\tsupply:A \cup B \to \ints$ be a \EMPH{supply-demand function} with
-positive value on points of $A$, negative value on points of $B$, satisfying
-$\sum_{a \in A} \tsupply(a) = - \sum_{b \in B} \tsupply(b)$.
-Define $U \coloneqq \max_{p \in A \cup B} \abs{\tsupply(p)}$.
-A \EMPH{transportation map} is a function
-$\tau: A \times B \to \reals_{\geq 0}$.
-A transportation map $\tau$ is \EMPH{feasible} if
-$\sum_{b \in B} \tau(a, b) = \tsupply(a)$ for all $a \in A$, and
-$\sum_{a \in A} \tau(a, b) = -\tsupply(b)$ for all $b \in B$.
-In other words, the value $\tau(a, b)$ describes how much supply at $a$ should
-be sent to meet demands at $b$, and we require that all supplies are sent
-and all demands are met.
-We define the \EMPH{cost} of $\tau$ to be
-\[
-	\EMPH{$\cost(\tau)$} \coloneqq \sum_{(a, b) \in A \times B} \norm{a-b}_p^q \cdot \tau(a, b).
-\]
-Given $A$, $B$, and $\tsupply$, the \EMPH{transportation problem} asks to find
-a feasible transportation map of minimum cost.
-We focus on the case when the point sets are \EMPH{unbalanced}; that is,
-the given point sets have different sizes $r$ and $n$; without loss of generality assuming $r \le n$.
-% Each point of $A$ is weighted with an integer \emph{supply} and each point of
-% $B$ is weighted with integer \emph{demand} such that the sum of supply and
-% demand are equal.
-% The goal of the transportation problem is to find a minimum-cost mapping of
-% all supplies to demands, where the cost of moving a unit of supply at $a \in A$
-% to satisfy a unit of demand at $b \in B$ is $\|a - b\|$.
-For this, we use the strongly polynomial uncapacitated min-cost flow algorithm
-by Orlin~\cite{O93}.
-The result is an $O(n^{3/2} r \polylog n)$ time algorithm for unbalanced
-transportation.
-This improves over the $O(n^2 \polylog n)$ time algorithm of
+Our third algorithm solves the transportation problem in the unbalanced setting
+using the strongly polynomial uncapacitated min-cost flow algorithm by Orlin~\cite{O93},
+adapated for geometric costs as in Agarwal~\etal~\cite{AFPVX17}.
+The result is an $O(r\sqrt{n}(r+\sqrt{n})\polylog n)$ time exact algorithm
+for unbalanced transportation.
+This improves over the $O(n^2 \polylog n)$ time exact algorithm in
 Agarwal~\etal~\cite{AFPVX17} when $r = o(\sqrt{n})$.
+Unlike matching, the flow support may have $\omega(n)$ size even if $r = O(1)$,
+so it seems like we may be unable to charge to flow support as before.
+However, we show that most of these support arcs are degree one and partition
+into \emph{stars} centered around vertices of $A$, and the remainder is size
+$O(r)$.
+Unfortunately, we are not able to handle these stars as easily in our data
+structures, and each iteration is dominated by the time spent maintaining
+data structures representing stars.
 
 \begin{theorem}
 \label{theorem:orlin}
@@ -323,22 +376,9 @@ An optimal transportation map can be computed in
 $O(rn^{3/2}\polylog n)$ time.
 \end{theorem}
 
-%TODO STILL IN PROGRESS, WE DON'T HAVE A SOLUTION YET. REMOVE IF FAILS.
-
-%Finally, we show that an algorithm by Orlin~\cite{} for uncapacitated min-cost
-%flow can be modified to give an $O(nr\polylog n)$ time algorithm for the
-%unbalanced transportation problem.
-%Unlike matching, vertices may be ``matched'' (transporting) to more than one
-%other vertex.
-%As a result, it seems possible that the search procedure reaches vertices which
-%do not contribute to a new augmenting path or towards finding unreached $B$
-%vertices, forcing the search to backtrack.
-%Avoiding the backtracking is the main challenge for this algorithm.
-%% how?
-
-By nature of the BCP/NN oracles we use, these results generalize to when
-$\norm{a-b}$ is any $L_p$ distance, and if we use $p'$-th power costs
-$c(a, b) = \norm{a-b}^{p'}$ for any $1 \le p' < \infty$.
+%By nature of the BCP/NN oracles we use, these results generalize to when
+%$\norm{a-b}$ is any $L_p$ distance, and if we use $p'$-th power costs
+%$c(a, b) = \norm{a-b}^{p'}$ for any $1 \le p' < \infty$.
 
 
 \section{Minimum-Cost Partial Matchings using Hungarian Algorithm}
@@ -606,7 +646,7 @@ In this section we assume all networks are of unit-capacity.
 \paragraph{Pseudoflows.}
 Given a network $N \coloneqq (V,\vec{E},c,u,\fsupply)$,
 a \EMPH{pseudoflow} (or \EMPH{flow} to be short) $f\colon \vec{E} \to \ints$%
-\footnote{In general the pseudoflows are allowed to take real-values.  Here under the unit-capacity assumption any optimal flows are integer-valued. \note{cite integrality theorem?}}
+\footnote{In general the pseudoflows are allowed to take real-values. Here under the unit-capacity assumption any optimal flows are integer-valued.}
 on $N$ is an antisymmetric function on the arcs of $N$ satisfying $f(\arc vw) \leq u(\arc vw)$ for every arc $\arc vw$.%
 %
 We sometimes abuse the terminology by allowing pseudoflow to be defined on a directed graph, in which case we are actually referring to the pseudoflow on the corresponding network by extending the flow values antisymmetrically to the arcs.
@@ -674,9 +714,9 @@ Assignments to the primal variables satisfying the capacity constraints extend n
 %\note{which primal problem? State the corresponding linear problems explicitly}.
 Let $G_f = (V,\vec{E}_f)$ be the residual graph under pseudoflow $f$.
 The \EMPH{reduced cost} of an arc $\arc vw$ in $\vec{E}_f$ with respect to $\pi$ is defined as
-\(
+\[
 \EMPH{$c_\pi(\arc vw)$} \coloneqq c(\arc vw) - \pi(v) + \pi(w).
-\)
+\]
 Notice that the cost function $c_\pi$ is also antisymmetric.
 
 The \EMPH{dual feasibility constraint} says that $c_\pi(\arc vw) \geq 0$ holds for every directed edge $(v,w)$ in $E$; potentials $\pi$ which satisfy this constraint are said to be \EMPH{feasible}.
@@ -1840,12 +1880,12 @@ therefore $f^*$ must have support only on the tree edges.
 
 Since the arcs corresponding to edges of $\EuScript{T}$ have no cycles, we can
 solve the maximum flow in linear time using the following greedy algorithm.
-Let $\par(v)$ be the parent of vertex $v$ in $\EuScript{T}$.
+Let $\parent(v)$ be the parent of vertex $v$ in $\EuScript{T}$.
 We begin with $f^* = 0$ and process $\EuScript{T}$ from its leaves upwards.
 For a supply leaf $v$, we satisfy its supply by choosing
-$f^*(\arc{v}{\par(v)}) \gets \fsupply(v)$.
+$f^*(\arc{v}{\parent(v)}) \gets \fsupply(v)$.
 Otherwise if leaf $v$ is a demand vertex, we choose
-$f^*(\arc{\par(v)}{v}) \gets -\fsupply(v)$.
+$f^*(\arc{\parent(v)}{v}) \gets -\fsupply(v)$.
 Once we've solved the supplies/demands for each leaf, then we can \EMPH{trim}
 the leaves, removing them from $\EuScript{T}$ and setting the supply/demand
 of each parent-of-a-leaf to its current imbalance.
@@ -1888,16 +1928,16 @@ This extension to $\pi^*$ preserves feasibility.
 The edges corresponding to arcs of $T$ do not suffice for $\EuScript{T}$, since
 some SPT arcs may be inadmissible.
 Let $d_r(v)$ be the shortest path distance of $v \in A \cup B \cup \{s\}$ from
-$r$, and consider potentials $\pi^# = \pi^* - d_r$.
+$r$, and consider potentials $\pi^\# = \pi^* - d_r$.
 
 \begin{lemma}[Orlin~\cite{O93} Lemma 3]
 \label{lemma:orlin_spt_dist}
 Let $f$ be a flow satisfying the optimality conditions with respect to $\pi^*$.
-Then, (i) $f$ satisfies the optimality conditions with respect to $\pi^#$, and
-(ii) all SPT arcs are admissible under $\pi^#$.
+Then, (i) $f$ satisfies the optimality conditions with respect to $\pi^\#$, and
+(ii) all SPT arcs are admissible under $\pi^\#$.
 \end{lemma}
 
-We can use this lemma to argue that $\pi^#$ is still optimal.
+We can use this lemma to argue that $\pi^\#$ is still optimal.
 Recall that $f$ has values defined only on the non-contracted residual arcs;
 we can apply the first part of Lemma~\ref{lemma:orlin_spt_dist} on these arcs.
 For arcs within contracted components, we use a different argument.
@@ -1906,12 +1946,12 @@ which are admissible by invariant.
 Thus, all $v \in \hat{v}$ are equidistant from $r$, and they will have the same
 value $d_r(v)$.
 It follows that the reduced costs of arcs with both endpoints in $\hat{v}$
-do not change when replacing $\pi^*$ with $\pi^#$, so arcs contained in
+do not change when replacing $\pi^*$ with $\pi^\#$, so arcs contained in
 $\hat{v}$ that met the optimality conditions for $\pi^*$ still meet them for
-$\pi^#$.
+$\pi^\#$.
 
 From the second part of Lemma~\ref{lemma:orlin_spt_dist}, the SPT $T$ is a
-spanning tree of admissible arcs under $\pi^#$.
+spanning tree of admissible arcs under $\pi^\#$.
 We set $\EuScript{T}$ to be the set of undirected edges corresponding to $T$.
 
 \paragraph{Computing the SPT.}
