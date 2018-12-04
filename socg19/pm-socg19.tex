@@ -194,6 +194,7 @@ This is the first sub-quadratic time exact algorithm when $r = o(\sqrt{n})$, whi
 \end{abstract}
 
 
+% ----------------------------------------------------------------------------
 \section{Introduction}
 
 Given two point sets $A, B$ in the plane, we consider the problem of finding
@@ -378,6 +379,7 @@ $O((r^2\sqrt{n} + rn^{3/2})\polylog n)$ time.
 %$c(a, b) = \norm{a-b}^{p'}$ for any $1 \le p' < \infty$.
 
 
+% ----------------------------------------------------------------------------
 \section{Minimum-Cost Partial Matchings using Hungarian Algorithm}
 \label{section:hung}
 
@@ -491,7 +493,7 @@ During each relaxation, we perform at most one query and add a vertex to $S$ inc
 % So ignoring the time to build $P, Q$ at the beginning of the search and the time needed for updating $\pi$,
 %Thus the running time for the search is $O(k\polylog n)$.
 
-\paragraph{Initial BCP sets by rewinding.}
+\paragraph{Rewinding mechanism.}
 % In the beginning of each iteration,
 % $S$ is initialized to the set of unmatched vertices in $A$,
 % and therefore $Q = B \setminus S$ has size $n$.
@@ -550,7 +552,7 @@ There are $O(k)$ stored values updated per Hungarian search during the rewinding
 The time spent on potential updates per Hungarian search is therefore $O(k)$.
 \end{toappendix}
 
-We adapt a trick from Vaidya~\cite{Vaidya89} to batch potential updates under the rewinding mechanisim,
+We adapt a trick from Vaidya~\cite{Vaidya89} to batch potential updates under the rewinding mechanism,
 so that the time spent on potential updates per Hungarian search is $O(k)$.  See Appendix~\ref{SSA:potential-update} for details.
 %
 Putting everything together we obtain the following:
@@ -567,6 +569,7 @@ Our implementation of the Hungarian algorithm therefore runs in
 $O((n + k^2)\polylog n)$ time.  This proves Theorem~\ref{theorem:hung}.
 
 
+% ----------------------------------------------------------------------------
 \section{Approximating Min-Cost Partial Matching through Cost-Scaling}
 \label{section:goldberg}
 
@@ -579,8 +582,8 @@ The goal of this section and the next is to prove Theorem~\ref{theorem:gmcm}; th
 % A $(1+\eps)$ geometric partial matching of size $k$ can be computed between
 % $A$ and $B$ in $O((n + k\sqrt{k})\polylog n \log(n/\eps))$ time.
 % \end{theorem}
-
-\note{Summarize our new ideas that lead to the improvement.}
+%
+The improvements come from \note{TO BE FINISHED}
 
 After introducing the necessary terminologies in Section~\ref{SS:prelim-flow}, we reduce the partial matching problem to computing an approximate minimum-cost flow on a unit-capacity reduction network in Section~\ref{SS:reduction}.
 In Section~\ref{SS:cost-scaling} we prove a high-level overview of the cost-scaling algorithm, executed on the reduction network.
@@ -590,13 +593,13 @@ We postpone the fast implementation using dynamic data structures to Section~\re
 \subsection{Preliminaries on Network Flows}
 \label{SS:prelim-flow}
 
-Due to the space restriction, we omit the definitions of standard network flow theory terminologies from the main text.  For a reference see Appendix~\ref{SSA:prelim-flow}, or any texts on network flows \cite{}.
+Due to the space restriction, we omit the definitions of standard network flow theory terminologies from the main text.  For a reference see Appendix~\ref{SSA:prelim-flow}, or any texts on network flows \cite{xxx} \note{cite}.
 %
 We emphasize that a directed graph $G=(V,E)$ is augmented by edge costs $c$ and capacities $u$, and a supply-demand function $\fsupply$ defined on the vertices.  A \EMPH{network $N = (V, \vec{E})$} turns each edge in $E$ into a pair of \EMPH{arcs} $\arc vw$ and $\arc wv$ in arc set $\vec{E}$.
 With the unit-capacity assumption on the network, all the pseudoflows in this section take integer values.
-The \EMPH{support} of a pseudoflow $f$ in $N$, denoted as \EMPH{$\supp(f)$}, is the set of arcs with positive flows:
+The \EMPH{support} of a pseudoflow $f$ in $N$, is the set of arcs with positive flows:
 \(
-\supp(f) \coloneqq \Set{\arc vw \in \vec{E} \mid f(\arc vw) > 0}.
+\EMPH{$\supp(f)$} \coloneqq \set{\arc vw \in \vec{E} \mid f(\arc vw) > 0}.
 \)
 If all vertices are \emph{balanced}, the pseudoflow is a \EMPH{circulation}.
 The \EMPH{cost} of a pseudoflow
@@ -636,7 +639,7 @@ a \EMPH{pseudoflow} (or \EMPH{flow} to be short) $f\colon \vec{E} \to \ints$%
 \footnote{In general the pseudoflows are allowed to take real-values. Here under the unit-capacity assumption any optimal flows are integer-valued.}
 on $N$ is an antisymmetric function on the arcs of $N$ satisfying $f(\arc vw) \leq u(\arc vw)$ for every arc $\arc vw$.%
 %
-We sometimes abuse the terminology by allowing pseudoflow to be defined on a directed graph, in which case we are actually referring to the pseudoflow on the corresponding network by extending the flow values antisymmetrically to the arcs.
+We sometimes abuse the terminology by allowing pseudoflow to be defined on a directed graph, in which case we are actually referring to the pseudoflow on the corresponding network by extending the flow values anti-symmetrically to the arcs.
 %
 We say that $f$ \EMPH{saturates} an arc $\arc vw$ if $f(\arc vw) = u(\arc vw)$; an arc $\arc vw$ is \EMPH{residual} if $f(\arc vw) < u(\arc vw)$.
 The \EMPH{support} of $f$ in $N$, denoted as \EMPH{$\supp(f)$}, is the set of arcs with positive flows:
@@ -720,14 +723,18 @@ $c_\pi(\arc vw) \geq -\eps$ for every residual arc $\arc vw$ in $\vec{E}_f$.  Ps
 Given a pseudoflow $f$ and potentials $\pi$, a residual arc $\arc vw$ in $\vec{E}_f$ is
 \EMPH{admissible} if $c_\pi(\arc vw) \leq 0$.
 We say that a pseudoflow $g$ in $G_f$ is \EMPH{admissible} if all support arcs of $g$ on $G_f$ are admissible; in other words, $g(\arc vw) > 0$ holds only on admissible arcs $\arc vw$.
+%
+Throughout the rest of the paper we make use of the property that perform an admissible flow augmentation deos not change the $\eps$-optimality; see Lemma~\ref{lemma:eps_opt_preserve} for a proof.
 
-%Now, we can concretely state how admissible augmentations lead to a correct algorithm for $\eps > 0$.
+\begin{toappendix}
+\paragraph{Admissible flow augmentation.}
+
 \begin{lemmarep}
 \label{lemma:eps_opt_preserve}
 Let $f$ be an $\eps$-optimal pseudoflow in $G$ and let $f'$ be an
 admissible flow in $G_f$.
 Then $f + f'$ is also $\eps$-optimal.
-\note{Lemma 5.3 in~\cite{GT90}? Also, where is this used?}
+%\note{Lemma 5.3 in~\cite{GT90}? Also, where is this used?}
 \end{lemmarep}
 
 \begin{proof}
@@ -748,6 +755,7 @@ By antisymmetry of reduced costs, this implies $c_\pi(\arc vw) \geq 0 \geq -\eps
 Therefore, all arcs with $u_{f+f'}(v, w) > 0$ respect the $\eps$-optimality condition,
 and thus $f+f'$ is $\eps$-optimal.
 \end{proof}
+\end{toappendix}
 
 %In Section~\ref{section:goldberg}, we use $\eps$-optimality to prove the approximation quality of an $\eps$-optimal circulation.
 
@@ -762,25 +770,18 @@ and thus $f+f'$ is $\eps$-optimal.
 \label{SS:reduction}
 
 The goal of the subsection is to reduce the minimum-cost partial matching problem to the unit-capacity minimum-cost flow problem with a polynomial bound on diameter of the underlying point set.
-To this end we first provide an upper bound on the size of support of an integral pseudoflow on the standard reduction network between the two problems.
-This upper bound in turn provides an additive approximation on the cost of an $\eps$-optimal circulation.
-Next we employ a technique by Sharathkumar and Agarwal~\cite{SA12} to transform an additive $\eps$-approximate solution into a multiplicative $(1+\eps)$-approximation for the geometric partial matching problem.
-The reduction does not work out of the box, as Sharathkumar and Agarwal were tackling a similar but different problem on geometric transportations.
-
-\begin{lemma}
-\label{lemma:cost_scale_approx}
-Computing $(1+\eps)$-approximate geometric partial matching can be reduced to the following problem in $O(n \polylog n)$ time:
-Given a reduction network $N$ over a point set with diameter at most $K \cdot kn^3$ for some constant $K$, compute a $(K \cdot \eps/6k)$-optimal circulation on~$N$.
-\end{lemma}
+% To this end we first provide an upper bound on the size of support of an integral pseudoflow on the standard reduction network between the two problems.
+% This upper bound in turn provides an additive approximation on the cost of an $\eps$-optimal circulation.
+% Applying a technique by Sharathkumar and Agarwal~\cite{SA12} transforms the additive $\eps$-approximation into a multiplicative $(1+\eps)$-approximation for the geometric partial matching problem.
 
 
 \paragraph{Additive approximation.}
-Given a bipartite graph $G = (A,B,E_0)$ for the geometric partial matching problem with cost function $c$, we construct the \EMPH{reduction network $N_H$} as follows:
-Direct the edges in $E_0$ from $A$ to $B$, and assign each directed edge with capacity $1$.  Now add a dummy vertex $s$ with directed edges to all vertices in $A$, and add a dummy vertex $t$ with directed edges from all vertices in $B$; each edge added this way has cost $0$ and capacity $1$.
-Denote the new graph with vertex set $V = A \cup B \cup \set{s,t}$ and edge set $E$ as the \EMPH{reduction graph $H$}.
-Assign vertex $s$ with supply $k$ and vertex $t$ with demand $k$; the rest of the vertices in $H$ have zero supply-demand
-We call the network naturally corresponds to $H$ as the \EMPH{reduction network}, denoted by \EMPH{$N_H$}.
-
+Given a bipartite graph $G = (A,B,E_0)$ for the geometric partial matching problem with cost function $c$, we construct the \EMPH{reduction graph $H$} as follows:
+Direct the edges in $E_0$ from $A$ to $B$, and assign each directed edge with capacity $1$.  Now add a dummy vertex $s$ with directed edges to all vertices in $A$, and add a dummy vertex $t$ with directed edges from all vertices in $B$; each edge added has cost $0$ and capacity $1$.
+%The \EMPH{reduction graph $H$} consists of vertex set $V = A \cup B \cup \set{s,t}$ and edge set $E$.
+Assign vertex $s$ with supply $k$ and vertex $t$ with demand $k$; the rest of the vertices in $H$ have zero supply-demand.
+We call the network naturally corresponds to $H$ as the \EMPH{reduction network $N_H$}.
+%
 It is straightforward to show that any integer circulation $f$ on $N_H$ uses exactly
 $k$ of the $A$-to-$B$ arcs, which correspond to the edges of a size-$k$
 matching \EMPH{$M_f$}.
@@ -837,7 +838,10 @@ Rearranging the terms we have that $\cost(f) \leq \cost(f^*) + 6k\eps$.
 
 
 \paragraph{Multiplicative approximation.}
-Now we employ a technique from Sharathkumar and Agarwal~\cite{SA12} to convert the additive approximation into a multiplicative one, thus proving Lemma~\ref{lemma:cost_scale_approx}.  See Appendix~\ref{SSA:multiplicative-approx} for details.
+Now we employ a technique from Sharathkumar and Agarwal~\cite{SA12} to convert the additive approximation into a multiplicative one.
+%thus proving Lemma~\ref{lemma:cost_scale_approx}.
+The reduction does not work out of the box, as they were tackling a similar but different problem on geometric transportations.
+See Appendix~\ref{SSA:multiplicative-approx} for details.
 
 % Sharathkumar and Agarwal~{\cite[\S3.5]{SA12}} provide a construction that partitions the input point sets $A$ and $B$ for the MPM problem into clusters, such that the diameter of each cluster is upper bounded by the cost of the optimal partial matching multiply by a polynomial factor.
 % %
@@ -928,6 +932,12 @@ To solve this issue we perform a binary search on the edges $e_1, \ldots, e_{r+n
 % \end{proof}
 \end{toappendix}
 
+\begin{lemma}
+\label{lemma:cost_scale_approx}
+Computing $(1+\eps)$-approximate geometric partial matching reduces to the following problem in $O(n \polylog n)$ time:
+Given reduction network $N$ over a point set with diameter at most $K \cdot kn^3$ \note{really? $K \cdot kn^{q+2}?$} for some constant $K$, compute a $(K \cdot \eps/6k)$-optimal circulation on~$N$.
+\end{lemma}
+
 
 \subsection{High-Level Description of Cost-Scaling Algorithm}
 \label{SS:cost-scaling}
@@ -1017,7 +1027,7 @@ Using the reduction in Lemma~\ref{lemma:cost_scale_approx}, we have the diameter
 % \end{minipage}
 % \end{figure*}
 
-Recall that $H$ is the \emph{reduction graph} and $N_H$ is the \emph{reduction network}, both constructed in Section~\ref{SS:reduction}.
+%Recall that $H$ is the \emph{reduction graph} and $N_H$ is the \emph{reduction network}, both constructed in Section~\ref{SS:reduction}.
 The vertex set of $H$ consists of two point sets $A$ and $B$, as well as two dummy vertices $s$ and $t$.  The directed edges in $H$ are pointed from $s$ to $A$, from $A$ to $B$, and from $B$ to $t$.
 We call those arcs in $N_H$ whose direction is consistent with their corresponding directed edges as \EMPH{forward arcs}, and those arcs that points in the opposite direction as \EMPH{backward arcs}.
 
@@ -1033,16 +1043,18 @@ This ensures that all such backward arcs are no longer residual, and therefore t
 Because the arcs are of unit-capacity in $N_H$, each arc desaturation creates one unit of excess.
 By Lemma~\ref{lemma:support_size} the number of backward arcs is at most $3k$.
 Thus the total amount of excess created is also $O(k)$.
-
-In total, potential updates and backward arc desaturations, thus the whole procedure \textsc{Scale-Init}, take $O(n)$ time.
+%
+In total,
+%potential updates and backward arc desaturations, thus
+the whole procedure \textsc{Scale-Init} takes $O(n)$ time.
 
 
 \paragraph{Refinement.}
 
 The procedure \textsc{Refine} is implemented using a primal-dual augmentation algorithm,
-which sends flows on admissible arcs to reduce the total excess, like the Hungarian algorithm.
-Unlike the Hungarian algorithm,
-it uses \emph{blocking flows} instead of augmenting paths.
+which sends flows on admissible arcs to reduce the total excess.
+%like the Hungarian algorithm.
+Unlike the Hungarian algorithm, it uses \emph{blocking flows} instead of augmenting paths.
 %
 %An \EMPH{augmenting path} is a path in the residual network from an excess vertex to a deficit vertex.
 We call a pseudoflow $f$ on residual network $N_g$ a \EMPH{blocking flow} if $f$ saturates at least one residual arc in every augmenting path in $N_g$.
@@ -1075,12 +1087,13 @@ Each iteration of \textsc{Refine} finds an admissible blocking flow that is then
 \item
 A \EMPH{Hungarian search}, which increases the dual variables $\pi$ of vertices that are reachable from an excess vertex by at least $\eps$, in a Dijkstra-like manner, until there is an excess-deficit path of admissible edges.
 \item
-A \EMPH{depth-first search} through the set of admissible edges to construct an admissible blocking flow.
+A \EMPH{depth-first search} through the set of admissible arcs to construct a blocking flow.
 It suffices to repeatedly extract admissible augmenting paths until no more admissible excess-deficit paths remain.
-By definition, the union of such paths is a blocking flow.
+%By definition, the union of such paths is a blocking flow.
 %\note{Move to where the blocking flow is introduced?}
 \end{enumerate}
-The algorithm continues until the total excess becomes zero and the $\eps$-optimal flow is now a circulation.
+The algorithm continues until the total excess becomes zero.
+%and the $\eps$-optimal flow is now a circulation.
 
 First we analyze the number of iterations executed by \textsc{Refine}.
 %\note{and maybe \S5 of Goldberg-Tarjan?}
@@ -1165,12 +1178,15 @@ This implies an $O(\sqrt{k})$ bound on the total excess after the first phase, w
 \end{proof}
 
 
+% ----------------------------------------------------------------------------
 \section{Fast Implementation of Refinement}
 \label{S:implementation}
 
 The goal of the section is to show that after $O(n \polylog n)$ time preprocessing, each Hungarian search and depth-first search can be implemented in $O(k \polylog n)$ time.
 %
-Combined with the $O(\sqrt{k})$ bound on the number of iterations we proved in Section~\ref{SS:cost-scaling}, the procedure \textsc{Refine} can be implemented in $O((n+k\sqrt{k}) \polylog n)$ time.  Together with our analysis on scale initialization and the bound on number of cost scales, this concludes the proof to Theorem~\ref{theorem:gmcm}.
+Combined with Lemma~\ref{lemma:goldberg_refine_iterations}
+%the $O(\sqrt{k})$ bound on the number of iterations we proved in Section~\ref{SS:cost-scaling},
+the procedure \textsc{Refine} can be implemented in $O((n+k\sqrt{k}) \polylog n)$ time.  Together with our analysis on scale initialization and the bound on number of cost scales, this concludes the proof to Theorem~\ref{theorem:gmcm}.
 %\note{Well, there's the null vertex potential updates.  Hide it?}
 
 Both Hungarian search and depth-first search are implemented in a Dijkstra-like fashion, traversing through the residual graph using admissible arcs starting from the excess vertices.
@@ -1717,6 +1733,7 @@ completes the proof of Theorem~\ref{theorem:gmcm}.
 \end{toappendix}
 
 
+% ----------------------------------------------------------------------------
 \section{Unbalanced Transportation}
 
 In this section, we give an exact algorithm which solves the planar transportation
@@ -1766,8 +1783,7 @@ feasibility) to create an admissible augmenting excess-deficit path, on which
 we perform flow augmentations.
 %If supplies/demands are integral and at least one unit of flow is pushed every time, then such an algorithm terminates.
 In terms of cost, $f$ is maintained to be $0$-optimal with respect to $\pi$
-and each augmentation over admissible edges preserve such property by
-Lemma~\ref{lemma:eps_opt_preserve}.
+and each augmentation over admissible edges preserves $0$-optimality (by Lemma~\ref{lemma:eps_opt_preserve}).
 Thus, the final circulation must be optimal.
 The excess-scaling paradigm builds on top of this skeleton by specifying (i) between which
 excess and deficit vertices we send flows, and (ii) how much flow is sent by the
@@ -2361,13 +2377,13 @@ Since the query is outside the support stars, there is at most one update per re
 %
 Backward (support) arcs are kept admissible by the invariant, so we relax them immediately when they arrive at the frontier.
 
-\paragraph{Relaxing a support star.}
+\paragraph{Relaxing support stars.}
 We classify support stars into two categories: \EMPH{big stars} with
 $\abs{\Sigma_a} > \sqrt{n}$, and \EMPH{small stars} with
 $\abs{\Sigma_a} \leq \sqrt{n}$.
 Let $\EMPH{$A_\text{big}$} \subseteq A$ denote the centers of big stars and
 and $\EMPH{$A_\text{small}$} \subseteq A$ denote the centers of small stars.
-We keep the following data structures to manage support stars.
+%We keep the following data structures to manage support stars.
 \begin{itemize}
 \item For each big star $\Sigma_a$, we use a data structure
 	\EMPH{$\EuScript{D}_\text{big}(a)$} to maintain BCP between
@@ -2427,7 +2443,7 @@ a big star may eventually become small (or vice versa).
 To efficiently support this, we introduce a soft boundary in determining whether a support star is big or small.
 %
 Standard charging argument shows that the amortized update time is $O(r\sqrt{n}(r+\sqrt{n})\polylog n)$; for a complete argument see Appendix~\ref{SSA:update-support-star}.
-
+%
 \begin{toappendix}
 \subsection{Updating support stars}
 \label{SSA:update-support-star}
@@ -2461,64 +2477,59 @@ $A$ (into $P$) and the $\abs{\Sigma_a}$ points of the star (into $Q$).
 Thus, the time spent for a small-to-big update is $O((r + x)\polylog n)$,
 and there were at least $x \geq \sqrt{n}$ points added to $\Sigma_a$ since it
 was last small.
-
 \end{toappendix}
-
-Membership of support stars can only be changed by augmentations,
-so the number of star membership changes by a single augmenting path is
-bounded above by twice of its length.
+%
+%Membership of support stars can only be changed by augmentations,
+The number of star membership changes by adding a single augmenting path is
+bounded above by twice of its length.  There are $O(rn\log n)$ augmentations in total.
 %(each vertex may be removed from one star, and/or added to another star).
-Thus, each membership change can be performed in $O(\polylog n)$ time, and there are $O(rn\log n)$ many.
-% The total time spent on big-to-small updates is $O(rn\polylog n)$, and the
-% total time spent on small-to-big updates is $O(r^2\sqrt{n}\polylog n)$.
+Each membership change can be performed in $O(\polylog n)$ time.
+The total time spent on big-to-small updates is $O(rn\polylog n)$, and the
+total time spent on small-to-big updates is $O(r^2\sqrt{n}\polylog n)$.
 
 \paragraph{Preprocessing time.}
-To build the very first set of data structures, we take $O(rn\polylog n)$ time.
-There are $r\abs{\Sigma_a}$ points in each $\EuScript{D}_\text{big}(a)$,
-but the $\Sigma_a$ are disjoint, so the total points to insert is $O(rn)$.
-$\EuScript{D}_\text{small}$ also has at most $O(rn)$ points.
-Each BCP data structure can be constructed in $O(\polylog n)$ times its size,
-so the total preprocessing time is $O(rn\polylog n)$.
+It takes $O(rn\polylog n)$ time to build the very first set of data structures.
+There are $r \cdot \abs{\Sigma_a}$ points to insert for each $\EuScript{D}_\text{big}(a)$,
+%and the support stars are disjoint,
+so the number of points to insert is $O(rn)$.
+At most $O(rn)$ points have to be inserted for $\EuScript{D}_\text{small}$.
+%Each BCP data structure can be constructed in its size times $O(\polylog n)$,
+So the total preprocessing time is $O(rn\polylog n)$.
 
 \paragraph{Between searches.}
-After an augmentation, we reset the above data structures to their initial
-state plus the change from the augmentation using the rewinding mechanism.
-By reversing the sequence of insertions/deletions to each data structure over
-the course of the Hungarian search, we can recover the versions data structures
-as they were when the Hungarian search began.
-This takes time proportional to the time of the Hungarian search,
-$O(r\sqrt{n}\polylog n)$ by Lemma~\ref{lemma:orlin_hs_time}.
-The most recent augmentation may have deactivated at most one active excess and
-at most one active deficit, which we can update in the data structures in
-$O(\sqrt{n}\polylog n)$ time.
-Additionally, the augmentation may have changed the membership of some support
-stars, but we analyzed the time for membership changes earlier.
+After each augmentation, we reset the data structures to their initial
+state plus the change from augmentation using rewinding mechanism (see Section~\ref{SS:fast-hungarian-matching}).
+%By reversing the sequence of insertions/deletions to each data structure over
+%the course of the Hungarian search, we can recover the versions data structures
+%as they were when the Hungarian search began.
+This takes time proportional to the time for Hungarian search,
+which is $O(r\sqrt{n}\polylog n)$ by Lemma~\ref{lemma:orlin_hs_time}.
+The most recent augmentation may have deactivated $O(1)$ active excess and deficit vertices, which takes
+$O(\sqrt{n}\polylog n)$ time to update.
+% Additionally, the augmentation may have changed the membership for some support
+% stars, which we ahve analyzed earlier.
 Finally, we note that an augmenting path cannot reduce the support degree of
-a vertex to zero, and therefore no new dead vertices are created by
-augmentation.
+a vertex to zero, and therefore no new dead vertices are created by augmentation.
 
 \paragraph{Between excess scales.}
 When the excess scale changes, vertices that were previously inactive may
-become active, and vertices that were dead may be revived
-(however, no active vertices deactivate, and no live vertices die as the
-result of $\Delta$ decreasing).
-If we have the data structures built on the active excesses at the end of the
-previous scale, then we can add in each newly active $a \in A$ and
-charge this insertion to the (future) augmenting path or contraction which
-eventually makes the vertex inactive, or absorbs it into another component.
+become active, and vertices that were dead may be revived.
+%(however, no active vertices deactivate, and no live vertices die as the result of $\Delta$ decreasing).
+If we have the data structures built at the end of the
+previous scale, then we can add in each new active vertex $a \in A$ and
+charge the insertion to the (future) augmenting path or contraction which
+eventually causes the vertex being inactive or absorbed.
 By Theorem~\ref{theorem:orlin_old}, there are $O(n\log n)$ such newly active
-vertices.
-The time to perform data structure updates for each of them is
-$O(\sqrt{n}\polylog n)$, so the total time spent bookkeeping newly active
-vertices is $O(n^{3/2}\polylog n)$.
+vertices; each of them takes $O(\sqrt{n}\polylog n)$ to update.
+So the total time spent is $O(n^{3/2}\polylog n)$.
 
 \paragraph{Putting it together.}
-After $O(rn\polylog n)$ preprocessing, we spend $O(r\sqrt{n}\polylog n)$ time
+After $O(rn\polylog n)$ preprocessing, we spend $O(r\sqrt{n}\polylog n)$ time on
 each Hungarian search by Lemma~\ref{lemma:orlin_hs_time}.
-After each augmentation, we spend the same amount of time (plus $O(\polylog n)$
-extra) to initialize data structures for the next Hungarian search.
-We spend up to $O((rn + r^2\sqrt{n})\polylog n)$ total time making big-small
-star switching updates.
+After each augmentation, we spend the same amount of time
+%(plus $O(\polylog n)$ extra)
+to initialize data structures for the next Hungarian search.
+We spend up to $O((r^2\sqrt{n} + rn)\polylog n)$ time making the switch between big/small stars.
 We spend $O(n^{3/2}\polylog n)$ time activating and reviving vertices.
 Thus, the algorithm takes $O(rn(r/\sqrt{n} + \sqrt{n})\polylog n)$ time to
 produce optimal potentials $\pi^*$, from which we can recover $f^*$ in
