@@ -368,12 +368,8 @@ data structures representing stars.
 
 \begin{theorem}
 \label{theorem:orlin}
-Let $A$ and $B$ be two point sets in the plane with $|A| = r$ and $|B| = n$
-satisfying $r \le n$, with supplies and demands given by the function
-$\tsupply: (A \cup B) \to \ints$ such that
-$\sum_{a \in A} \tsupply(a) = \sum_{b \in B} \tsupply(b)$.
 An optimal transportation map can be computed in
-$O(rn^{3/2}\polylog n)$ time.
+$O(r\sqrt{n}(r+\sqrt{n})\polylog n)$ time.
 \end{theorem}
 
 %By nature of the BCP/NN oracles we use, these results generalize to when
