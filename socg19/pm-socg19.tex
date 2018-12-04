@@ -10,7 +10,7 @@
 %\usepackage{berasans,beramono}
 \usepackage{microtype}
 
-\RequirePackage{hyperref}
+\usepackage{hyperref}
 \hypersetup{colorlinks=true, urlcolor=Blue, citecolor=Green, linkcolor=BrickRed, breaklinks, unicode}
 
 \usepackage[dvipsnames,usenames]{xcolor}
@@ -19,9 +19,9 @@
 \usepackage{enumerate}
 
 % \usepackage[title]{appendix}
-\usepackage{apxproof}
-%\usepackage[appendix=inline]{apxproof}
-\renewcommand{\appendixsectionformat}[2]{Proofs from Section~#1}
+\usepackage[bibliography=common]{apxproof}
+%\usepackage[appendix=inline,bibliography=common]{apxproof}
+\renewcommand{\appendixsectionformat}[2]{Missing Details and Proofs from Section~#1}
 
 % \renewcommand\theenumi{\arabic{enumi}}
 % \renewcommand\labelenumi{\theenumi.}
@@ -189,7 +189,7 @@ The best algorithm in this setting, due to Sharathkumar and Agarwal [STOC 2012],
 
 We present the first set of geometric algorithms which work for any powers of $L_p$-norm matching objective:  An exact algorithm which runs in $O((n + k^2)\polylog n)$ time, and a $(1 + \eps)$-approximation which runs in $O((n + k\sqrt{k})\polylog n \cdot \log\eps^{-1})$ time.
 Both algorithms are based on primal-dual flow augmentation scheme; the main improvements are obtained by using dynamic data structures to achieve efficient flow augmentations.
-Using similar techniques, we give an exact algorithm for the planar transportation problem, which runs in $O(rn^{3/2}\polylog n)$ time.
+Using similar techniques, we give an exact algorithm for the planar transportation problem, which runs in $O((r^2\sqrt{n} + rn^{3/2})\polylog n)$ time.
 This is the first sub-quadratic time exact algorithm when $r = o(\sqrt{n})$, which improves over the state-of-art quadratic time algorithm by Agarwal~\etal\ [SOCG 2016].
 \end{abstract}
 
@@ -203,13 +203,14 @@ Let $G(A, B)$ be the undirected complete bipartite graph between
 $A$ and $B$, and let the cost of $(a, b) \in A \times B$ be
 $c(a, b) = \norm{a-b}_p^q$, for some $1 \leq p < \infty$ and $q \geq 1$.
 Define $C \coloneqq \max_{(a, b) \in A \times B} c(a, b)$.
-A \EMPH{matching} $M$ in $G(A, B)$ is a set of edges sharing no endpoints,
-and the cost of $M$ is 
+A \EMPH{matching} $M$ in $G(A, B)$ is a set of edges sharing no endpoints.
+The \EMPH{size} of $M$ is the number of edges in $M$,
+and the cost of $M$ is
 \begin{equation*}
 	\EMPH{$\cost(M)$} = \sum_{(a, b) \in A \times B} \norm{a-b}_p^q.
 \end{equation*}
 For a parameter $k \leq r$, we call the problem of finding the minimum-cost
-size-$k$ matching in $G(A, B)$ the \EMPH{geometric partial matching} problem.
+size-$k$ matching in $G(A, B)$ the \EMPH{geometric partial matching problem (MPM)}.
 We call the respective problem in general bipartite graphs (with arbitrary
 edge costs) the \EMPH{partial matching} problem.
 This has also been called the \EMPH{imperfect matching} problem.
@@ -242,7 +243,7 @@ We focus on the setting where $r < n$, i.e. the point sets are \EMPH{unbalanced}
 
 Non-geometric algorithms for partial matching can be applied to $G(A, B)$,
 which is a graph with $r+n$ vertices and $m \coloneqq rn$ edges.
-There is a wealth of literature on general min-cost bipartite matching between 
+There is a wealth of literature on general min-cost bipartite matching between
 \EMPH{balanced} vertex sets ($r = n$) finding a \EMPH{perfect matching}
 ($k = r = n$).
 Not all algorithms for perfect matching can be easily modified to solve partial
@@ -311,7 +312,7 @@ but allows us to push the analysis further elsewhere.
 First in Section~\ref{section:hung}, we show that the Hungarian
 algorithm~\cite{Kuhn55} combined with a BCP oracle solves geometric partial
 matching exactly in time $O((n + k^2)\polylog n)$.
-Our main technique is something we call a \emph{rewinding mechanism} to 
+Our main technique is something we call a \emph{rewinding mechanism} to
 quickly initialize the (size $O(n)$) data structures in each iteration.
 Roughly, the initial data structures for two consecutive iterations differ by
 only one point, so we can generate the new initialization by ``undoing'' the
@@ -369,7 +370,7 @@ data structures representing stars.
 \begin{theorem}
 \label{theorem:orlin}
 An optimal transportation map can be computed in
-$O(r\sqrt{n}(r+\sqrt{n})\polylog n)$ time.
+$O((r^2\sqrt{n} + rn^{3/2})\polylog n)$ time.
 \end{theorem}
 
 %By nature of the BCP/NN oracles we use, these results generalize to when
@@ -380,27 +381,27 @@ $O(r\sqrt{n}(r+\sqrt{n})\polylog n)$ time.
 \section{Minimum-Cost Partial Matchings using Hungarian Algorithm}
 \label{section:hung}
 
-The Hungarian algorithm~\cite{Kuhn55} is a primal-dual algorithm for min-cost
-bipartite matching in general graphs that can be adapted to solve the partial matching problem exactly if
-one terminates the algorithm after $k$ iterations (see e.g.~\cite{RT12}).
-In this section, we prove Theorem~\ref{theorem:hung} by implementing the Hungarian algorithm in $O((n + k^2)\polylog n)$ time.
+% The Hungarian algorithm~\cite{Kuhn55} is a primal-dual algorithm for min-cost
+% bipartite matching in general graphs that can be adapted to solve the partial matching problem exactly if
+% one terminates the algorithm after $k$ iterations (see e.g.~\cite{RT12}).
+In this section, we solve the geometric partial matching problem and prove Theorem~\ref{theorem:hung} by implementing the Hungarian algorithm for partial matching in $O((n + k^2)\polylog n)$ time.
 
-\subsection{Matching Terminologies}
+%\subsection{Matching Terminologies}
 
-\note{Move some to intro}
-Let $G$ be a bipartite graph between vertex sets $A$ and $B$ and edge set $E$,
-with costs $c(v, w)$ for each edge $(v, w)$ in $G$.
-A \EMPH{matching} $M \subseteq E$ is a set of edges where no two edges share an
-endpoint.
-A vertex $v$ is \EMPH{matched} by $M$ if $v$ is the endpoint of some matching edge in $M$;
-otherwise $v$ is \EMPH{unmatched}.
-%We use $V(M)$ to denote the vertices matched by $M$.
-The \EMPH{size} of a matching is the number of edges in the set, and the
-\EMPH{cost} of a matching is the sum of costs of its edges.
-For a parameter $k$, the \EMPH{minimum-cost partial matching problem (MPM)}
-asks to find a size-$k$ matching of minimum cost.
-In the geometric partial matching setting, we have $E = A \times B$
-and $c(a, b) = \norm{a-b}_p^q$ for every edge $(a, b)$ in $G$.
+% \note{Move some to intro}
+% Let $G$ be a bipartite graph between vertex sets $A$ and $B$ and edge set $E$,
+% with costs $c(v, w)$ for each edge $(v, w)$ in $G$.
+% A \EMPH{matching} $M \subseteq E$ is a set of edges where no two edges share an
+% endpoint.
+% A vertex $v$ is \EMPH{matched} by $M$ if $v$ is the endpoint of some matching edge in $M$;
+% otherwise $v$ is \EMPH{unmatched}.
+% %We use $V(M)$ to denote the vertices matched by $M$.
+% The \EMPH{size} of a matching is the number of edges in the set, and the
+% \EMPH{cost} of a matching is the sum of costs of its edges.
+% For a parameter $k$, the \EMPH{minimum-cost partial matching problem (MPM)}
+% asks to find a size-$k$ matching of minimum cost.
+% In the geometric partial matching setting, we have $E = A \times B$
+% and $c(a, b) = \norm{a-b}_p^q$ for every edge $(a, b)$ in $G$.
 
 The linear program dual to the standard linear program for MPM has dual variables for
 each vertex, called \EMPH{potentials $\pi$}.
@@ -409,13 +410,12 @@ $\EMPH{$c_\pi(v, w)$} \coloneqq c(v, w) - \pi(v) + \pi(w)$.
 Potentials $\pi$ are \EMPH{feasible} if the reduced costs are nonnegative for all edges in $G$.
 We say that an edge $(v, w)$ is \EMPH{admissible} under potentials $\pi$ if $c_\pi(v, w) = 0$.
 
-Consider a matching $M$ of size less than $r$.
-An \EMPH{augmenting path}
+A vertex $v$ is \EMPH{matched} by $M$ if $v$ is the endpoint of some matching edge in $M$;
+otherwise $v$ is \EMPH{unmatched}.
+Given a matching $M$, an \EMPH{augmenting path}
 $\Pi = (a_1, b_1, \ldots, a_\ell, b_\ell)$ is an odd-length path with unmatched
-endpoints ($a_1$ and $b_\ell$) and all other points matched.
-The edges of $\Pi$ alternate between edges outside and inside of matching $M$.
-The symmetric difference $M \oplus \Pi$ creates a new matching of size $\abs{M}+1$.
-We say that $M \oplus \Pi$ is the result of \EMPH{augmenting} $M$ by $\Pi$.
+endpoints ($a_1$ and $b_\ell$); $\Pi$ alternates between edges outside and inside of matching $M$.
+The symmetric difference $M \oplus \Pi$ creates a new matching of size $\abs{M}+1$, called the \EMPH{augmentation} of $M$ by $\Pi$.
 
 \subsection{The Hungarian Algorithm}
 
@@ -445,7 +445,7 @@ In each iteration, the Hungarian search first \EMPH{relaxes} the
 minimum-reduced-cost edge $(a, b)$ in the frontier, raising
 $\pi(a)$ by $c_\pi(a, b)$ for all $a \in S$ to make $(a, b)$
 admissible, and adding $b$ into $S$.
-It is easy to verify that this potential change preserves feasibility.
+%It is easy to verify that this potential change preserves feasibility.
 %
 % \note{Compress details...}
 % As $b \in B$ is added into $S$, we can store a backpointer to $a$, which can be
@@ -462,12 +462,6 @@ The search finishes when $b$ is unmatched, and an admissible augmenting path now
 %Each augmenting path has length $O(k)$, as every other edge is a matching edge and $|M| \leq k$. \note{not needed here?}
 %Additionally, there are $k$ augmentations throughout the Hungarian algorithm.
 %so the total time spent on updating the matching (during augmentations) is $O(k^2)$.
-The remainder of this section describes an implementation of Hungarian search
-that runs in $O(k\polylog n)$ time after an $O(n\polylog n)$ time
-preprocessing (see Lemma~\ref{L:fast-hungarian}).
-Our implementation of the Hungarian algorithm therefore runs in
-$O((n + k^2)\polylog n)$ time, which proves Theorem~\ref{theorem:hung}.
-
 
 \subsection{Fast implementation of Hungarian search}
 \label{SS:fast-hungarian-matching}
@@ -479,62 +473,50 @@ $O((n + k^2)\polylog n)$ time, which proves Theorem~\ref{theorem:hung}.
 % preprocessing.
 
 %In general graphs,
-The most expensive step in augmentation is to find the minimum-reduced-cost
-frontier edge that needs to be relaxed --- the search must ``look at every edge''.
+%The most expensive step in augmentation is to find the minimum-reduced-cost frontier edge that needs to be relaxed --- the search must ``look at every edge''.
 %e.g.\ by pushing them into a priority queue even if they are not relaxed.
-In the geometric setting, we find the min-cost edge using a dynamic
+In the geometric setting, we find the min-reduced-cost frontier edge using a dynamic
 \EMPH{bichromatic closest pair} (BCP) data structure, as observed in~\cite{}.
 Given two point sets $P$ and $Q$ in the plane, the bichromatic closest pair are two points
-$p \in P$ and $q \in Q$ minimizing the additively weighted distance
-$\|p - q\| - \omega(p) + \omega(q)$ for some real-valued vertex weights
-$\omega$.
+$a \in P$ and $b \in Q$ minimizing the additively weighted distance
+$\|a - b\| - \omega(a) + \omega(b)$ for some real-valued vertex weights $\omega$. \note{$d(a, b)$?}
 Thus, the minimum reduced-cost among the frontier edges is precisely the cost of the BCP of point sets
 $P = A \cap S$ and $Q = B \setminus S$, with $\omega(p) = \pi(p)$.
 
 %\note{Short history on BCP?}
-\note{Under the assumption ... on the metric,}
-The state of the art dynamic BCP data structure from Kaplan \etal~\cite{KMRSS17} supports point insertions and deletions in
-$O(\polylog n)$ time, and answers queries in $O(\log^2 n)$ time.
-During each relaxation, we perform at most one query and add a vertex to $S$
-incurring one BCP insertion or deletion.
+%\note{Under the assumption ... on the metric,}
+The dynamic BCP data structure by Kaplan \etal~\cite{KMRSS17} supports point insertions and deletions in
+$O(\polylog n)$ time and answers queries in $O(\log^2 n)$ time for our setting.
+During each relaxation, we perform at most one query and add a vertex to $S$ incurring one BCP insertion or deletion.
 % So ignoring the time to build $P, Q$ at the beginning of the search and the time needed for updating $\pi$,
-Thus the running time for the search is $O(k\polylog n)$.
+%Thus the running time for the search is $O(k\polylog n)$.
 
 \paragraph{Initial BCP sets by rewinding.}
-Recall that in the beginning of each iteration,
-$S$ is initialized to the set of unmatched vertices in $A$,
-and therefore $Q = B \setminus S$ has size $n$ \note{what?}.
-We cannot afford to take $O(n\polylog n)$ time initialize the BCP data structure at the
+% In the beginning of each iteration,
+% $S$ is initialized to the set of unmatched vertices in $A$,
+% and therefore $Q = B \setminus S$ has size $n$.
+We cannot afford to take $O(n\polylog n)$ time to initialize the BCP data structure at the
 beginning of every Hungarian search beyond the first.
-However, the set of unmatched $A$ vertices has changed by exactly one
-vertex since the last Hungarian search --- the augmentation newly matched one
-vertex $a^* \in A$.
-Thus, given the initial BCP sets $P', Q'$ from the beginning of the last
-Hungarian search, we can construct $P$ and $Q$ for the current iteration
-%by taking $Q \gets Q'$ and $P \gets P' \setminus \{a^*\}$.
-%In other words, we only need
-using a single BCP deletion in $O(\polylog n)$ time.
+To resolve the issue, observe that exactly one vertex is removed from the set of unmatched vertices in $A$ after each Hungarian search.
+Thus we can recover the initial state of the data structure by keeping track of a list of the points added to $S$ over the course of the Hungarian search.
+At the start of the next Hungarian search,
+\emph{rewind} the data structure by tracing the list in reverse order, and perform a single deletion to remove the newly matched vertex in $A$.
 
-To acquire $P'$ and $Q'$, we keep track of a list of the points added to $S$
-over the course of the Hungarian search.
-At the end of each Hungarian search we \emph{rewind} the BCP data structure by tracing the list in reverse order.
-%If a point added to $S$ incurred a BCP insertion during the search,
-%we now delete it (resp.\ incurred deletion, insert it).
 The number of points in the list is at most $O(k)$ as it is bounded by the number of relaxations per
 Hungarian search.
-Thus, in $O(k\polylog n)$ time, we can reconstruct $P'$ and $Q'$ for each
-Hungarian search beyond the first.
+Thus, in $O(k\polylog n)$ time, we can recover the BCP data structure for each Hungarian search beyond the first.
 %
 We refer to this procedure as the \EMPH{rewinding mechanism}.
 % In summary, we can construct each initial BCP set in $O(k\polylog n)$ time,
 % after $O(n\polylog n)$ preprocessing time for constructing the very first
 % BCP sets.
 
-\paragraph{Potential updates.}
 
-\note{REWRITE TO BE MORE SUCCINCT.}
+\begin{toappendix}
+\subsection{Potential updates}
+\label{SSA:potential-update}
 
-We modify a trick from Vaidya~\cite{Vaidya89} for batching potential updates.
+We modify a trick from Vaidya~\cite{Vaidya89} to batch potential updates.
 Potentials have a \EMPH{stored value}, i.e.\ the currently recorded value of
 $\pi(v)$, and a \EMPH{true value}, which may have changed from $\pi(v)$.
 The resulting algorithm queries the minimum-reduced-cost under the true values
@@ -566,7 +548,11 @@ potentials accurately represented by $\delta$ and $\omega(p)$.
 We update $\delta$ once per edge relaxations; thus $O(k)$ times in total per Hungarian search.
 There are $O(k)$ stored values updated per Hungarian search during the rewinding process.
 The time spent on potential updates per Hungarian search is therefore $O(k)$.
+\end{toappendix}
 
+We adapt a trick from Vaidya~\cite{Vaidya89} to batch potential updates under the rewinding mechanisim,
+so that the time spent on potential updates per Hungarian search is $O(k)$.  See Appendix~\ref{SSA:potential-update} for details.
+%
 Putting everything together we obtain the following:
 \begin{lemma}
 \label{L:fast-hungarian}
@@ -574,12 +560,17 @@ Each Hungarian search can be implemented
 in $O(k\polylog n)$ time after a one-time $O(n\polylog n)$ preprocessing.
 \end{lemma}
 
+% The remainder of this section describes an implementation of Hungarian search
+% that runs in $O(k\polylog n)$ time after an $O(n\polylog n)$ time
+% preprocessing (see Lemma~\ref{L:fast-hungarian}).
+Our implementation of the Hungarian algorithm therefore runs in
+$O((n + k^2)\polylog n)$ time.  This proves Theorem~\ref{theorem:hung}.
 
 
 \section{Approximating Min-Cost Partial Matching through Cost-Scaling}
 \label{section:goldberg}
 
-The goal of section is to prove Theorem~\ref{theorem:gmcm}; that is, to compute a size-$k$ geometric partial matching between two point sets $A$ and $B$ in the plane, with cost at most $(1+\eps)$ times the optimal matching, in time $O((n + k\sqrt{k})\polylog n \log(1/\eps))$.
+The goal of this section and the next is to prove Theorem~\ref{theorem:gmcm}; that is, to compute a size-$k$ geometric partial matching between two point sets $A$ and $B$ in the plane, with cost at most $(1+\eps)$ times the optimal matching, in time $O((n + k\sqrt{k})\polylog n \log(1/\eps))$.
 %
 % \begin{theorem}
 % \label{theorem:gmcm}
@@ -592,7 +583,7 @@ The goal of section is to prove Theorem~\ref{theorem:gmcm}; that is, to compute 
 \note{Summarize our new ideas that lead to the improvement.}
 
 After introducing the necessary terminologies in Section~\ref{SS:prelim-flow}, we reduce the partial matching problem to computing an approximate minimum-cost flow on a unit-capacity reduction network in Section~\ref{SS:reduction}.
-In Section~\ref{SS:cost-scaling} we outline the high-level overview of the cost-scaling algorithm.
+In Section~\ref{SS:cost-scaling} we prove a high-level overview of the cost-scaling algorithm, executed on the reduction network.
 We postpone the fast implementation using dynamic data structures to Section~\ref{S:implementation}.
 
 
@@ -846,17 +837,14 @@ Rearranging the terms we have that $\cost(f) \leq \cost(f^*) + 6k\eps$.
 
 
 \paragraph{Multiplicative approximation.}
-Now we employ a technique from Sharathkumar and Agarwal~\cite{SA12} to convert the additive approximation into a multiplicative one.
-%
-Here we sketch a proof to Lemma~\ref{lemma:cost_scale_approx}; a complete proof can be found in the Appendix.
-\note{Is it okay if we hide the parametric search?}
+Now we employ a technique from Sharathkumar and Agarwal~\cite{SA12} to convert the additive approximation into a multiplicative one, thus proving Lemma~\ref{lemma:cost_scale_approx}.  See Appendix~\ref{SSA:multiplicative-approx} for details.
 
-Sharathkumar and Agarwal~{\cite[\S3.5]{SA12}} provide a construction that partitions the input point sets $A$ and $B$ for the MPM problem into clusters, such that the diameter of each cluster is upper bounded by the cost of the optimal partial matching multiply by a polynomial factor.
-%
-To prove Lemma~\ref{lemma:cost_scale_approx}, we further modify the point set by moving the clusters so that the cost of the optimal solution does not change, while the diameter of the \emph{whole} point set is bounded.
-%
-Now one can prove Lemma~\ref{lemma:cost_scale_approx} by computing an $(\eps \cost(M^*)/6k)$-optimal
-circulation $f$ on the modified point set using additive approximation from Lemma~\ref{lemma:goldberg_cost_add}.
+% Sharathkumar and Agarwal~{\cite[\S3.5]{SA12}} provide a construction that partitions the input point sets $A$ and $B$ for the MPM problem into clusters, such that the diameter of each cluster is upper bounded by the cost of the optimal partial matching multiply by a polynomial factor.
+% %
+% To prove Lemma~\ref{lemma:cost_scale_approx}, we further modify the point set by moving the clusters so that the cost of the optimal solution does not change, while the diameter of the \emph{whole} point set is bounded.
+% %
+% Now one can prove Lemma~\ref{lemma:cost_scale_approx} by computing an $(\eps \cost(M^*)/6k)$-optimal
+% circulation $f$ on the modified point set using additive approximation from Lemma~\ref{lemma:goldberg_cost_add}.
 
 
 \begin{toappendix}
@@ -938,9 +926,7 @@ To solve this issue we perform a binary search on the edges $e_1, \ldots, e_{r+n
 % 		&\leq (1 + \eps) \cost(M^*). & \text{\small[Lemma~\ref{lemma:sa_partition}(ii)]}
 % \end{align*}
 % \end{proof}
-
 \end{toappendix}
-
 
 
 \subsection{High-Level Description of Cost-Scaling Algorithm}
@@ -1179,15 +1165,13 @@ This implies an $O(\sqrt{k})$ bound on the total excess after the first phase, w
 \end{proof}
 
 
-The goal of the next section is to show that after $O(n \polylog n)$ time preprocessing, each Hungarian search and depth-first search can be implemented in $O(k \polylog n)$ time.
-%
-Combined with the $O(\sqrt{k})$ bound on the number of iterations we just proved, the procedure \textsc{Refine} can be implemented in $O((n+k\sqrt{k}) \polylog n)$ time.  Together with our analysis on scale initialization and the bound on number of cost scales, this concludes the proof to Theorem~\ref{theorem:gmcm}.
-%\note{Well, there's the null vertex potential updates.  Hide it?}
-
-
-
 \section{Fast Implementation of Refinement}
 \label{S:implementation}
+
+The goal of the section is to show that after $O(n \polylog n)$ time preprocessing, each Hungarian search and depth-first search can be implemented in $O(k \polylog n)$ time.
+%
+Combined with the $O(\sqrt{k})$ bound on the number of iterations we proved in Section~\ref{SS:cost-scaling}, the procedure \textsc{Refine} can be implemented in $O((n+k\sqrt{k}) \polylog n)$ time.  Together with our analysis on scale initialization and the bound on number of cost scales, this concludes the proof to Theorem~\ref{theorem:gmcm}.
+%\note{Well, there's the null vertex potential updates.  Hide it?}
 
 Both Hungarian search and depth-first search are implemented in a Dijkstra-like fashion, traversing through the residual graph using admissible arcs starting from the excess vertices.
 Each step of the search procedures \EMPH{relaxes} a minimum-reduced-cost arc from the set of visited vertices to an unvisited vertex, until a deficit vertex is reached.
@@ -1251,10 +1235,12 @@ $\pi(b) \coloneqq \tilde{\pi}(t)$ for $b \in B_\emptyset$.
 \label{lemma:empty_correct}
 Consider $\tilde{\pi}$ an $\eps$-optimal potential on $\tilde{H}_f$ and $\pi$ the corresponding potential constructed on $H_f$.
 Then,
-\begin{enumerate}
-\item potential $\pi$ is $\eps$-optimal on  $H_f$, and
-\item if arc $\short(\Pi)$ is admissible under $\tilde{\pi}$, then every arc in $\Pi$ is admissible under $\pi$.
-\end{enumerate}
+%\begin{enumerate}
+%\item
+(1) potential $\pi$ is $\eps$-optimal on  $H_f$, and
+%\item
+(2) if arc $\short(\Pi)$ is admissible under $\tilde{\pi}$, then every arc in $\Pi$ is admissible under $\pi$.
+%\end{enumerate}
 \end{lemmarep}
 
 \begin{proof}
@@ -1733,17 +1719,10 @@ completes the proof of Theorem~\ref{theorem:gmcm}.
 
 \section{Unbalanced Transportation}
 
-% definitions
-% introduce the excess scaling algorithm/Orlin's
-% time per hungarian search
-% handling problem cases (stars, singletons)
-
 In this section, we give an exact algorithm which solves the planar transportation
-problem in $O(rn^{3/2} \polylog n)$ time, proving
-Theorem~\ref{theorem:orlin}.
+problem in $O(rn(r/\sqrt{n} + \sqrt{n}) \polylog n)$ time, proving Theorem~\ref{theorem:orlin}.
 Our strategy is to use the standard reduction to the uncapacitated
-min-cost flow problem, and provide a fast implementation under the geometric setting for the uncapacitated min-cost flow
-algorithm by Orlin~\cite{O93}, combined with some of the tools developed in Sections~\ref{section:hung} and~\ref{section:goldberg}.
+min-cost flow problem, and provide a fast implementation under the geometric setting for the uncapacitated min-cost flow algorithm by Orlin~\cite{O93}, combined with some of the tools developed in Sections~\ref{section:hung} and~\ref{section:goldberg}.
 %Mainly, we batch potential updates and use the rewinding mechanism to initialize each Hungarian search in time proportional to the previous Hungarian search.
 
 % There is a simple reduction from the transportation problem to the uncapacitated
@@ -1757,9 +1736,26 @@ algorithm by Orlin~\cite{O93}, combined with some of the tools developed in Sect
 % $\tau_f(a, b) \coloneqq f(\arc ab)$ for every edges $(a, b)$.
 % One simply has $\cost(f) = \cost(\tau_f)$.
 
-\subsection{Uncapacitated MCF by excess scaling}
 
-We give an outline of the strongly polynomial algorithm for uncapacitated min-cost flow problem
+We assume the readers are familiar with Orlin's strongly polynomial-time algorithm for uncapacitated min-cost flow problem~\cite{O93}.
+For a breif introduction to Orlin's algorithm see Appendix~\ref{SSA:orlin}, as well as the original well-written paper.
+%
+In short, Orlin's algorithm follows the \EMPH{excess-scaling} paradigm under the primal-dual framework:
+Maintain a \EMPH{scale parameter} $\Delta$, initially set to $U$.
+A vertex $v$ is \EMPH{active} if $\abs{\fsupply_f(v)} \geq \alpha\Delta$ for a fixed parameter $\alpha \in (0.5, 1)$.
+Repeatedly runs a \emph{Hungarian search} that raises potentials (while maintaining dual
+feasibility) to create an admissible augmenting excess-deficit path between active vertices, on which
+we perform flow augmentations.
+Once there are no more active excess or deficit vertices, $\Delta$ is halved.
+Each sequence of augmentations where $\Delta$ holds a constant value is called
+an \EMPH{excess scale}.
+On top of that, the algorithm performs contraction on arcs with flow value at least $3n\Delta$ at the beginning of a scale, in which case the flow and potentials are no longer tracked, as well as aggressive $\Delta$-lowering under circumstances.
+
+\begin{toappendix}
+\subsection{Uncapacitated MCF by excess scaling}
+\label{SSA:orlin}
+
+We give an outline of the strongly polynomial-time algorithm for uncapacitated min-cost flow problem
 from Orlin~\cite{O93}.
 Orlin's algorithm follows an \EMPH{excess-scaling} paradigm originally due to
 Edmonds and Karp~\cite{EK72}.
@@ -1812,6 +1808,8 @@ The algorithm then performs a post-processing step which finds the optimal
 circulation $f^*$ on $G$ by solving a max-flow problem on the set of admissible
 arcs under $\pi^*$.
 
+\end{toappendix}
+
 \begin{theorem}[(Orlin~{\cite[Theorems~2 and 3]{O93}})]
 \label{theorem:orlin_old}
 Orlin's algorithm finds a set of optimal potentials after $O(n\log n)$ scaling phases
@@ -1819,15 +1817,20 @@ and $O(n\log n)$ total augmentations.
 \end{theorem}
 
 The remainder of the section focuses on showing that each augmentation can be
-implemented in $O(r\sqrt{n}\polylog n)$ time (after
-preprocessing).
-Additionally, we show that $f^*$ can be recovered from $\pi^*$ very quickly
-in our setting.
+implemented in $O(r(r/\sqrt{n}+\sqrt{n})\polylog n)$ time (after preprocessing).
+%Additionally, we show that $f^*$ can be recovered from $\pi^*$ very quickl in our setting.
+%
+A subtle issue is that our geometric data structures must deal with real points in the plane instead of the contracted components.  A solution is provided by Agarwal~\etal~\cite{AFPVX17}; we supply the details for maintaining contractions under dynamic data structures in Appendix~\ref{SSA:contraction}.
 
-\paragraph{Implementing contractions.}
+
+\begin{toappendix}
+\subsection{Implementing contractions}
+\label{SSA:contraction}
+
+%\paragraph{Implementing contractions.}
 \note{REWRITE}
 Following Agarwal~\etal~\cite{AFPVX17}, our geometric data structures must deal
-with real points in the plane instead of the the contracted components.
+with real points in the plane instead of the contracted components.
 We will track the contracted components described in $\hat{G}$ (e.g.\ with a
 disjoint-set data structure) and mark the arcs of $\supp(f)$ that are
 contracted.
@@ -1853,15 +1856,18 @@ We allow augmenting paths to begin from any point $a \in \hat{v} \cap A$ in an a
 excess component $\hat{v}$, and end at any point $b \in \hat{w} \cap B$ in an active
 deficit component $\hat{w}$.
 
+\end{toappendix}
+
 \paragraph{Recovering optimal flow.}
-Rewinding contracted components to recover an optimal flow na\"ively takes $O(rn^2)$ time.
+%Rewinding contracted components to recover an optimal flow na\"ively takes $O(rn^2)$ time.
 Use a strategy from Agarwal~\etal~\cite{AFPVX17}, we can recover the optimal flow in time $O(n \polylog n)$.
 If furthermore the cost function is just the $p$-norm (without the $q$th-power), an even stronger result stands:
-In this case, the set of admissible arcs under an optimal potential forms a planar graph, and thus we can apply the planar maximum-flow algorithm~\cite{E10,xxx} which runs in $O(n \log n)$ time.  For details see the appendix.
+In this case, the set of admissible arcs under an optimal potential forms a planar graph, and thus we can apply the planar maximum-flow algorithm~\cite{E10,xxx} which runs in $O(n \log n)$ time.  For details see Appendix~\ref{SSA:flow-recovery} and~\ref{SSA:flow-recovery-planar}.
 
 \begin{toappendix}
 
 \subsection{Recovering the optimal flow}
+\label{SSA:flow-recovery}
 
 We use the recovery strategy from Agarwal~\etal~\cite{AFPVX17}, which runs in
 $O(n\polylog n)$ time.
@@ -1998,6 +2004,7 @@ optimal flow $f^*$ can be computed in $O(n\polylog n)$ time.
 \end{lemma}
 
 \subsection{Recovering the optimal flow for sum-of-distances.}
+\label{SSA:flow-recovery-planar}
 
 When the matching objective uses the just the $p$-norms (that is, when $q=1$), we can prove that
 the subgraph formed by admissible arcs is in fact \emph{planar}.
