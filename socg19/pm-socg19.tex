@@ -398,7 +398,7 @@ augmenting path $\Pi$, discovered using a procedure called the
 \EMPH{Hungarian search}.
 The algorithm terminates once $M$ has size $k$;
 Ramshaw and Tarjan~\cite{RT12} showed that $M$ is guaranteed to be an optimal partial matching.
-\note{For the specific implementation of Hungarian search where in each iteration the roots are all unmatched vertices in $A$.  Picking one as source does not guarantee min-cost partial matching.}
+%\note{For the specific implementation of Hungarian search where in each iteration the roots are all unmatched vertices in $A$.  Picking one as source does not guarantee min-cost partial matching.}
 
 The Hungarian search tries grow a set of \EMPH{reachable vertices $S$}
 % from unmatched vertex $v \in A$
@@ -742,8 +742,8 @@ The reduction does not work out of the box, as Sharathkumar and Agarwal were tac
 
 \begin{lemma}
 \label{lemma:cost_scale_approx}
-Computing a $(1+\eps)$-approximate geometric partial matching can be reduced to the following problem in $O(n \polylog n)$ time:
-Given a reduction network $N$ over a point set with diameter at most $K \cdot kn^3$ for some constant $K$, compute a $(K \cdot \eps/6k)$-optimal circulation on $N$.
+Computing $(1+\eps)$-approximate geometric partial matching can be reduced to the following problem in $O(n \polylog n)$ time:
+Given a reduction network $N$ over a point set with diameter at most $K \cdot kn^3$ for some constant $K$, compute a $(K \cdot \eps/6k)$-optimal circulation on~$N$.
 \end{lemma}
 
 
@@ -999,6 +999,7 @@ Recall that $H$ is the \emph{reduction graph} and $N_H$ is the \emph{reduction n
 The vertex set of $H$ consists of two point sets $A$ and $B$, as well as two dummy vertices $s$ and $t$.  The directed edges in $H$ are pointed from $s$ to $A$, from $A$ to $B$, and from $B$ to $t$.
 We call those arcs in $N_H$ whose direction is consistent with their corresponding directed edges as \EMPH{forward arcs}, and those arcs that points in the opposite direction as \EMPH{backward arcs}.
 
+\note{Describe how it's different from original.}
 The procedure \textsc{Scale-Init} transforms a $2\eps$-optimal circulation from the previous cost scale into an $\eps$-optimal flow with $O(k)$ excess, by raising the potentials $\pi$ of all vertices in $A$ by $\eps$, those in $B$ by $2\eps$, and the potential of $t$ by $3\eps$.
 The potential of $s$ remains unchanged.
 %
@@ -1311,7 +1312,7 @@ Observe that the arcs of $\tilde{H}_f$ leaving $\tilde{S}$ fall into $O(1)$ cate
 	$a \in (A \setminus A_\emptyset) \cap S$ to $t$; and
 \item shortcut arcs $(s, t)$ corresponding to null 3-paths.
 \end{itemize}
-For arcs in each category we maintain a proper data structure (either heap or BCP) to query the min-cost arc.
+For each category of arcs we maintain a proper data structure (either heap or BCP) to answer to the min-cost arc query.
 
 \begin{toappendix}
 \subsection{Dynamic data structures for search procedures}
@@ -1440,12 +1441,14 @@ So in collaboration each relaxation can be implemented in $O(\polylog n)$ time \
 
 %\subsection{Time analysis}
 \paragraph{Time analysis.}
-The complete time analysis can be found in Appendix~\ref{SSA:num-relaxation} and~\ref{SSA:time-ananlsis}; here we sketch the ideas.
+The complete time analysis can be found in Appendix~\ref{SSA:num-relaxation}, \ref{SSA:time-ananlsis}, and \ref{SSA:null-potential-update}; here we sketch the ideas.
 %
 First we show (in Appendix~\ref{SSA:num-relaxation}) that both Hungarian search and depth-first search performs $O(k)$ relaxations before a deficit vertex is reached, by looking at shortcut and non-shortcut relaxations separately.  Both types of relaxations are eventually charged to the suppot size of $f$.
 %
-As for the time analysis, using the same rewinding mechanism as in Section~\ref{SS:fast-hungarian-matching}, the running time of the Hungarian search and depth-first search, other than the potential updates, can be charged to the number of relaxations.
-Again using the trick by Vaidya~\cite{Vaidya89} in Section~\ref{SS:fast-hungarian-matching} we can charge the potential updates of normal vertices to the number of relaxations in the Hungarian search.
+As for the time analysis (see Appendix~\ref{SSA:time-ananlsis}), using the same rewinding mechanism as in Section~\ref{SS:fast-hungarian-matching}, the running time of the Hungarian search and depth-first search, other than the potential updates, can be charged to the number of relaxations.
+Again using the trick by Vaidya~\cite{Vaidya89}
+%in Section~\ref{SS:fast-hungarian-matching}
+we can charge the potential updates of normal vertices to the number of relaxations in the Hungarian search.
 %
 We never explicitly maintain the potentials on the null vertices; instead they are reconstructed whenever needed, either at the end of each iteration of refinement or when an augmentation sends flow through a null vertex.  We show that such updates does not happen often in Appendix~\ref{SSA:null-potential-update}.
 %
@@ -1817,7 +1820,7 @@ deficit component $\hat{w}$.
 \paragraph{Recovering optimal flow.}
 Rewinding contracted components to recover an optimal flow na\"ively takes $O(rn^2)$ time.
 Use a strategy from Agarwal~\etal~\cite{AFPVX17}, we can recover the optimal flow in time $O(n \polylog n)$.
-If furthermore the coinadmissiblee is just the $p$-norm (without the $q$th-power), an even stronger result stands:
+If furthermore the cost function is just the $p$-norm (without the $q$th-power), an even stronger result stands:
 In this case, the set of admissible arcs under an optimal potential forms a planar graph, and thus we can apply the planar maximum-flow algorithm~\cite{E10,xxx} which runs in $O(n \log n)$ time.  For details see the appendix.
 
 \begin{toappendix}
@@ -2102,15 +2105,16 @@ time.
 \end{toappendix}
 
 
-\subsection{Dead vertices and support stars}
+%\subsection{Dead vertices and support stars}
+\subsection{Support stars}
 
 %Given Theorem~\ref{theorem:orlin_old},
-Our goal is to implement each augmentation in $O(r\sqrt{n}\polylog n)$ time.
+%Our goal is to implement each augmentation in $O(r\sqrt{n}\polylog n)$ time.
 To find an augmenting path, we again use a Hungarian search with geometric data
 structures to perform relaxations quickly.
-Like in Section~\ref{section:goldberg}, there are vertices which cannot be
-charged to the flow support.
-Even worse, the flow support for the transportation problem may have size $\Omega(n)$ (consider when $A$ has one point, and demands are uniformly distributed among the vertices of $B$).
+% Like in Section~\ref{section:goldberg}, there are vertices which cannot be
+% charged to the flow support.
+% Even worse, the flow support for the transportation problem may have size $\Omega(n)$ (consider when $A$ has one point, and demands are uniformly distributed among the vertices of $B$).
 Our strategy is summarized as follows:
 \begin{itemize}
 \item Discard vertices which lead to dead ends in the search (not on a path
@@ -2123,13 +2127,34 @@ Our strategy is summarized as follows:
 Querying/updating clusters degrades our amortized time per relaxation from $O(\polylog n)$ to $O(\sqrt{n}\polylog n)$.
 Thus overall each augmentation takes $O(r\sqrt{n}\polylog n)$ time.
 
-\paragraph{Dead vertices.}
+\paragraph{Support stars.}
+The vertices of $B$ with support degree 1 are partitioned into subsets
+$\Sigma_a \subset B$ by the $a \in A$ lying on the other end of their single
+support arc.
+We call \EMPH{$\Sigma_a$} the \EMPH{support star} centered at $a \in A$.
+
+Roughly speaking, we would like to handle each support star as a single unit.
+When the Hungarian search reaches $a$ or any $b \in \Sigma_a$, the
+entirety of $\Sigma_a$ (as well as $a$) is also admissibly-reachable and can be
+included into $S$ without further potential updates.
+Additionally, the only outgoing residual arcs of every $b \in \Sigma_a$ lead to
+$a$, thus the only way to leave $\Sigma_a \cup \{a\}$ is through an arc leaving $a$.
+Once a relaxation step reaches some $b \in \Sigma_a$ or $a$ itself, we would
+like to quickly update the state such that the rest of $b \in \Sigma_a$ is also
+reached without performing relaxation steps to each individual
+$b \in \Sigma_a$.
+
+
+\begin{toappendix}
+\subsection{Dead vertices}
+\label{SSA:dead-vertices}
+
 % Let $E(\supp(f)) \coloneqq \{(v, w) \mid \arc vw \in \supp(f)\}$ be the set
 % of undirected edges corresponding to the arcs in $\supp(f)$.
 % Clearly, $\abs{\supp(f)} = \abs{E(\supp(f))}$.
 Let the \EMPH{support degree} of a vertex be its degree in the graph induced by the underlying edges of $\supp(f)$.
 We call a vertex $b \in B$ \EMPH{dead} if $b$ has support degree $0$ and is not an
-active excess or deficit vertex; call it \EMPH{live} otherwise.
+active excess or deficit vertex; call it \EMPH{living} otherwise.
 Dead vertices are essentially equivalent to the \emph{null vertices} of
 Section~\ref{section:goldberg}.
 However, since the reduction in this section does not use a super-source/super-sink,
@@ -2159,29 +2184,21 @@ $v$ has no incident arcs in $\supp(f)$ and cannot be contracted, there is at lea
 one subsequent augmentation which uses $v$ as its beginning or end.
 Thus, the total number of revivals is $O(n\log n)$.
 
-\paragraph{Support stars.}
-The vertices of $B$ with support degree 1 are partitioned into subsets
-$\Sigma_a \subset B$ by the $a \in A$ lying on the other end of their single
-support arc.
-We call \EMPH{$\Sigma_a$} the \EMPH{support star} centered at $a \in A$.
-
-Roughly speaking, we would like to handle each support star as a single unit.
-When the Hungarian search reaches $a$ or any $b \in \Sigma_a$, the
-entirety of $\Sigma_a$ (as well as $a$) is also admissibly-reachable and can be
-included into $S$ without further potential updates.
-Additionally, the only outgoing residual arcs of every $b \in \Sigma_a$ lead to
-$a$, thus the only way to leave $\Sigma_a \cup \{a\}$ is through an arc leaving $a$.
-Once a relaxation step reaches some $b \in \Sigma_a$ or $a$ itself, we would
-like to quickly update the state such that the rest of $b \in \Sigma_a$ is also
-reached without performing relaxation steps to each individual
-$b \in \Sigma_a$.
+\end{toappendix}
 
 \subsection{Implementation details}
 
 Before describing our workaround for support stars, we analyze the number of
 relaxation steps for arcs outside of support stars.
+To this end we need to strip of some \EMPH{dead} vertices---having no incident flow support edges and not an active excess or deficit vertex---that does not affect the search.
+We use \EMPH{$A_\ell$} and \EMPH{$B_\ell$} to denote vertices of points in $A$ and $B$ that are not dead.
+The details for handling such vertices can be found in Appendix~\ref{SSA:dead-vertices}.
+%
+For a proof of the following lemma, see Appendix~\ref{SSA:relax-outside-stars}.
 
 \begin{toappendix}
+\subsection{Number of relaxations}
+\label{SSA:relax-outside-stars}
 
 By prioritizing the relaxation of support arcs, we also have the following
 lemma.
@@ -2288,52 +2305,50 @@ The number of vertices of type (ii) is $r$, and the number of vertices of type
 The lemma follows.
 \end{proof}
 
-The running time of a Hungarian search will be $O(r)$ times the time it takes
-us to implement each relaxation.
+%The running time of a Hungarian search will be $O(r)$ times the time it takes us to implement each relaxation.
 
 \paragraph{Relaxations outside support stars.}
 For relaxations that don't involve support star vertices, we can once again
-maintain a BCP to query the minimum $A_\ell$-to-$B_\ell$ arc.
+maintain a BCP data structure to query the minimum $A_\ell$-to-$B_\ell$ arc.
 To elaborate, this is the BCP between $P = A_\ell \cap S$ and
 $Q = (B_\ell \setminus (\bigcup_{a \in A_\ell} \Sigma_a)) \setminus S$,
 weighted by potentials.
-This can be queried in $O(\log^2 n)$ time and updated in $O(\polylog n)$ time per point.
-Since it doesn't deal with support stars, there is at most one
-insertion/deletion per relaxation step.
-
-For $B_\ell$-to-$A_\ell$, backward (support) arcs are kept admissible by
-invariant, so we relax them immediately when they arrive on the frontier.
+%This can be queried in $O(\log^2 n)$ time and updated in $O(\polylog n)$ time per point.
+Since the query is outside the support stars, there is at most one update per relaxation.
+%
+Backward (support) arcs are kept admissible by the invariant, so we relax them immediately when they arrive at the frontier.
 
 \paragraph{Relaxing a support star.}
-We classify support stars into two categories: \EMPH{big stars} are those with
-$\abs{\Sigma_a} > \sqrt{n}$, and \EMPH{small stars} are those with
+We classify support stars into two categories: \EMPH{big stars} with
+$\abs{\Sigma_a} > \sqrt{n}$, and \EMPH{small stars} with
 $\abs{\Sigma_a} \leq \sqrt{n}$.
-Let $A_\text{big} \subseteq A$ denote the centers of big stars and
-and $A_\text{small} \subseteq A$ denote the centers of small stars.
+Let $\EMPH{$A_\text{big}$} \subseteq A$ denote the centers of big stars and
+and $\EMPH{$A_\text{small}$} \subseteq A$ denote the centers of small stars.
 We keep the following data structures to manage support stars.
-\begin{enumerate}
+\begin{itemize}
 \item For each big star $\Sigma_a$, we use a data structure
-	$\EuScript{D}_\text{big}(a)$ to maintain BCP between
-	$P = A_\ell \cap S$ and $Q = \Sigma_a$, weighted by potentials.
+	\EMPH{$\EuScript{D}_\text{big}(a)$} to maintain BCP between
+	$P = A_\ell \cap S$ and $Q = \Sigma_a$.
+%weighted by potentials.
 	We query this until $a \in S$ or any vertex of $\Sigma_a$ is added to~$S$.
 \item All small stars are added to a single BCP data structure
-	$\EuScript{D}_\text{small}$ between $P = A_\ell \cap S$ and
-	$Q = (\bigcup_{a \in A_\text{small}} \Sigma_a) \setminus S$, weighted by
-	potentials.
+	\EMPH{$\EuScript{D}_\text{small}$} between $P = A_\ell \cap S$ and
+	$Q = (\bigcup_{a \in A_\text{small}} \Sigma_a) \setminus S$.
+%weighted by potentials.
 	When an $a \in A_\text{small}$ or any vertex of its support star is
 	added to $S$, we remove the points of $\Sigma_a$ from
 	$\EuScript{D}_\text{small}$ using $\abs{\Sigma_a}$ deletion operations.
-\end{enumerate}
+\end{itemize}
 We will update these data structures as each support star center is added into
 $S$.
 If a relaxation step adds some $b \in B_\ell$ and $b$ is in a support star
 $\Sigma_a$, then we immediately relax $\arc ba$, as all support arcs are
 admissible.
-Relaxations of non-support star $b \in B_\ell$ will not affect the support star
-data structures.
+%Relaxations of vertex $b \in B_\ell$ not in any support star will not affect the support star data structures.
 
-Suppose a relaxation step adds some $a \in A_\ell$ to $S$.
-For the support star data structures, we must
+Suppose a relaxation step adds $a \in A_\ell$ to $S$.
+%For the support star data structures, w
+We must
 (i) remove $a$ from every $\EuScript{D}_\text{big}$,
 (ii) remove $a$ from $\EuScript{D}_\text{small}$.
 If $a \in A_\text{big}$, we also (iii) deactivate $\EuScript{D}_\text{big}(a)$.
@@ -2341,12 +2356,13 @@ If $a \in  A_\text{small}$, we also (iv) remove the points of $\Sigma_a$ from
 $\EuScript{D}_\text{small}$.
 The operations (i--iii) can be performed in $O(\polylog n)$ time
 each, but (iv) may take up to $O(\sqrt{n}\polylog n)$ time.
-
+%
 On the other hand, there are now $O(\sqrt{n})$ data structures to query during
-each relaxation step, as there are $O(n/\sqrt{n})$ data structures
-$\EuScript{D}_\text{big}(\cdot)$.
-Thus, the query time within each relaxation step is $O(\sqrt{n}\log^2 n)$.
-We can now bound the time spent within the Hungarian search.
+each relaxation step, which takes $O(\sqrt{n}\log^2 n)$ time in total.
+%as there are $O(n/\sqrt{n})$ data structures $\EuScript{D}_\text{big}(\cdot)$.
+%Thus, the query time within each relaxation step is $O(\sqrt{n}\log^2 n)$.
+%
+Together with Lemma~\ref{lemma:orlin_relax_count} we bound the time for each Hungarian search.
 
 \begin{lemmarep}
 \label{lemma:orlin_hs_time}
@@ -2365,11 +2381,13 @@ The total time is therefore $O(r\sqrt{n}\polylog n)$.
 \paragraph{Updating support stars.}
 As the flow support changes, the membership of support stars may shift and
 a big star may eventually become small (or vice versa).
-To efficiently support this, introduce some fuzziness to when a star should be big or small.
+To efficiently support this, we introduce a soft boundary in determining whether a support star is big or small.
 %
-Standard charging argument shows that the amortized update time is $O(r\sqrt{n}(r+\sqrt{n})\polylog n)$.
+Standard charging argument shows that the amortized update time is $O(r\sqrt{n}(r+\sqrt{n})\polylog n)$; for a complete argument see Appendix~\ref{SSA:update-support-star}.
 
 \begin{toappendix}
+\subsection{Updating support stars}
+\label{SSA:update-support-star}
 
 Initially, we label stars big or small according to the $\sqrt{n}$ threshold.
 A star that is currently big is turned into a small star once
@@ -2388,6 +2406,7 @@ Thus, the time spent for big-to-small update is $O(\sqrt{n}\polylog n)$,
 and there were at least $\sqrt{n}/2$ points removed from $\Sigma_a$ since it
 was last big.
 
+\note{A MESS; NEED TO BE REWRITTEN}
 A star $\Sigma_a$ that is switching from small-to-big has size
 $\abs{\Sigma_a} = \sqrt{n} + x \geq 2\sqrt{n}$, for some integer
 $x \geq \sqrt{n}$.
@@ -2404,10 +2423,9 @@ was last small.
 
 Membership of support stars can only be changed by augmentations,
 so the number of star membership changes by a single augmenting path is
-bounded above by twice its length (each vertex may be removed from one star,
-and/or added to another star).
-Thus, individual membership changes can be performed in $O(\polylog n)$ time
-each, and there are $O(rn\log n)$ total.
+bounded above by twice of its length.
+%(each vertex may be removed from one star, and/or added to another star).
+Thus, each membership change can be performed in $O(\polylog n)$ time, and there are $O(rn\log n)$ many.
 % The total time spent on big-to-small updates is $O(rn\polylog n)$, and the
 % total time spent on small-to-big updates is $O(r^2\sqrt{n}\polylog n)$.
 
