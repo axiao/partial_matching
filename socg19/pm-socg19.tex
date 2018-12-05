@@ -2452,54 +2452,67 @@ The total time is therefore $O(r\sqrt{n}\polylog n)$.
 \end{proof}
 
 \paragraph{Updating support stars.}
-As the flow support changes, the membership of support stars may shift and
-a big star may eventually become small (or vice versa).
+As the flow support changes, the membership of support stars may shift causing
+a big star to become small or vice versa.
 To efficiently support this, we introduce a soft boundary in determining whether a support star is big or small.
 %
-Standard charging argument shows that the amortized update time is $O(r\sqrt{n}(r+\sqrt{n})\polylog n)$; for a complete argument see Appendix~\ref{SSA:update-support-star}.
+Standard charging argument shows that the amortized update time per membership
+change is $O((r^2\sqrt{n}+rn)\polylog n)$;
+for a complete argument see Appendix~\ref{SSA:update-support-star}.
 %
 \begin{toappendix}
 \subsection{Updating support stars}
 \label{SSA:update-support-star}
 
 Initially, we label stars big or small according to the $\sqrt{n}$ threshold.
-A star that is currently big is turned into a small star once
-$\abs{\Sigma_a} \leq \sqrt{n}/2$
-A star that is currently small is turned into a big star once
-$\abs{\Sigma_a} \geq 2\sqrt{n}$.
-This way, the time spent rebuilding/updating the respective data structures
-can be amortized to the insertions/deletions that preceded the switch, plus
-some $O(r)$ extra work if the the update is small-to-big.
+Afterwards, a star that is currently big is turned into a small star once
+$\abs{\Sigma_a} \leq \sqrt{n}/2$, and star that is currently small is turned
+into a big star once $\abs{\Sigma_a} \geq 2\sqrt{n}$.
+We say a star which crosses one of these size thresholds is \EMPH{changing state}
+(from small-to-big or big-to-small), and must be represented in the opposite
+type of data structure.
+Our strategy is to charge the data structure update time associated with a
+state change to the \EMPH{membership changes} in $\Sigma_a$ that preceeded the
+state change.
 
-A star $\Sigma_a$ that is switching from big-to-small has size
+A star $\Sigma_a$ undergoing a big-to-small state change has size
 $\abs{\Sigma_a} \leq \sqrt{n}/2$.
-When switching, we delete $\EuScript{D}_\text{big}(a)$ and insert $\Sigma_a$
+The state change deletes $\EuScript{D}_\text{big}(a)$ and inserts $\Sigma_a$
 into $\EuScript{D}_\text{small}$.
-Thus, the time spent for big-to-small update is $O(\sqrt{n}\polylog n)$,
+Thus, the time spent for a big-to-small state change is $O(\sqrt{n}\polylog n)$,
 and there were at least $\sqrt{n}/2$ points removed from $\Sigma_a$ since it
-was last big.
+last changed state.
+The amortized time for a big-to-small state change per star membership change
+is $O(\polylog n)$.
 
-\note{A MESS; NEED TO BE REWRITTEN}
-A star $\Sigma_a$ that is switching from small-to-big has size
-$\abs{\Sigma_a} = \sqrt{n} + x \geq 2\sqrt{n}$, for some integer
-$x \geq \sqrt{n}$.
-Rearranging, we have $\abs{\Sigma_a} \leq 2x$.
+A star $\Sigma_a$ undergoing a small-to-big state change has size
+$\abs{\Sigma_a} \geq 2\sqrt{n}$.
+We can write its size as $\abs{\Sigma_a} = \sqrt{n} + x$ for some integer
+$x \geq \sqrt{n}$, so we also have $\abs{\Sigma_a} \leq 2x$.
 When switching, we delete all $\abs{\Sigma_a}$ points from
 $\EuScript{D}_\text{small}$ and construct a new $\EuScript{D}_\text{big}(a)$.
-Constructing $\EuScript{D}_\text{big}(a)$ requires inserting $O(r)$ points of
-$A$ (into $P$) and the $\abs{\Sigma_a}$ points of the star (into $Q$).
-Thus, the time spent for a small-to-big update is $O((r + x)\polylog n)$,
-and there were at least $x \geq \sqrt{n}$ points added to $\Sigma_a$ since it
-was last small.
+Constructing $\EuScript{D}_\text{big}(a)$ requires inserting up to $r$ points
+of $A$ (into $P$) and the $\abs{\Sigma_a}$ points of the star (into $Q$).
+Thus, the time spent for a small-to-big state change is $(r + 2x) \cdot O(\polylog n)$,
+and there were at least $x$ points added to $\Sigma_a$ since it last changed state.
+The amortized time for a small-to-big state change per star membership change
+is $O((r/x)\polylog n)$.
+Since $x \geq \sqrt{n}$, this is at most $O((r/\sqrt{n})\polylog n)$.
+
+Star membership can only be changed by augmenting paths passing through the
+vertex, therefore the total number of membership changes is $O(rn\log n)$
+by Lemmas~\ref{theorem:orlin_old} and \ref{lemma:orlin_relax_count}.
+Thus, the total time spent on state changes is $O((r^2\sqrt{n} + rn)\polylog n)$.
+
 \end{toappendix}
 %
 %Membership of support stars can only be changed by augmentations,
 The number of star membership changes by adding a single augmenting path is
-bounded above by twice of its length.  There are $O(rn\log n)$ augmentations in total.
-%(each vertex may be removed from one star, and/or added to another star).
-Each membership change can be performed in $O(\polylog n)$ time.
+bounded above by twice of its length, so $O(r)$.
+By Theorem~\ref{theorem:orlin_old}, the total number of membership changes is $O(rn\log n)$.
 The total time spent on big-to-small updates is $O(rn\polylog n)$, and the
 total time spent on small-to-big updates is $O(r^2\sqrt{n}\polylog n)$.
+Membership changes themselves can be performed in $O(\polylog n)$ time each.
 
 \paragraph{Preprocessing time.}
 It takes $O(rn\polylog n)$ time to build the very first set of data structures.
@@ -2538,14 +2551,13 @@ vertices; each of them takes $O(\sqrt{n}\polylog n)$ to update.
 So the total time spent is $O(n^{3/2}\polylog n)$.
 
 \paragraph{Putting it together.}
-After $O(rn\polylog n)$ preprocessing, we spend $O(r\sqrt{n}\polylog n)$ time on
-each Hungarian search by Lemma~\ref{lemma:orlin_hs_time}.
-After each augmentation, we spend the same amount of time
-%(plus $O(\polylog n)$ extra)
-to initialize data structures for the next Hungarian search.
-We spend up to $O((r^2\sqrt{n} + rn)\polylog n)$ time making the switch between big/small stars.
+After $O(rn\polylog n)$ preprocessing, we spend $O(r\sqrt{n}\polylog n)$ time
+on relaxations each Hungarian search by Lemma~\ref{lemma:orlin_hs_time},
+for a total of $O(rn^{3/2}\polylog n)$ time over the course of the algorithm.
+Rewinding takes the same amount of time.
+We spend up to $O((r^2\sqrt{n} + rn)\polylog n)$ time switching stars between big/small.
 We spend $O(n^{3/2}\polylog n)$ time activating and reviving vertices.
-Thus, the algorithm takes $O(rn(r/\sqrt{n} + \sqrt{n})\polylog n)$ time to
+Adding, the algorithm takes $O(r^2\sqrt{n} + rn^{3/2})\polylog n)$ time to
 produce optimal potentials $\pi^*$, from which we can recover $f^*$ in
 $O(r\sqrt{n}\polylog n)$ %TODO depends on which algorithm
 additional time.
