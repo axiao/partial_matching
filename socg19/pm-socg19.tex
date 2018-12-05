@@ -2454,7 +2454,8 @@ a big star to become small or vice versa.
 To efficiently support this, we introduce a soft boundary in determining whether a support star is big or small.
 %
 Standard charging argument shows that the amortized update time per membership
-change is $O((r^2\sqrt{n}+rn)\polylog n)$;
+change is $O(\polylog n)$ for big-to-small updates, and
+$O((r/\sqrt{n})\polylog n)$ for small-to-big ones;
 see Appendix~\ref{SSA:update-support-star}.
 %
 \begin{toappendix}
