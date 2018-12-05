@@ -215,7 +215,7 @@ For a parameter $k \leq r$, we call the problem of finding the minimum-cost
 size-$k$ matching in $G(A, B)$ the \EMPH{geometric partial matching problem}.
 We call the respective problem in general bipartite graphs (with arbitrary
 edge costs) the \EMPH{partial matching} problem.
-\footnote{Sometimes the partial matching problem is also called the \EMPH{imperfect matching} or \EMPH{imperfect assignment} \cite{RT12,GHKT17}.}
+\footnote{Partial matching is also called \EMPH{imperfect matching} or \EMPH{imperfect assignment} \cite{RT12,GHKT17}.}
 
 We also consider the \emph{transportation problem}, which is a generalization of the bipartite matching problem.
 Let $\tsupply:A \cup B \to \ints$ be a \EMPH{supply-demand function} with
@@ -295,10 +295,10 @@ partial matching.
 There is also some work on computing an optimal or near-optimal partial
 matching when $B$ is fixed but $A$ is allowed to translate and/or rotate
 \cite{CGKR08,R10,AHJKRST18,AKKMRSX18}.
-Here, the goal is to (i) compute a near-optimal matching over all possible
+Here, the goal is to (i) compute a (near) optimal matching over all possible
 transformations of $B$, or (ii) to compute a set $\EuScript{M}$ of matchings
-so that for any translation/rotation $\mathbb{T}$ of $B$, a (near) optimal
-matching of $A$ and $\mathbb{T}(B)$ is in the set $\EuScript{M}$.
+so that for any translation/rotation $\mathbb{T}$ of $A$, a (near) optimal
+matching of $\mathbb{T}(A)$ and $B$ is in the set $\EuScript{M}$.
 Many of these algorithms use a partial matching algorithm on static points as a
 black box, so our results improve the final time bounds in e.g.
 \cite{R10,AHJKRST18,AKKMRSX18}.
@@ -307,11 +307,10 @@ The transportation problem can be formulated as a \EMPH{minimum-cost flow}
 problem in a graph.
 Thus, the strongly polynomial uncapacitated min-cost flow algorithm by
 Orlin~\cite{O93} solves transportation in $O((m + n\log n)n\log n))$ time.
-Lee and Sidford give a weakly polynomial algorithm that runs in
+Lee and Sidford~\cite{LS13b} give a weakly polynomial algorithm that runs in
 $O(m\sqrt{n}\polylog(n, U))$ time.
-
-Agarwal~\etal have shown that Orlin's algorithm can be implemented in the
-geometric setting in time $O(n^2\polylog n)$.
+Agarwal~\etal~\cite{AFPVX17} have shown that Orlin's algorithm can be
+implemented in the geometric setting in time $O(n^2\polylog n)$.
 It is an open question whether this algorithm can be implemented to run in
 $O(nr\polylog n)$ time (recall that $\abs{A} = n$, $\abs{B} = r$).
 By adapting the Lee-Sidford algorithm, they developed an
@@ -522,7 +521,7 @@ The number of points in the list is at most $O(k)$ as it is bounded by the numbe
 Hungarian search.
 Thus, in $O(k\polylog n)$ time, we can recover the BCP data structure for each Hungarian search beyond the first.
 %
-We refer to this procedure as the \EMPH{rewinding mechanism}.
+We refer to this procedure as the \EMPH{rewinding} mechanism.
 % In summary, we can construct each initial BCP set in $O(k\polylog n)$ time,
 % after $O(n\polylog n)$ preprocessing time for constructing the very first
 % BCP sets.
