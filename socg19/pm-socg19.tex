@@ -168,8 +168,8 @@ Goldberg~\etal \cite{GHKT17} for our approximation algorithm.
 We thank Debmalya Panigrahi for helpful discussion.
 }
 \funding{
-Work on this paper was supported by NSF under grants CCF-15-13816, 
-CCF-15-46392, and IIS-14-08846, by an ARO grant W911NF-15-1-0408, and by 
+Work on this paper was supported by NSF under grants CCF-15-13816,
+CCF-15-46392, and IIS-14-08846, by an ARO grant W911NF-15-1-0408, and by
 BSF Grant 2012/229 from the U.S.-Israel Binational Science Foundation.
 }
 
@@ -300,8 +300,7 @@ matching runs in $O(n^{3/2}\polylog n \cdot \log\eps^{-1})$ time \cite{SA12}.
 It is not obvious how to extend it to the partial matching setting.
 
 There is also some work on computing an optimal or near-optimal partial
-matching when $B$ is fixed but $A$ is allowed to translate and/or rotate
-\cite{CGKR08,R10,AHJKRST18,AKKMRSX18}.
+matching when $B$ is fixed but $A$ is allowed to translate and/or rotate~\cite{CGKR08,R10,AHJKRST18,AKKMRSX18}.
 Here, the goal is to (i) compute a (near-)optimal matching over all possible
 transformations of $A$, or (ii) to compute a set $\mathcal{M}$ of matchings,
 such that for any translation/rotation $\EuScript{T}$ of $A$, a (near-)optimal
@@ -313,7 +312,7 @@ The transportation problem can also be formulated as a minimum-cost flow
 problem in a graph.
 The strongly polynomial uncapacitated min-cost flow algorithm by
 Orlin~\cite{O93} solves the transportation problem in
-$O((m + n\log n)n\log n))$ time.
+$O((m + n\log n) n\log n)$ time.
 Lee and Sidford~\cite{LS13b} give a weakly polynomial algorithm that runs in
 $O(m\sqrt{n}\polylog(n, U))$ time, where $U$ is the maximum amount of vertex supply-demand.
 Agarwal~\etal~\cite{AFPVX17} showed that Orlin's algorithm can be
@@ -916,7 +915,7 @@ Then,
 
 To prove Lemma~\ref{lemma:cost_scale_approx}, we need to further modify the point set so that the cost of the optimal solution does not change, while the diameter of the \emph{whole} point set is bounded.
 %
-Move the points of each component in \emph{translation} so that the distance between points across components is greather than $kn^q \cdot c(e_i)$, but at most $O(n^q \cdot kn^{2q} \cdot c(e_i))$.
+Move the points of each component in \emph{translation} so that the distance between points across components is greater than $kn^q \cdot c(e_i)$, but at most $O(n^q \cdot kn^{2q} \cdot c(e_i))$.
 This will guarantee that the optimal solution still uses edges within the components by the first part of Lemma~\ref{lemma:sa_partition}.
 The simplest way of achieving this is by aligning the components one by one into a ``straight line'',
 each separated from the next by a buffer of length $2kn^{q} \cdot c(e_i)$.
@@ -940,8 +939,10 @@ Choosing $\alpha = c(e_i)$, this proves Lemma~\ref{lemma:cost_scale_approx}.
 
 One small problem remains: We need to show that such reduction can be performed in $O(n\polylog n)$ time.
 Sharathkumar and Agarwal~\cite{SA12} have shown that the partition of $A$ and $B$ into $A_K$s and $B_K$s can be computed in $O(n \polylog n)$ time, assuming that the indices $i$ and $j$ can be determined in such time as well.  However in our application the choice of index $i$ depends on the optimal solution of geometric partial matching problem which we do not know.
-
-To solve this issue we perform a binary search on the edges $e_1, \ldots, e_{r+n-1}$.  \note{Hmm, we have no way to check Lemma 4.5(i); but in fact a polynomial bound is good enough.}
+%
+To solve this issue we use parametric search.  The details are omitted here.
+% To solve this issue we perform a binary search on the edges $e_1, \ldots, e_{r+n-1}$ of the minimum spanning tree $T$.
+% \note{Hmm, we have no way to check Lemma 4.5(i); but in fact a polynomial bound is good enough.}
 
 \note{UNRESOLVED ISSUE}
 
@@ -971,7 +972,7 @@ To solve this issue we perform a binary search on the edges $e_1, \ldots, e_{r+n
 Computing $(1+\eps)$-approximate geometric partial matching reduces to the following problem in $O(n \polylog n)$ time:
 Given reduction network $N$ over a point set with diameter $O(\alpha \cdot kn^{3q})$
 %\note{really? $K \cdot kn^{q+2}?$}
-for some constant $\alpha$, compute a $(\alpha \cdot \eps/6k)$-optimal circulation on~$N$.
+for some constant $\alpha$, compute an $(\alpha \cdot \eps/6k)$-optimal circulation on~$N$.
 \end{lemma}
 
 
@@ -1036,7 +1037,7 @@ $O(\log(kC/\eps^*))$ scales.
 %
 Using the reduction in Lemma~\ref{lemma:cost_scale_approx}, we have the
 diameter of the point set, thus maximum cost $C$, bounded by
-$O(\alpha \cdot kn^{3q})$ for some known value $\alpha$.
+$O(\alpha \cdot kn^{3q})$ for some fixed value $\alpha$.
 By setting $\eps^*$ to be $\alpha \cdot \eps/6k$, the number of cost scales is
 bounded above by $O(\log(n/\eps))$.
 
@@ -1521,8 +1522,7 @@ For depth-first search, we maintain the following for each type of outgoing arcs
 \end{toappendix}
 %
 Each data structure requires $O(1)$ queries and updates per relaxation.
-So in collaboration each relaxation can be implemented in $O(\polylog n)$ time
-\cite{KMRSS17}.
+So in collaboration each relaxation can be implemented in $O(\polylog n)$ time~\cite{KMRSS17}.
 %Thus the running time of the Hungarian search and depth-first search, other than the potential updates, can be charged to the number of relaxation steps, which we will now analyze.
 
 % Each data structure performs a constant number of queries and updates per relaxation,
@@ -1537,7 +1537,7 @@ So in collaboration each relaxation can be implemented in $O(\polylog n)$ time
 \paragraph{Time analysis.}
 The complete time analysis can be found in Appendix~\ref{SSA:num-relaxation}, \ref{SSA:time-ananlsis}, and \ref{SSA:null-potential-update}; here we sketch the ideas.
 %
-First we show (in Appendix~\ref{SSA:num-relaxation}) that both Hungarian search and depth-first search performs $O(k)$ relaxations before a deficit vertex is reached, by looking at shortcut and non-shortcut relaxations separately.  Both types of relaxations are eventually charged to the suppot size of $f$.
+First we show (in Appendix~\ref{SSA:num-relaxation}) that both Hungarian search and depth-first search performs $O(k)$ relaxations before a deficit vertex is reached, by looking at shortcut and non-shortcut relaxations separately.  Both types of relaxations are eventually charged to the support size of $f$.
 %
 As for the time analysis (see Appendix~\ref{SSA:time-ananlsis}), using the same rewinding mechanism as in Section~\ref{SS:fast-hungarian-matching}, the running time of the Hungarian search and depth-first search, other than the potential updates, can be charged to the number of relaxations.
 Again using the trick by Vaidya~\cite{Vaidya89}
@@ -1641,9 +1641,9 @@ There are only $O(1)$ data structures for both.
 The rewinding mechanism and potential update scheme of
 Section~\ref{section:hung} to reset for each Hungarian search in
 time $O(\polylog n)$ times the number of relaxations, giving the following.
-The main difference is that we are using blocking flows rather than anugmenting
-paths, so the initial $S$ (i.e. excess vertices) may change by more than
-one element each \textsc{Refine} iteration.
+The main difference is that we are using blocking flows rather than augmenting
+paths, so the initial $S$ (i.e.\ excess vertices) may change by more than
+one element for each \textsc{Refine} iteration.
 The total number of such changes throughout \textsc{Refine}is $O(k)$, however,
 since \textsc{Refine} begins with $O(k)$ excess and does not gain more.
 We obtain the following:
@@ -1870,7 +1870,7 @@ contractions under dynamic data structures in Appendix~\ref{SSA:contraction}.
 
 %\paragraph{Implementing contractions.}
 \note{REWRITE}
-Following Agarwal~\etal~\cite{AFPVX17}, our geometric data structures must deal
+Following Agarwal~\etal~\cite{AFPVX17}, our geometric data structures deals
 with real points in the plane instead of the contracted components.
 We will track the contracted components described in $\hat{G}$ (e.g.\ with a
 disjoint-set data structure) and mark the arcs of $\supp(f)$ that are
@@ -1887,7 +1887,7 @@ Since the input network is uncapacitated, each contracted component is
 strongly connected in the residual network by the admissible forward/backward
 arcs of each contracted arc. \note{unparsable}
 To relax arcs in $\hat{E}$, we relax the support arcs before attempting to
-relax any non-support arcs.  \note{mention the reason to make support acyclic}
+relax any non-support arcs; this will guarantee that the underlying graph of the support is acyclic (see Lemma~\ref{lemma:orlin_acyclic}).
 Relaxations of support arcs can be performed without further potential changes,
 since they are admissible by invariant.
 
@@ -2023,7 +2023,7 @@ If an either direction of an arc of $\supp(f)$ enters the frontier, we relax it
 immediately.
 To detect support arcs, we build a list for each $v \in A \cup B$ of the
 support arcs which use $v$ as an endpoint, and once $v \in S$ we check its list.
-There are $O(n)$ support arcs in total (by acyclicity of $E(\supp(f))$), so
+There are $O(n)$ support arcs in total (by acyclicity of $E(\supp(f))$; see Lemma~\ref{lemma:orlin_acyclic}), so
 the total time spent searching these lists is $O(n)$.
 Such relaxations are correct for the shortest path tree, since the support
 edges are admissible and reduced costs are nonnegative.
@@ -2496,7 +2496,7 @@ We say a star which crosses one of these size thresholds is \EMPH{changing state
 (from small-to-big or big-to-small), and must be represented in the opposite
 type of data structure.
 Our strategy is to charge the data structure update time associated with a
-state change to the \EMPH{membership changes} in $\Sigma_a$ that preceeded the
+state change to the \EMPH{membership changes} in $\Sigma_a$ that preceded the
 state change.
 
 A star $\Sigma_a$ undergoing a big-to-small state change has size
@@ -2581,7 +2581,7 @@ for a total of $O(rn^{3/2}\polylog n)$ time over the course of the algorithm.
 Rewinding takes the same amount of time.
 We spend up to $O((r^2\sqrt{n} + rn)\polylog n)$ time switching stars between big/small.
 We spend $O(n^{3/2}\polylog n)$ time activating and reviving vertices.
-Adding, the algorithm takes $O(r^2\sqrt{n} + rn^{3/2})\polylog n)$ time to
+Adding, the algorithm takes $O((r^2\sqrt{n} + rn^{3/2})\polylog n)$ time to
 produce optimal potentials $\pi^*$, from which we can recover $f^*$ in
 $O(n\polylog n)$ additional time.
 This completes the proof of Theorem~\ref{theorem:orlin}.
