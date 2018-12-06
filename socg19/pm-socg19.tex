@@ -38,7 +38,6 @@
 \usepackage{arydshln}
 
 \usepackage{todonotes}
-\def\note#1{\textcolor{red}{{#1}}}
 \def\etal{\emph{et~al.}}
 
 \dashlinedash 0.75pt
@@ -128,7 +127,7 @@
 % ----------------------------------------------------------------------
 \def\n@te#1{\textsf{\boldmath \textbf{$\langle\!\langle$#1$\rangle\!\rangle$}}\leavevmode}
 \def\note#1{\textcolor{red}{\n@te{#1}}}
-%\renewcommand{\note}[1]{} % use to clear notes
+\renewcommand{\note}[1]{} % use to clear notes
 
 
 %----------------------------------------------------------------------
@@ -163,8 +162,16 @@
 
 \subjclass{Theory of computation $\rightarrow$ Design and analysis of algorithms}
 \keywords{partial matching, transportation, minimum-cost flow, RMS-distance, bichromatic closest pair, cost scaling, excess scaling, primal-dual}
-\acknowledgements{We thank Haim Kaplan for useful discussion and suggesting to use Goldberg~\etal~\cite{GHKT17} for our approximation algorithm.}
-\funding{}
+\acknowledgements{
+We thank Haim Kaplan for discussion and suggestion to use
+Goldberg~\etal \cite{GHKT17} for our approximation algorithm.
+We thank Debmalya Panigrahi for helpful discussion.
+}
+\funding{
+Work on this paper was supported by NSF under grants CCF-15-13816, 
+CCF-15-46392, and IIS-14-08846, by an ARO grant W911NF-15-1-0408, and by 
+BSF Grant 2012/229 from the U.S.-Israel Binational Science Foundation.
+}
 
 \EventEditors{}
 \EventNoEds{2}
@@ -883,7 +890,7 @@ Let $T_\ell$ denote the subgraph of $T$ obtained by removing the heaviest $\ell$
 Let $i$ be the largest index so that
 the optimal solution to the geometric partial matching problem has edges between components of $T_i$.
 Choose $j$ to be the smallest index larger than $i$ satisfying
-$c(e_j) \geq kn \cdot c(e_i)$.
+$c(e_j) \geq kn^q \cdot c(e_i)$.
 For each component $K$ of $T_j$, let
 $G_K$ be the subgraph of $G$ induced on vertices of $K$;
 let $\EMPH{$A_K$} \coloneqq K \cap A$ and $\EMPH{$B_K$} \coloneqq K \cap B$, respectively.
@@ -900,8 +907,8 @@ Let $M^*$ be the optimal partial matching in $G$.
 Then,
 \begin{enumerate}[(i)]
 %\item $M^* = \bigcup_{K \in K_j} M^*_K$,
-\item $c(e_i) \leq \cost(M^*) \le kn \cdot c(e_i)$, and
-\item the diameter of $G_K$ is at most $kn^2 \cdot c(e_i)$ for every $K \in T_j$,
+\item $c(e_i) \leq \cost(M^*) \le kn^q \cdot c(e_i)$, and
+\item the diameter of $G_K$ is at most $kn^{2q} \cdot c(e_i)$ for every $K \in T_j$,
 \end{enumerate}
 % Furthermore, such partition can be constructed in $O(n\polylog n)$ time.
 % %using a dynamic data structure for bichromatic closest pair.
@@ -909,13 +916,19 @@ Then,
 
 To prove Lemma~\ref{lemma:cost_scale_approx}, we need to further modify the point set so that the cost of the optimal solution does not change, while the diameter of the \emph{whole} point set is bounded.
 %
-Move the points within each component in \emph{translation} so that the minimum distances between points across components are at least $kn \cdot c(e_i)$ but at most $O(n \cdot kn^2 \cdot c(e_i))$.
-This will guarantee that the optimal solution still uses edges within the components by Lemma~\ref{lemma:sa_partition}.
-The simplest way of achieving this is by aligning the components one by one into a ``straight line'', so that the distance between the two farthest components is at most $O(n)$ times the maximum diameter of the cluster.
+Move the points of each component in \emph{translation} so that the distance between points across components is greather than $kn^q \cdot c(e_i)$, but at most $O(n^q \cdot kn^{2q} \cdot c(e_i))$.
+This will guarantee that the optimal solution still uses edges within the components by the first part of Lemma~\ref{lemma:sa_partition}.
+The simplest way of achieving this is by aligning the components one by one into a ``straight line'',
+each separated from the next by a buffer of length $2kn^{q} \cdot c(e_i)$.
+Then, the maximum distance between points of the two farthest components is
+at most $O(n^q)$ times the maximum diameter of a cluster, or $O(kn^{3q} c(e_i))$.
 
-Now one can prove Lemma~\ref{lemma:cost_scale_approx} by computing an $(\eps c(e_i)/6k)$-optimal
-circulation $f$ on the point set after translations using additive approximation from Lemma~\ref{lemma:goldberg_cost_add}, together with the bound $c(e_i) \leq \cost(M^*)$ from
-Lemma~\ref{lemma:sa_partition}.
+By the bound $c(e_i) \leq \cost(M^*)$ from Lemma~\ref{lemma:sa_partition},
+a $(\eps c(e_i))$ additive approximation for each component $K \in T_j$ is
+a $(1 + \eps)$ multiplicative approximation to the solution within $K$.
+By Lemma~\ref{lemma:goldberg_cost_add}, finding a $(\eps c(e_i)/6k)$-optimal
+circulation for each component is sufficient for this additive approximation.
+Choosing $\alpha = c(e_i)$, this proves Lemma~\ref{lemma:cost_scale_approx}.
 
 % \begin{align*}
 % 		\cost(M_{f})
@@ -954,11 +967,11 @@ To solve this issue we perform a binary search on the edges $e_1, \ldots, e_{r+n
 \end{toappendix}
 
 \begin{lemma}
-\label{lemma:cost_scale_approx}
+\label{lemma:cost_scale_approx} %TODO
 Computing $(1+\eps)$-approximate geometric partial matching reduces to the following problem in $O(n \polylog n)$ time:
-Given reduction network $N$ over a point set with diameter at most $K \cdot k\poly n$
+Given reduction network $N$ over a point set with diameter $O(\alpha \cdot kn^{3q})$
 %\note{really? $K \cdot kn^{q+2}?$}
-for some constant $K$, compute a $(K \cdot \eps/6k)$-optimal circulation on~$N$.
+for some constant $\alpha$, compute a $(\alpha \cdot \eps/6k)$-optimal circulation on~$N$.
 \end{lemma}
 
 
@@ -1021,7 +1034,11 @@ circulation.
 Thus for any $\eps^* > 0$, the algorithm produces an $\eps^*$-optimal circulation after
 $O(\log(kC/\eps^*))$ scales.
 %
-Using the reduction in Lemma~\ref{lemma:cost_scale_approx}, we have the diameter of the point set, thus maximum cost $C$, bounded by $O(K \cdot kn^3)$ for some value $K$.  By setting $\eps^*$ to be $K \cdot \eps/6k$, the number of cost scales is bounded above by $O(\log(n/\eps))$.
+Using the reduction in Lemma~\ref{lemma:cost_scale_approx}, we have the
+diameter of the point set, thus maximum cost $C$, bounded by
+$O(\alpha \cdot kn^{3q})$ for some known value $\alpha$.
+By setting $\eps^*$ to be $\alpha \cdot \eps/6k$, the number of cost scales is
+bounded above by $O(\log(n/\eps))$.
 
 
 \paragraph{Scale initialization.}
@@ -1616,57 +1633,26 @@ Depth-first search performs $O(k)$ relaxations before a deficit vertex is reache
 \subsection{Time analysis}
 \label{SSA:time-ananlsis}
 
-Now we complete the time analysis
-%of the Hargarian search
-%by proving that potentials can be maintained in $O(k)$ time over the course of the search.
-by showing that each Hungarian search and depth-first search can be implemented in $O(k \polylog n)$ time after a one-time $O(n \polylog n)$-time preprocessing.
+Now we complete the time analysis by showing that each Hungarian search and
+depth-first search can be implemented in $O(k \polylog n)$ time after a
+one-time $O(n \polylog n)$-time preprocessing.
+
+There are only $O(1)$ data structures for both.
+The rewinding mechanism and potential update scheme of
+Section~\ref{section:hung} to reset for each Hungarian search in
+time $O(\polylog n)$ times the number of relaxations, giving the following.
+The main difference is that we are using blocking flows rather than anugmenting
+paths, so the initial $S$ (i.e. excess vertices) may change by more than
+one element each \textsc{Refine} iteration.
+The total number of such changes throughout \textsc{Refine}is $O(k)$, however,
+since \textsc{Refine} begins with $O(k)$ excess and does not gain more.
+We obtain the following:
 
 \begin{lemmarep}
 \label{lemma:goldberg_hs_time}
 After $O(n \polylog n)$-time preprocessing,
 each Hungarian search can be implemented in $O(k \polylog n)$ time.
 \end{lemmarep}
-%
-\begin{proof}
-Each of the constant number of data structures used by the Hungarian search can be constructed in $O(n\polylog n)$ time.
-For each data structure queried during a relaxation,
-the new vertex moved into $S$ causes a constant number of updates, each of which can be implemented in $O(\polylog n)$ time.
-%
-We first prove that the number of BCP
-operations during the Hungarian search over %the course of \textsc{Refine}
-is bounded by $O(k)$.
-
-\begin{enumerate}
-\item Let $S^t$ denote the initial set $S$ at the beginning of the $t$-th Hungarian search,
-% i.e. the set of $v \in V$ with
-% 	$\fsupply_f(v) > 0$ after $t$ blocking flows.
-Assume for now that, at the beginning of the $(t+1)$-th Hungarian search, we have the set $S^t$ from the previous iteration.
-To construct $S^{t+1}$, we remove the vertices that had excess decreased to zero by the $t$-th blocking flow.
-Thus, we are able to initialize $S$ at the cost of one BCP deletion per excess vertex, which sums to $O(k)$ over the entire course of \textsc{Refine}.  \note{Too strong as a bound? Is it enough to look at one Hungarian search?}
-
-\item During each Hungarian search, a vertex entering $S$ may incur one BCP insertion/deletion.
-We can charge the updates to the number of relaxations over the course of Hungarian search.
-The number of relaxations in a Hungarian search is $O(k)$ by Lemma~\ref{lemma:goldberg_hs_length}.
-
-\item To obtain $S^t$, we keep track of the points added to $S^t$ since the last Hungarian search.  After the augmentation, we remove those points added to $S^t$.  By (2) there are $O(k)$ such points to be deleted, so reconstructing $S^t$ takes $O(k)$ BCP operations.
-\end{enumerate}
-
-For potential updates, we use the same trick by Vaidya~\cite{Vaidya89} to
-lazily update potentials after vertices leave $S$ (similar to Lemma~\ref{lemma:hs_time}), but this time only for normal vertices.
-Normal vertices are stored in each data structure with weight
-$\omega(v) = \pi(v) - \delta$, and $\delta$ is increased in lieu of increasing
-the potential of vertices in $S$.
-When a vertex leave $S$ (through the rewind mechanism above), we restore
-its potential as $\pi(v) \gets \omega(v) + \delta$.
-With lazy updates, the number of potential updates on normal vertices is
-bounded by the number of relaxations in the Hungarian search, which is $O(k)$ by Lemma~\ref{lemma:goldberg_hs_length}.
-Note that null vertex potentials are not handled in the Hungarian search. \note{then where? Lemma~\ref{lemma:empty_updates}}
-\end{proof}
-
-
-There are no potentials to update within \textsc{DFS}, so the running time of
-\textsc{DFS} boils down to the time spent to querying and updating the data
-structures.
 
 \begin{lemmarep}
 \label{lemma:goldberg_dfs_time}
@@ -1674,15 +1660,10 @@ After $O(n \polylog n)$-time preprocessing,
 each depth-first search can be implemented in $O(k \polylog n)$ time.
 \end{lemmarep}
 
-\begin{proof}
-At the beginning of \textsc{Refine}, we can initialize the $O(1)$ data
-structures used in \textsc{DFS} in $O(n\polylog n)$ time.
-We use the same rewinding mechanism as in Hungarian search
-(Lemma~\ref{lemma:goldberg_hs_time}) to avoid reconstructing the data
-structures across iterations of \textsc{Refine}, so the total time spent
-is bounded by the $O(\polylog n)$ times the number of relaxations.
-By Corollary~\ref{corollary:goldberg_dfs_length}, the running time for depth-first search is $O(k\polylog n)$.
-\end{proof}
+\begin{lemmarep}
+The rewinding mechanism takes in total $O(k\polylog n)$ time in \textsc{Refine}.
+\end{lemmarep}
+
 
 \subsection{Number of potential updates on null vertices}
 \label{SSA:null-potential-update}
@@ -1712,8 +1693,8 @@ found in \textsc{Refine} is of size $O(k)$.
 \begin{proof}
 Let $i$ be fixed and consider the invocation of \textsc{DFS} which produces the
 $i$-th blocking flow $f_i$.
-\textsc{DFS} constructs $f_i$ as a sequence of admissible excess-deficit paths,
-which appear as path $P$ in Algorithm~\ref{algorithm:goldberg_dfs}.
+\textsc{DFS} constructs $f_i$ as a sequence of admissible excess-deficit paths.
+Let one of these paths be $P$.
 Every arc in $P$ is an arc relaxed by \textsc{DFS}, so $N_i$ is bounded by the
 number of relaxations performed in \textsc{DFS}.
 Using Corollary~\ref{corollary:goldberg_dfs_length}, we have $N_i = O(k)$.
@@ -2074,11 +2055,14 @@ optimal flow $f^*$ can be computed in $O(n\polylog n)$ time.
 \subsection{Recovering the optimal flow for sum-of-distances.}
 \label{SSA:flow-recovery-planar}
 
-When the matching objective uses the just the $p$-norms (that is, when $q=1$), we can prove that
-the subgraph formed by admissible arcs is in fact \emph{planar}.
-Planarity gives us two things towards a simple $f^*$ recovery:
+When the matching objective uses the just the $p$-norms (that is, when $q=1$),
+we can prove that the subgraph formed by admissible arcs is in fact \emph{planar}.
+Planarity gives us two things for recovery:
 there are only a linear number of admissible arcs, and the max-flow on them can
-be solved in near-linear time with planar graph max-flow algorithms.
+be solved in near-linear time with a planar graph multiple-source multiple-sink
+max-flow algorithm.
+Note that this recovery algorithm is not asymptotically faster than the other,
+and depending on the planar max-flow algorithm, not necessarily simpler either.
 
 Up until now, we have not placed restrictions on coincidence between $A$ and $B$,
 but for the next proof it is useful to do so.
@@ -2204,8 +2188,9 @@ the minimum-reduced-cost outgoing arc for each $a \in A$ until the result is
 not admissible.
 By Lemma~\ref{lemma:admiss_planar} the resulting arc set forms a planar graph,
 so by Euler's formula the number of arcs to query is $O(n)$.
-We can then find the maximum flow in time $O(n\log n)$ time, using for example the
-planar maximum-flow algorithm by Erickson~\cite{E10}. \note{cite others like Klein}
+We can then find the maximum flow in time $O(n\log^3 n)$ time, using the
+planar multiple-source multiple-sink maximum-flow algorithm by
+Borradaile~\etal~\cite{BKMNW17}.
 
 \begin{lemma}
 If the transportation objective is sum-of-costs, then given the optimal
@@ -2598,8 +2583,7 @@ We spend up to $O((r^2\sqrt{n} + rn)\polylog n)$ time switching stars between bi
 We spend $O(n^{3/2}\polylog n)$ time activating and reviving vertices.
 Adding, the algorithm takes $O(r^2\sqrt{n} + rn^{3/2})\polylog n)$ time to
 produce optimal potentials $\pi^*$, from which we can recover $f^*$ in
-$O(r\sqrt{n}\polylog n)$ %TODO depends on which algorithm
-additional time.
+$O(n\polylog n)$ additional time.
 This completes the proof of Theorem~\ref{theorem:orlin}.
 
 
