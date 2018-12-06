@@ -315,8 +315,8 @@ Orlin~\cite{O93} solves the transportation problem in
 $O((m + n\log n) n\log n)$ time.
 Lee and Sidford~\cite{LS13b} give a weakly polynomial algorithm that runs in
 $O(m\sqrt{n}\polylog(n, U))$ time, where $U$ is the maximum amount of vertex supply-demand.
-Agarwal~\etal~\cite{AFPVX17} showed that Orlin's algorithm can be
-implemented in the planar setting in time $O(n^2\polylog n)$.
+Agarwal~\etal~\cite{AFPVX17} showed that \cite{O93} can be
+implemented to solve 2D transportation in time $O(n^2\polylog n)$.
 It is an open question whether this algorithm can be implemented to run in
 $O(rn\polylog n)$ time (recall that $r$ is the size of $A$).
 By adapting the Lee-Sidford algorithm, they developed a
@@ -344,7 +344,7 @@ augmenting path, we show that after $O(n\polylog n)$ preprocessing,
 an augmenting path can be found in $O(k\polylog n)$ time.
 The key is to recycle (rather than rebuild) our data structures from one
 augmentation to the next.
-We refer to this idea the \emph{rewinding mechanism}.
+We refer to this idea as the \emph{rewinding mechanism}.
 %and it will be used in our other algorithms as well.
 
 \medskip
@@ -394,8 +394,8 @@ into \emph{stars} centered at vertices of $A$.
 We describe a data structure that processes these stars in amortized
 $O((r^2/\sqrt{n} + r\sqrt{n})\polylog n)$ time per augmentation.
 
-Finally remark that the work by Agarwal~\etal~\cite{AKKMRSX18} uses partial matching
-algorithm as a black box, thus can be improved by simply plugging in ours.
+We remark that the work by Agarwal~\etal~\cite{AKKMRSX18} uses a partial matching
+algorithm as a black box, and thus can be improved by simply plugging in ours.
 We omit the details here.
 
 % ----------------------------------------------------------------------------
@@ -503,7 +503,7 @@ Given two point sets $P$ and $Q$ in the plane, the bichromatic closest pair are 
 $a \in P$ and $b \in Q$ minimizing the additively weighted distance
 $c(a, b) - \omega(a) + \omega(b)$ for some real-valued vertex weights $\omega$.
 Thus, the minimum reduced-cost among the frontier edges is precisely the cost of the BCP of point sets
-$P = A \cap S$ and $Q = B \setminus S$, with $\omega(p) = \pi(p)$.
+$P = A \cap S$ and $Q = B \setminus S$, with $\omega = \pi$.
 
 %\note{Short history on BCP?}
 %\note{Under the assumption ... on the metric,}
@@ -810,7 +810,7 @@ Here we reduce the min-cost partial matching problem to the unit-capacity min-co
 Given a bipartite graph $G = (A,B,E_0)$ for the geometric partial matching problem with cost function $c$, we construct the \EMPH{reduction graph $H$} as follows:
 Direct the edges in $E_0$ from $A$ to $B$, and assign each directed edge with capacity $1$.  Now add a dummy vertex $s$ with directed edges to all vertices in $A$, and add a dummy vertex $t$ with directed edges from all vertices in $B$; each edge added has cost $0$ and capacity $1$.
 %The \EMPH{reduction graph $H$} consists of vertex set $V = A \cup B \cup \set{s,t}$ and edge set $E$.
-Assign vertex $s$ with supply $k$ and vertex $t$ with demand $k$; the rest of the vertices in $H$ have zero supply-demand.
+Assign vertex $s$ with supply $k$ and vertex $t$ with demand $-k$; the rest of the vertices in $H$ have zero supply-demand.
 We call the network naturally corresponds to $H$ as the \EMPH{reduction network $N_H$}.
 %
 It is straightforward to show that any integer circulation $f$ on $N_H$ uses exactly
@@ -1243,7 +1243,7 @@ Combined with Lemma~\ref{lemma:goldberg_refine_iterations}
 the procedure \textsc{Refine} can be implemented in $O((n+k\sqrt{k}) \polylog n)$ time.  Together with our analysis on scale initialization and the bound on number of cost scales, this concludes the proof to Theorem~\ref{theorem:gmcm}.
 %\note{Well, there's the null vertex potential updates.  Hide it?}
 
-Both Hungarian search and depth-first search are implemented in a Dijkstra-like fashion, traversing through the residual graph using admissible arcs starting from the excess vertices.
+The Hungarian search and depth-first search are similar, traversing through the residual graph using admissible arcs starting from the excess vertices.
 Each step of the search procedures \EMPH{relaxes} a minimum-reduced-cost arc from the set of visited vertices to an unvisited vertex, until a deficit vertex is reached.
 %
 At a high level, our analysis strategy is to charge the relaxation events to the support arcs of $f$.
@@ -1257,7 +1257,7 @@ As it turns out, there are some vertices visited by a relaxation event which we 
 Unfortunately the number of such vertices can be as large as $\Omega(n)$.
 %(consider the residual graph under the zero flow).
 %
-To overcome this issue, we replace the residual graph with an equivalent graph that excludes all the null vertices,
+To overcome this issue, we replace the residual graph with an equivalent graph that excludes these \emph{null vertices},
 and run the Hungarian search and depth-first search on the resulting graph instead.
 
 \paragraph{Null vertices.}
@@ -1273,7 +1273,7 @@ In either case, we say that the null 2-path \EMPH{passes through} null vertex $v
 Similarly, we define the length-$3$ path from $s$ to $t$ that passes through two null
 vertices to be a \EMPH{null 3-path}.
 %
-Because reduced costs telescope for residual paths, the reduced cost of any null 2-path or null 3-path does not depend on the null vertices it passes through.
+Because reduced costs telescope for residual paths, the reduced cost of any null path does not depend on the potentials of the null vertices it passes through.
 
 \paragraph{Shortcut graph.}
 We construct the \EMPH{shortcut graph $\tilde{H}_f$} from the reduction network $H$ by removing all
@@ -1384,12 +1384,11 @@ This proves the lemma.
 % \end{minipage}
 % \end{figure*}
 %
-Conceptually, we are executing the Hungarian search
+Conceptually, we execute the Hungarian search
 %(``raise prices'') from \cite[Section 3.2]{GHKT17}
 on the shortcut graph $\tilde{H}_f$.
 We describe how we can query the minimum-reduced-cost arc leaving $\tilde{S}$ in
-$O(\polylog n)$ time for the shortcut graph, without constructing
-$\tilde{H}_f$ explicitly.
+$O(\polylog n)$ time for $\tilde{H}_f$, without constructing it explicitly.
 For this purpose, let \EMPH{$S$} be a set of ``reached'' vertices maintained,
 identical to $\tilde{S}$ except whenever a shortcut is relaxed, we add the null vertices passed by the corresponding null path to $S$ in addition to its (normal) endpoints.
 %\note{$S$ should be $\tilde{S}$ and $S'$ should be $S$?}
@@ -1779,9 +1778,8 @@ min-cost flow problem, and provide a fast implementation under the geometric set
 % One simply has $\cost(f) = \cost(\tau_f)$.
 
 
-We assume the readers are familiar with Orlin's strongly polynomial-time algorithm for uncapacitated min-cost flow problem~\cite{O93}.
-For a brief introduction to Orlin's algorithm see Appendix~\ref{SSA:orlin},
-as well as the original paper.
+For lack of space, we only sketch Orlin's strongly polynomial-time algorithm for uncapacitated min-cost flow problem~\cite{O93}.
+See Appendix~\ref{SSA:orlin} for a brief introduction, as well as the original paper.
 %
 In short, Orlin's algorithm follows the \EMPH{excess-scaling} paradigm under the primal-dual framework:
 Maintain a \EMPH{scale parameter} $\Delta$, initially set to $U$.
