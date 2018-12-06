@@ -621,6 +621,10 @@ The \EMPH{support} of a pseudoflow $f$ in $N$, is the set of arcs with positive 
 \(
 \EMPH{$\supp(f)$} \coloneqq \set{\arc vw \in \vec{E} \mid f(\arc vw) > 0}.
 \)
+Given a pseudoflow $f$, we define the \EMPH{imbalance} of a vertex to be
+\(
+\EMPH{$\fsupply_f (v)$} \coloneqq \fsupply(v) + \sum_{\arc wv \in \vec{E}}{f(\arc wv)} - \sum_{\arc vw \in \vec{E}}{f(\arc vw)}.
+\)
 If all vertices are \emph{balanced}, the pseudoflow is a \EMPH{circulation}.
 The \EMPH{cost} of a pseudoflow
 %denoted \EMPH{$\cost(f)$},
