@@ -101,6 +101,7 @@
 \def\parent{\operatorname{par}}
 \def\short{\operatorname{short}}
 \def\supp{\operatorname{supp}}
+\def\intracount{\operatorname{count}}
 
 
 \theoremstyle{plain}
@@ -941,14 +942,102 @@ Choosing $\alpha = c(e_i)$, this proves Lemma~\ref{lemma:cost_scale_approx}.
 % 		&\leq (1 + \eps) \cost(M^*). & \text{\small[Lemma~\ref{lemma:sa_partition}]}
 % \end{align*}
 
-One small problem remains: We need to show that such reduction can be performed in $O(n\polylog n)$ time.
-Sharathkumar and Agarwal~\cite{SA12} have shown that the partition of $A$ and $B$ into $A_K$s and $B_K$s can be computed in $O(n \polylog n)$ time, assuming that the indices $i$ and $j$ can be determined in such time as well.  However in our application the choice of index $i$ depends on the optimal solution of geometric partial matching problem which we do not know.
-%
-To solve this issue we use parametric search.  The details are omitted here.
-% To solve this issue we perform a binary search on the edges $e_1, \ldots, e_{r+n-1}$ of the minimum spanning tree $T$.
-% \note{Hmm, we have no way to check Lemma 4.5(i); but in fact a polynomial bound is good enough.}
+%TODO version diameter vs bottleneck
+It remains to show that this reduction can be performed in $O(n\polylog n)$ time.
+Sharathkumar and Agarwal~\cite{SA12} have shown that the partition of $A$ and
+$B$ into $A_K$s and $B_K$s can be computed in $O(n \polylog n)$ time, assuming
+that the indices $i$ and $j$ can be determined in such time as well.
+Since $i$ is defined using the optimal partial matching, it seems difficult to
+determine even given the sorted sequence $e_1, \ldots, e_{r+n-1}$.
+However, we can find a polynomial approximation to $i$, which suffices for
+the multiplicative reduction.
 
-\note{UNRESOLVED ISSUE}
+
+
+
+
+
+%TODO probably restructure somewhat here
+
+
+
+
+%TODO introduce intra/inter earlier
+We say a $k$-matching $M$ is \EMPH{intra-cluster} with respect to a clustering
+of $A \cup B$ if no edge of $M$ has endpoints in two different clusters.
+For example, the index $i$ defined above is the smallest index such that $M^*$
+is an intra-cluster partial matching with respect to $T_i$.
+Let $i'$ be the smallest index such that $T_{i'}$ contains an intra-cluster
+$k$-matching.
+We can compute $i'$ in $O(n)$ time by traversing the edges
+$e_1,\ldots,e_{r+n-1}$ in ascending order, tracking the number of $A$ and $B$
+points in each cluster defined by $T_\ell$.
+Specifically, for each $\ell \in 1, \ldots, (r+n-1)$ let
+\[
+	\intracount(\ell) \coloneqq \sum_{K \in T_\ell} \min(A_K, B_K),
+\]
+which is the size of the largest intra-cluster matching possible under $T_\ell$.
+The first index for which $\intracount(\ell) \geq k$ is $i'$.
+
+%TODO i vs i': i keeps OPT intra-cluster. this is important if we distort inter-space
+% but if we use j defined on i', it works right? basically, we can probably replace i with i'
+\begin{lemma}
+With $i'$ as defined above, $c(e_{i'}) \leq \cost(M^*) \leq kn^q \cdot c(e_{i'})$.
+\end{lemma}
+\begin{proof}
+From definition, $i' \leq i$ and $c(e_{i'}) \leq c(e_i)$.
+If $i' \neq i$, then there is at least one edge $e \in M^*$ whose endpoints
+belong to two different components of $T_{i'}$, with $c(e) \geq c(e_{i'})$.
+Thus, $\cost(M^*) \geq c(e_{i'})$.
+
+Second, let $M$ be the intra-cluster $k$-matching purported to exist in $T_{i'}$.
+For every edge $(a, b) \in M$, $\norm{a-b} \leq \norm{e_{i'}}$.
+Each component of $T_{i'}$ has first-power diameter at most $n\norm{e_{i'}}$,
+so $\cost(M) \leq kn^q \cdot c(e_{i'})$.
+Optimality of $M^*$ then gives $\cost(M^*) \leq kn^q \cdot c(e_{i'})$.
+\end{proof}
+
+\begin{corollary}
+Let $j$ be the first index where $c(e_j) \geq kn^q \cdot c(e_i)$.
+Then, $M^*$ is an intra-cluster matching in $T_j$.
+\end{corollary}
+
+
+%TODO diameter version --- translate the components into a line separated by c(e_j)
+%TODO how do we want to distinguish ||a-b|| vs the powered version? i.e., which does ``diameter'' refer to?
+\begin{lemma}
+The diameter of $G_K$ is at most $2^q kn^{2q} \cdot c(e_{i'})$.
+\end{lemma}
+\begin{proof}
+The first-power diameter per component of $T_j$ is at most $(kn^q)^{1/q} \norm{e_{i'}}$.
+Each one is spaced from the next in sequence by $(kn^q)^{1/q} \norm{e_{i'}}$,
+so the first-power diameter of $G_K$ is at most $2n(kn^q)^{1/q} \norm{e_{i'}}$.
+Taking the $q$-th power, we see that the diameter of $G_K$ is at most
+$2^q kn^{2q} \cdot c(e_{i'})$.
+\end{proof}
+
+These two lemmas are sufficient for the requirements of Lemma~\ref{lemma:cost_scale_approx}
+choosing constant $\alpha = c(e_{i'})$.
+%TODO problem here
+\note{How are we guaranteed that the approx solution is intracluster? important if we translate.}
+\begin{proof}[Proof of Lemma~\ref{lemma:cost_scale_approx}]
+
+\end{proof}
+
+
+
+%TODO bottleneck version, into a lemma? into a proof?
+Let $M$ be an intra-cluster $k$-matching in $T_{i'}$, which exists by definition of $i'$.
+No edge in $M$ has cost more than $n^q \cdot c(e_{i'})$.
+By Lemma~%TODO missing the bottleneck lemma; other section
+, the cost scaling algorithm will execute correctly when initialized with
+scale $C = n^q \cdot c(e_{i'})$.
+Thus, we can meet the requirements of Lemma~\ref{lemma:cost_scale_approx}
+choosing constant $\alpha = c(e_{i'})$.
+The number of cost scales is $O(\log((n^q\alpha)/(\eps\alpha/6k)) = O(\log(n/\eps))$ for constant $q$.
+
+
+
 
 
 % Using this lemma, one can prove Lemma~\ref{lemma:cost_scale_approx} by computing an $(\eps c(e_i)/6kn)$-optimal
@@ -974,7 +1063,7 @@ To solve this issue we use parametric search.  The details are omitted here.
 \begin{lemma}
 \label{lemma:cost_scale_approx} %TODO
 Computing $(1+\eps)$-approximate geometric partial matching reduces to the following problem in $O(n \polylog n)$ time:
-Given reduction network $N$ over a point set with diameter $O(\alpha \cdot kn^{3q})$
+Given reduction network $N$ over a point set with diameter $O(\alpha \cdot kn^{2q})$
 %\note{really? $K \cdot kn^{q+2}?$}
 for some constant $\alpha$, compute an $(\alpha \cdot \eps/6k)$-optimal circulation on~$N$.
 \end{lemma}
@@ -1024,6 +1113,7 @@ partial matching setting (with respect to $L_p$ norms) the costs are generally n
 % \end{minipage}
 % \end{figure*}
 
+%TODO bottleneck replace? regardless, second sentence and usage of kC are erroneous
 The cost-scaling algorithm initializes the flow $f$ and the potential $\pi$ to be zero.
 Note that the zero flow is trivially a $kC$-optimal flow, where $C$ is the maximum arc cost.
 At the beginning of each scale starting at $\eps = kC$,
