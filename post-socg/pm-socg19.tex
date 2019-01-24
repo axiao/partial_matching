@@ -868,11 +868,11 @@ Rearranging the terms we have that $\cost(f) \leq \cost(f^*) + 6k\eps$.
 \end{proof}
 
 
-
 \paragraph{Multiplicative approximation.}
-Now we employ a technique from Sharathkumar and Agarwal~\cite{SA12} to convert the additive approximation into a multiplicative one.
-%thus proving Lemma~\ref{lemma:cost_scale_approx}.
-The reduction does not work out of the box, as they were tackling a similar but different problem on geometric transportations.
+We employ a technique from Sharathkumar and Agarwal~\cite{SA12} to convert the
+additive approximation into a multiplicative one.
+The reduction does not work out of the box, as they were tackling a similar but
+different problem on geometric transportations.
 See Appendix~\ref{SSA:multiplicative-approx} for details.
 
 % Sharathkumar and Agarwal~{\cite[\S3.5]{SA12}} provide a construction that partitions the input point sets $A$ and $B$ for the geometric partial matching problem into clusters, such that the diameter of each cluster is upper bounded by the cost of the optimal partial matching multiply by a polynomial factor.
@@ -889,152 +889,111 @@ See Appendix~\ref{SSA:multiplicative-approx} for details.
 
 Let $T$ be the minimum spanning tree on input graph $G$ and order
 its edges by increasing length as $e_1, \ldots, e_{r+n-1}$.
-Let $T_\ell$ denote the subgraph of $T$ obtained by removing the heaviest $\ell$ edges in $T$.
-%
-Let $i$ be the largest index so that
-the optimal solution to the geometric partial matching problem has edges between components of $T_i$.
-Choose $j$ to be the smallest index larger than $i$ satisfying
-$c(e_j) \geq kn^q \cdot c(e_i)$.
-For each component $K$ of $T_j$, let
-$G_K$ be the subgraph of $G$ induced on vertices of $K$;
-let $\EMPH{$A_K$} \coloneqq K \cap A$ and $\EMPH{$B_K$} \coloneqq K \cap B$, respectively.
-We partition $A$ and $B$ into the collection of sets $A_K$ and $B_K$ according to the components $K$ of $T_j$.
-Since $j < i$, the optimal partial matching in $G$ can be partitioned into edges between $A_K$ and $B_K$ within $G_K$; no optimal matching edges lie between components.
+As in Sharathkumar and Agarwal~\cite{SA12}, we can construct $T$ and the
+sorted sequence of its edges in $O(n\polylog n)$ using a dynamic data structure
+for nearest neighbors.
+Let $T_\ell$ denote the connected components of $T$ induced by the first $\ell$
+edges ($e_1, \ldots, e_{\ell}$) of $T$.
+Abusing notation, we also use $T_\ell$ to denote the clustering of $A \cup B$
+induced by the components of $T_\ell$.
+For each cluster $K \in T_\ell$, we use $A_K$ and $B_K$ to denote the points of
+$A \in K$ and $B \in K$ respectively.
 
-\begin{lemma}[(Sharathkumar and Agarwal~{\cite[\S3.5]{SA12}})]
-\label{lemma:sa_partition}
-%
-Let $G = (A,B,E_0)$ be the input to geometric partial matching problem, and consider the partitions $A_K$ and $B_K$ defined as above.
-Let $M^*$ be the optimal partial matching in $G$.
-%and $M^*_K$ be the optimal matching in $G_K$ \note{with which parameter $k_K$?}.
-%and let the diameter of a component $K$ be $C_K \coloneqq \max_{p, q \in A_K \cup B_K} \|p - q\|$.
-Then,
-\begin{enumerate}[(i)]
-%\item $M^* = \bigcup_{K \in K_j} M^*_K$,
-\item $c(e_i) \leq \cost(M^*) \le kn^q \cdot c(e_i)$, and
-\item the diameter of $G_K$ is at most $kn^{2q} \cdot c(e_i)$ for every $K \in T_j$,
-\end{enumerate}
-% Furthermore, such partition can be constructed in $O(n\polylog n)$ time.
-% %using a dynamic data structure for bichromatic closest pair.
-\end{lemma}
-
-To prove Lemma~\ref{lemma:cost_scale_approx}, we need to further modify the point set so that the cost of the optimal solution does not change, while the diameter of the \emph{whole} point set is bounded.
-%
-Move the points of each component in \emph{translation} so that the distance between points across components is greater than $kn^q \cdot c(e_i)$, but at most $O(n^q \cdot kn^{2q} \cdot c(e_i))$.
-This will guarantee that the optimal solution still uses edges within the components by the first part of Lemma~\ref{lemma:sa_partition}.
-The simplest way of achieving this is by aligning the components one by one into a ``straight line'',
-each separated from the next by a buffer of length $2kn^{q} \cdot c(e_i)$.
-Then, the maximum distance between points of the two farthest components is
-at most $O(n^q)$ times the maximum diameter of a cluster, or $O(kn^{3q} c(e_i))$.
-
-By the bound $c(e_i) \leq \cost(M^*)$ from Lemma~\ref{lemma:sa_partition},
-a $(\eps c(e_i))$ additive approximation for each component $K \in T_j$ is
-a $(1 + \eps)$ multiplicative approximation to the solution within $K$.
-By Lemma~\ref{lemma:goldberg_cost_add}, finding a $(\eps c(e_i)/6k)$-optimal
-circulation for each component is sufficient for this additive approximation.
-Choosing $\alpha = c(e_i)$, this proves Lemma~\ref{lemma:cost_scale_approx}.
-
-% \begin{align*}
-% 		\cost(M_{f})
-% 		&= \cost(f) & \\
-% 		&\leq \cost(f^*) + \eps c(e_i) & \text{\small [Lemma~\ref{lemma:goldberg_cost_add}]} \\
-% 		&= \cost(M^*) + \eps c(e_i) & \\
-% 		&\leq (1 + \eps) \cost(M^*). & \text{\small[Lemma~\ref{lemma:sa_partition}]}
-% \end{align*}
-
-%TODO version diameter vs bottleneck
-It remains to show that this reduction can be performed in $O(n\polylog n)$ time.
-Sharathkumar and Agarwal~\cite{SA12} have shown that the partition of $A$ and
-$B$ into $A_K$s and $B_K$s can be computed in $O(n \polylog n)$ time, assuming
-that the indices $i$ and $j$ can be determined in such time as well.
-Since $i$ is defined using the optimal partial matching, it seems difficult to
-determine even given the sorted sequence $e_1, \ldots, e_{r+n-1}$.
-However, we can find a polynomial approximation to $i$, which suffices for
-the multiplicative reduction.
-
-
-
-
-
-
-%TODO probably restructure somewhat here
-
-
-
-
-%TODO introduce intra/inter earlier
+%TODO since only one index, probably change i --> j later
 We say a $k$-matching $M$ is \EMPH{intra-cluster} with respect to a clustering
 of $A \cup B$ if no edge of $M$ has endpoints in two different clusters.
-For example, the index $i$ defined above is the smallest index such that $M^*$
-is an intra-cluster partial matching with respect to $T_i$.
-Let $i'$ be the smallest index such that $T_{i'}$ contains an intra-cluster
+Otherwise, we say the matching is \EMPH{inter-cluster}.
+Let $i$ be the smallest index such that $T_i$ contains an intra-cluster
 $k$-matching.
-We can compute $i'$ in $O(n)$ time by traversing the edges
-$e_1,\ldots,e_{r+n-1}$ in ascending order, tracking the number of $A$ and $B$
+We can compute $i$ in $O(n)$ time by traversing the edges
+$e_1,\ldots ,e_{r+n-1}$ in ascending order, tracking the number of $A$ and $B$
 points in each cluster defined by $T_\ell$.
 Specifically, for each $\ell \in 1, \ldots, (r+n-1)$ let
 \[
 	\intracount(\ell) \coloneqq \sum_{K \in T_\ell} \min(A_K, B_K),
 \]
 which is the size of the largest intra-cluster matching possible under $T_\ell$.
-The first index for which $\intracount(\ell) \geq k$ is $i'$.
+The first index for which $\intracount(\ell) \geq k$ is $i$.
 
-%TODO i vs i': i keeps OPT intra-cluster. this is important if we distort inter-space
-% but if we use j defined on i', it works right? basically, we can probably replace i with i'
 \begin{lemma}
-With $i'$ as defined above, $c(e_{i'}) \leq \cost(M^*) \leq kn^q \cdot c(e_{i'})$.
+\label{lemma:mult_cluster}
+\begin{enumerate}[(i)]
+%\item $c(e_i) \leq \cost(M^*) \leq kn^q \cdot c(e_i)$. %TODO second half not needed?
+\item \label{item:mult_cluster1}
+	$c(e_i) \leq \cost(M^*)$
+\item \label{item:mult_cluster2}
+	The bottleneck matching value for $A \cup B$ is at most $n^q \cdot c(e_i)$.
+\end{enumerate}
 \end{lemma}
 \begin{proof}
-From definition, $i' \leq i$ and $c(e_{i'}) \leq c(e_i)$.
-If $i' \neq i$, then there is at least one edge $e \in M^*$ whose endpoints
-belong to two different components of $T_{i'}$, with $c(e) \geq c(e_{i'})$.
-Thus, $\cost(M^*) \geq c(e_{i'})$.
+First, by definition of $i$, $M^*$ is inter-cluster in $T_{i-1}$.
+Although $M^*$ need not be intra-cluster in $T_i$, this implies that at least
+one edge $e \in M^*$ has $c(e) \geq c(e_i)$.
+It follows that $c(e_i) \leq \cost(M^*)$.
 
-Second, let $M$ be the intra-cluster $k$-matching purported to exist in $T_{i'}$.
-For every edge $(a, b) \in M$, $\norm{a-b} \leq \norm{e_{i'}}$.
-Each component of $T_{i'}$ has first-power diameter at most $n\norm{e_{i'}}$,
-so $\cost(M) \leq kn^q \cdot c(e_{i'})$.
-Optimality of $M^*$ then gives $\cost(M^*) \leq kn^q \cdot c(e_{i'})$.
+Second, let $M$ be the intra-cluster $k$-matching purported to exist in $T_i$.
+Each component of $T_i$ has first-power diameter at most $n\norm{e_i}$,
+so the longest edge in $M$ has cost at most $n^q \cdot c(e_i)$.
+The bottleneck matching value of $A \cup B$ is at most that.
+%so $\cost(M) \leq kn^q \cdot c(e_i)$.
+%Optimality of $M^*$ then gives $\cost(M^*) \leq kn^q \cdot c(e_i)$.
 \end{proof}
 
-\begin{corollary}
-Let $j$ be the first index where $c(e_j) \geq kn^q \cdot c(e_i)$.
-Then, $M^*$ is an intra-cluster matching in $T_j$.
-\end{corollary}
+With Lemma~\ref{lemma:mult_cluster}, we can complete the proof of
+Lemma~\ref{lemma:cost_scale_approx}.
+
+\begin{proof}[Proof of Lemma~\ref{lemma:cost_scale_approx}]
+We can determine $i$ and $c(e_i)$ in $O(n\polylog n)$ time, as described above.
+Fix $\alpha = c(e_i)$.
+Combining Lemma~\ref{lemma:mult_cluster}.\ref{item:mult_cluster2} and
+Lemma~\ref{lemma:goldberg_refine_iterations},
+the cost scaling algorithm will execute correctly when initialized with
+scale $\eps_0 \coloneqq 2n^q \cdot c(e_{i'}) = n^q \alpha$.
+Computing an $(\alpha\eps/6k)$-optimal circulation produces a partial matching
+of cost at most
+\begin{equation*}
+\cost(M^*) + 6k(\alpha\eps/6k) = \cost(M^*) + \eps \cdot c(e_i)
+	\leq (1+\eps) \cost(M^*)
+\end{equation*}
+where the inequality follows from Lemma~\ref{lemma:mult_cluster}.\ref{item:mult_cluster1}.
+\end{proof}
+
+
+
 
 
 %TODO diameter version --- translate the components into a line separated by c(e_j)
 %TODO how do we want to distinguish ||a-b|| vs the powered version? i.e., which does ``diameter'' refer to?
-\begin{lemma}
-The diameter of $G_K$ is at most $2^q kn^{2q} \cdot c(e_{i'})$.
-\end{lemma}
-\begin{proof}
-The first-power diameter per component of $T_j$ is at most $(kn^q)^{1/q} \norm{e_{i'}}$.
-Each one is spaced from the next in sequence by $(kn^q)^{1/q} \norm{e_{i'}}$,
-so the first-power diameter of $G_K$ is at most $2n(kn^q)^{1/q} \norm{e_{i'}}$.
-Taking the $q$-th power, we see that the diameter of $G_K$ is at most
-$2^q kn^{2q} \cdot c(e_{i'})$.
-\end{proof}
+%\paragraph{Translated version.} %TODO remove this label
 
-These two lemmas are sufficient for the requirements of Lemma~\ref{lemma:cost_scale_approx}
-choosing constant $\alpha = c(e_{i'})$.
-%TODO problem here
-\note{How are we guaranteed that the approx solution is intracluster? important if we translate.}
-\begin{proof}[Proof of Lemma~\ref{lemma:cost_scale_approx}]
-
-\end{proof}
+%Let $j$ be the first index where $c(e_j) \geq kn^q \cdot c(e_i)$.
+%From Lemma~\ref{lemma:mult_cluster}, we have the following corollary.
+%
+%\begin{corollary}
+%$M^*$ is an intra-cluster matching in $T_j$.
+%\end{corollary}
 
 
+%\begin{lemma}
+%The diameter of $G_K$ is at most $2^q kn^{2q} \cdot c(e_{i'})$.
+%\end{lemma}
+%\begin{proof}
+%The first-power diameter per component of $T_j$ is at most $(kn^q)^{1/q} \norm{e_{i'}}$.
+%Each one is spaced from the next in sequence by $(kn^q)^{1/q} \norm{e_{i'}}$,
+%so the first-power diameter of $G_K$ is at most $2n(kn^q)^{1/q} \norm{e_{i'}}$.
+%Taking the $q$-th power, we see that the diameter of $G_K$ is at most
+%$2^q kn^{2q} \cdot c(e_{i'})$.
+%\end{proof}
+%
+%These two lemmas are sufficient for the requirements of Lemma~\ref{lemma:cost_scale_approx}
+%choosing constant $\alpha = c(e_{i'})$.
+%%TODO problem here
+%\note{How are we guaranteed that the approx solution is intracluster? important if we translate.}
 
-%TODO bottleneck version, into a lemma? into a proof?
-Let $M$ be an intra-cluster $k$-matching in $T_{i'}$, which exists by definition of $i'$.
-No edge in $M$ has cost more than $n^q \cdot c(e_{i'})$.
-By Lemma~%TODO missing the bottleneck lemma; other section
-, the cost scaling algorithm will execute correctly when initialized with
-scale $C = n^q \cdot c(e_{i'})$.
-Thus, we can meet the requirements of Lemma~\ref{lemma:cost_scale_approx}
-choosing constant $\alpha = c(e_{i'})$.
-The number of cost scales is $O(\log((n^q\alpha)/(\eps\alpha/6k)) = O(\log(n/\eps))$ for constant $q$.
+
+
+
+
 
 
 
@@ -1061,11 +1020,10 @@ The number of cost scales is $O(\log((n^q\alpha)/(\eps\alpha/6k)) = O(\log(n/\ep
 \end{toappendix}
 
 \begin{lemma}
-\label{lemma:cost_scale_approx} %TODO
+\label{lemma:cost_scale_approx}
 Computing $(1+\eps)$-approximate geometric partial matching reduces to the following problem in $O(n \polylog n)$ time:
-Given reduction network $N$ over a point set with diameter $O(\alpha \cdot kn^{2q})$
-%\note{really? $K \cdot kn^{q+2}?$}
-for some constant $\alpha$, compute an $(\alpha \cdot \eps/6k)$-optimal circulation on~$N$.
+Given reduction network $N$ over a point set with diameter $O(kn^{2q} \alpha)$
+for some constant $\alpha$, compute an $(\alpha\eps/6k)$-optimal circulation on~$N$.
 \end{lemma}
 
 
@@ -1113,27 +1071,37 @@ partial matching setting (with respect to $L_p$ norms) the costs are generally n
 % \end{minipage}
 % \end{figure*}
 
-%TODO bottleneck replace? regardless, second sentence and usage of kC are erroneous
 The cost-scaling algorithm initializes the flow $f$ and the potential $\pi$ to be zero.
-Note that the zero flow is trivially a $kC$-optimal flow, where $C$ is the maximum arc cost.
-At the beginning of each scale starting at $\eps = kC$,
+As for the initial scale parameter, denoted $\EMPH{$\eps_0$}$,
+the general algorithm \cite{GHKT17} uses $\eps_0 \coloneqq C$.
+Instead, we use
+\[
+\eps_0 \in \{x \in \reals_{\geq 0} \mid \text{there exists a circulation supported on edges of cost $\leq x$}\}.
+\]
+We show that this is sufficient for correctness in Lemma~\ref{lemma:goldberg_refine_iterations}.
+Choosing this type of $\eps_0$ is important for turning the cost-scaling
+algorithm into a multiplicative approximation --- explained in
+Section~\ref{SSA:multiplicative-approx} --- where we also give the precise
+method for choosing $\eps_0$.
+The minimum possible $x$ is called the \EMPH{bottleneck objective}~\cite{GT88}
+of the min-cost circulation problem (versus sum-of-costs).
+With this choice of $\eps_0$, the number of cost scales is greatly reduced when
+e.g. $\cost(M^*) \ll C$.
+
+Within each scale, the algorithm performs the following:
 \begin{itemize}
-\item
-\textsc{Scale-Init} takes the previous
-circulation (now $2\eps$-optimal) and transforms it into an $\eps$-optimal
-pseudoflow with $O(k)$ excess.
-\item
-\textsc{Refine} then reduces the excess in the newly constructed pseudoflow to zero, making it an $\eps$-optimal
-circulation.
+\item \textsc{Scale-Init} takes the previous circulation (now $2\eps$-optimal)
+and transforms it into an $\eps$-optimal pseudoflow with $O(k)$ excess.
+\item \textsc{Refine} then reduces the excess in the newly constructed
+pseudoflow to zero, making it an $\eps$-optimal circulation.
 \end{itemize}
 Thus for any $\eps^* > 0$, the algorithm produces an $\eps^*$-optimal circulation after
-$O(\log(kC/\eps^*))$ scales.
-%
-Using the reduction in Lemma~\ref{lemma:cost_scale_approx}, we have the
-diameter of the point set, thus maximum cost $C$, bounded by
-$O(\alpha \cdot kn^{3q})$ for some fixed value $\alpha$.
+$O(\log(\eps_0/\eps^*))$ scales.
+Using the reduction in Lemma~\ref{lemma:cost_scale_approx}, we have an initial
+scale $\eps_0 = O(\alpha \cdot kn^{2q})$ that is at least the bottleneck
+objective, for some fixed value $\alpha$.
 By setting $\eps^*$ to be $\alpha \cdot \eps/6k$, the number of cost scales is
-bounded above by $O(\log(n/\eps))$.
+$O(\log(n/\eps))$.
 
 
 \paragraph{Scale initialization.}
@@ -1257,7 +1225,7 @@ see Appendix~\ref{SSA:num-iterations-refine} for complete proofs.
 % $N_H$.
 
 To this end we need a bound on the size of the support of $f$ right before and throughout the execution of \textsc{Refine}.
-This bound will also be used in the analysis for the running time of \textsc{Refine}.
+This bound will also be useful later for bounding the overall running time.
 
 \begin{lemmarep}
 \label{lemma:reduction_count}
@@ -1281,18 +1249,36 @@ The size of $\supp(f)$ is at most $O(k)$ for pseudoflow $f$ right before or duri
 
 \end{toappendix}
 
+In the following lemma, we prove the number of iterations of $\textsc{Refine}$
+required in each cost scale.
+This is also the place where our assumptions on the initial cost scale $\eps_0$
+become important (indeed, the only place).
+Let the \EMPH{bottleneck value} of a flow be 
+\[
+\max_{e \in E(\supp(f))} c(e),
+\]
+i.e. the most expensive edge in $N_H$ used by $f$.
+We require that $\eps_0$ is sufficiently high such that $N_H$ there exists a
+circulation $f$ whose bottleneck value is at most $\eps_0/2$.
 
 \begin{lemmarep}
 \label{lemma:goldberg_refine_iterations}
-Let $f$ be a pseudoflow in $N_H$ with $O(k)$ excess.
+Suppose that $\eps_0$ is chosen such that there exists a circulation in $N_H$
+with bottleneck value at most $\eps_0/2$.
+In any scale, let $f$ be a pseudoflow in $N_H$ with $O(k)$ excess.
 The procedure \textsc{Refine} runs for $O(\sqrt{k})$ iterations
 %pushes $O(\sqrt{k})$ blocking flows
 before the excess of $f$ becomes zero.
 \end{lemmarep}
 
+%TODO double check this
 \begin{proof}
-Let $f_0$ and $\pi_0$ be the flow and potential at the start of the procedure \textsc{Refine}.  Let $f$ and $\pi$ be the current flow and the potential.
-Let \EMPH{$d(v)$} defined to be the amount of potential increase at $v$, measured in units of $\eps$; in other words, $d(v) \coloneqq (\pi(v) - \pi_0(v)) / \eps$.
+For cost scales after the first, let $f_0$ and $\pi_0$ be the circulation and
+potential at the end of the previous cost scale.
+For the first cost scale, let $\pi_0 = 0$ and $f_0$ be any circulation with bottleneck value $\leq \eps_0/2$.
+In both cases, $f_0$ is a $2\eps$-optimal circulation with respect to $\pi_0$.
+Let $f$ and $\pi$ be the current flow and the potential.
+Let \EMPH{$d(v)$} defined to be the amount of potential increase at $v$ since $\pi_0$, measured in units of $\eps$; in other words, $d(v) \coloneqq (\pi(v) - \pi_0(v)) / \eps$.
 %
 % Goldberg~\etal~\cite[Lemma~3.5]{GHKT17} showed that every vertex $v$ has $d(v) \le 3n-3$, which we can improve to $O(k)$ on our reduction network,
 % \note{why do we need this bound?}
