@@ -128,7 +128,7 @@
 % ----------------------------------------------------------------------
 \def\n@te#1{\textsf{\boldmath \textbf{$\langle\!\langle$#1$\rangle\!\rangle$}}\leavevmode}
 \def\note#1{\textcolor{red}{\n@te{#1}}}
-\renewcommand{\note}[1]{} % use to clear notes
+%\renewcommand{\note}[1]{} % use to clear notes
 
 
 %----------------------------------------------------------------------
@@ -614,32 +614,6 @@ We postpone the fast implementation using dynamic data structures to Section~\re
 \subsection{Preliminaries on Network Flows}
 \label{SS:prelim-flow}
 
-Due to the space restriction, we omit the definitions of standard network flow theory terminologies from the main text.  For a reference see Appendix~\ref{SSA:prelim-flow}, or any texts on network flows~\cite{O93,GHKT17}.
-%
-We emphasize that a directed graph $G=(V,E)$ is augmented by edge costs $c$ and capacities $u$, and a supply-demand function $\fsupply$ defined on the vertices.  A \EMPH{network $N = (V, \vec{E})$} turns each edge in $E$ into a pair of \EMPH{arcs} $\arc vw$ and $\arc wv$ in arc set $\vec{E}$.
-With the unit-capacity assumption on the network, all the pseudoflows in this section take integer values.
-The \EMPH{support} of a pseudoflow $f$ in $N$, is the set of arcs with positive flows:
-\(
-\EMPH{$\supp(f)$} \coloneqq \set{\arc vw \in \vec{E} \mid f(\arc vw) > 0}.
-\)
-Given a pseudoflow $f$, we define the \EMPH{imbalance} of a vertex to be
-\(
-\EMPH{$\fsupply_f (v)$} \coloneqq \fsupply(v) + \sum_{\arc wv \in \vec{E}}{f(\arc wv)} - \sum_{\arc vw \in \vec{E}}{f(\arc vw)}.
-\)
-If all vertices are \emph{balanced}, the pseudoflow is a \EMPH{circulation}.
-The \EMPH{cost} of a pseudoflow
-%denoted \EMPH{$\cost(f)$},
-is defined to be
-\[
- \EMPH{$\cost(f)$} \coloneqq \sum_{\arc vw \in \supp(f)} c(\arc vw) \cdot f(\arc vw).
-\]
-%
-The \EMPH{minimum-cost flow problem (MCF)} asks to find a circulation of minimum cost inside a given directed graph.
-
-\begin{toappendix}
-\subsection{Preliminaries on Network Flows}
-\label{SSA:prelim-flow}
-
 \paragraph{Network.}
 Let $G=(V,E)$ be a directed graph, augmented by edge costs $c$ and capacities $u$, and a supply-demand function $\fsupply$ defined on the vertices.
 %
@@ -691,7 +665,17 @@ is defined to be
  \EMPH{$\cost(f)$} \coloneqq \sum_{\arc vw \in \supp(f)} c(\arc vw) \cdot f(\arc vw).
 \]
 %
-The \EMPH{minimum-cost flow problem (MCF)} asks to find a circulation of minimum cost inside a given directed graph.
+The \EMPH{minimum-cost flow problem (MCF)} asks to find a circulation of minimum cost inside a given network.
+
+An alternative objective is the \EMPH{bottleneck} objective.
+We define the \EMPH{bottleneck value} of a flow as
+\[
+ \EMPH{$\operatorname{bottleneck}(f)$} \coloneqq \max_{\arc vw \in \supp(f)} c(\arc vw).
+\]
+The \EMPH{minimum bottleneck value} for a network is the minimum bottleneck value over all circulations.
+Bottleneck value will play a part in our analysis, but the primary optimization problem of this section uses the sum-of-costs objective.
+References to ``cost'' of a flow only refer to the sum-of-costs objective,
+and when bottleneck value appears, it will be referred to explicitly.
 
 \paragraph{Residual graph.}
 Given a pseudoflow $f$, one can define the \emph{residual network} as follows.
@@ -718,13 +702,11 @@ In other words, the set of residual arcs are precisely those arcs in the residua
 % Define \EMPH{$N_f$} to be the \EMPH{residual network} with respect to pseudoflow $f$, consisting of residual graph $(V,A_f)$, together with antisymmetric cost function $c$ \note{Hmm, we need reduced costs}, residual capacities $u_f$, and the supply-demand function $\fsupply_f$.
 %\note{Maybe I want to define costs later, so the definition of residual network can be done?}
 
-\end{toappendix}
-
 \paragraph{LP-duality and admissibility.}
-To solve the minimum-cost flow problem, we focus on the primal-dual algorithms using linear programming.
+The algorithms we use for solving the min-cost flow problem are primal-dual algorithms
 Let $G = (V,E)$ be a given directed graph with the corresponding network $N = (V,\vec{E},c,u,\fsupply)$.
 Formally, the
-\EMPH{potentials $\pi(v)$} are the variables of the linear program dual to the standard linear program for the minimum-cost flow problem with variables $f(v,w)$ for each directed edge in $E$.
+\EMPH{potentials $\pi(v)$} are the variables of the linear program dual to the standard linear program for the min-cost flow problem with variables $f(v,w)$ for each directed edge in $E$.
 Assignments to the primal variables satisfying the capacity constraints extend naturally into a pseudoflow on the network $N$.
 %\note{which primal problem? State the corresponding linear problems explicitly}.
 Let $G_f = (V,\vec{E}_f)$ be the residual graph under pseudoflow $f$.
@@ -757,6 +739,7 @@ Throughout the rest of the paper we make use of the property that performing
 an admissible flow augmentation preserves $\eps$-optimality.
 To our knowledge this is folklore;
 see Lemma~\ref{lemma:eps_opt_preserve} for a proof.
+The proofs of the following lemmas have been moved to the appendix.
 
 \begin{toappendix}
 \paragraph{Admissible flow augmentation.}
@@ -779,8 +762,8 @@ We will verify that these arcs satisfy the $\eps$-optimality condition.
 If an arc $\arc vw$ is newly introduced this way, then by definition of residual
 capacities $f(\arc vw) = u(\arc vw)$.
 At the same time, $u_{f+f'}(\arc vw) > 0$ implies that $(f+f')(\arc vw) < u(\arc vw)$.
-This means that $f'$ augmented flow in the reverse direction of $\arc vw$
-($f'(\arc wv) > 0$).
+This means that $f'$ augmented flow in the reverse direction of $\arc vw$,
+i.e. $f'(\arc wv) > 0$.
 By assumption, the arcs of $\supp(f')$ are admissible, so $\arc wv$ was an
 admissible arc ($c_\pi(\arc wv) \leq 0$).
 By antisymmetry of reduced costs, this implies $c_\pi(\arc vw) \geq 0 \geq -\eps$.
@@ -801,18 +784,17 @@ and thus $f+f'$ is $\eps$-optimal.
 \subsection{Reduction to Unit-Capacity Min-Cost Flow Problem}
 \label{SS:reduction}
 
-Here we reduce the min-cost partial matching problem to the unit-capacity min-cost flow problem with a polynomial bound on diameter of the underlying point set.
-% To this end we first provide an upper bound on the size of support of an integral pseudoflow on the standard reduction network between the two problems.
-% This upper bound in turn provides an additive approximation on the cost of an $\eps$-optimal circulation.
-% Applying a technique by Sharathkumar and Agarwal~\cite{SA12} transforms the additive $\eps$-approximation into a multiplicative $(1+\eps)$-approximation for the geometric partial matching problem.
-
+Here, we reduce the min-cost partial matching problem to the problem of finding 
+an $\eps$-optimal circulation in a unit-capacity min-cost flow instance.
+We first give an additive approximation reduction based on $\eps$-optimality,
+and then convert it into a multiplicative approximation.
 
 \paragraph{Additive approximation.}
 Given a bipartite graph $G = (A,B,E_0)$ for the geometric partial matching problem with cost function $c$, we construct the \EMPH{reduction graph $H$} as follows:
 Direct the edges in $E_0$ from $A$ to $B$, and assign each directed edge with capacity $1$.  Now add a dummy vertex $s$ with directed edges to all vertices in $A$, and add a dummy vertex $t$ with directed edges from all vertices in $B$; each edge added has cost $0$ and capacity $1$.
 %The \EMPH{reduction graph $H$} consists of vertex set $V = A \cup B \cup \set{s,t}$ and edge set $E$.
 Assign vertex $s$ with supply $k$ and vertex $t$ with demand $-k$; the rest of the vertices in $H$ have zero supply-demand.
-We call the network naturally corresponds to $H$ as the \EMPH{reduction network $N_H$}.
+We call the resulting network the \EMPH{reduction network $N_H$}.
 %
 It is straightforward to show that any integer circulation $f$ on $N_H$ uses exactly
 $k$ of the $A$-to-$B$ arcs, which correspond to the edges of a size-$k$
@@ -887,72 +869,79 @@ See Appendix~\ref{SSA:multiplicative-approx} for details.
 \subsection{Multiplicative approximation}
 \label{SSA:multiplicative-approx}
 
+The reduction in Sharathkumar and Agarwal~\cite{SA12} uses a
+\EMPH{single-linkage clustering} of $G$ --- the clustering induced
+by a low-cost subgraph of the minimum spanning tree (MST) on $G$ ---
+to transform the instance into a number of bounded-diameter point sets
+``preserving'' $M^*$.
+We also perform a single-linkage clustering, but use it to find a good upper
+bound on the minimum bottleneck value of the reduction network instead.
+
 Let $T$ be the minimum spanning tree on input graph $G$ and order
-its edges by increasing length as $e_1, \ldots, e_{r+n-1}$.
-As in Sharathkumar and Agarwal~\cite{SA12}, we can construct $T$ and the
-sorted sequence of its edges in $O(n\polylog n)$ using a dynamic data structure
-for nearest neighbors.
-Let $T_\ell$ denote the connected components of $T$ induced by the first $\ell$
-edges ($e_1, \ldots, e_{\ell}$) of $T$.
-Abusing notation, we also use $T_\ell$ to denote the clustering of $A \cup B$
-induced by the components of $T_\ell$.
-For each cluster $K \in T_\ell$, we use $A_K$ and $B_K$ to denote the points of
+its edges by increasing length as $e_1, \ldots, e_{r+n-1}$;
+both $T$ and the sorted edges can be constructed in $O(n\polylog n)$ time using
+a dynamic data structure for planar nearest neighbors.
+Let $T_i$ denote the connected components of $T$ induced by the first $i$
+edges ($e_1, \ldots, e_{i}$) of $T$.
+Abusing notation, we also use $T_i$ to denote the clustering of $A \cup B$
+induced by the components of $T_i$.
+For each cluster $K \in T_i$, we use $A_K$ and $B_K$ to denote the points of
 $A \cap K$ and $B \cap K$ respectively.
 
 %TODO since only one index, probably change i --> j later
-We say a $k$-matching $M$ is \EMPH{intra-cluster} with respect to a clustering
+We say a partial matching $M$ is \EMPH{intra-cluster} with respect to a clustering
 of $A \cup B$ if no edge of $M$ has endpoints in two different clusters.
-Otherwise, we say the matching is \EMPH{inter-cluster}.
-Let $i$ be the smallest index such that $T_i$ contains an intra-cluster
-$k$-matching.
-We can compute $i$ in $O(n)$ time by traversing the edges
+Otherwise, the matching is \EMPH{inter-cluster}.
+Let $i^*$ be the smallest index such that $T_{i^*}$ contains an intra-cluster
+partial matching.
+We can compute $i^*$ in $O(n)$ time by traversing the edges
 $e_1,\ldots ,e_{r+n-1}$ in ascending order, tracking the number of $A$ and $B$
-points in each cluster defined by $T_\ell$.
-Specifically, for each $\ell \in 1, \ldots, (r+n-1)$ let
+points in each cluster defined by $T_i$.
+Specifically, for each $i \in 1, \ldots, (r+n-1)$ let
 \[
-	\intracount(\ell) \coloneqq \sum_{K \in T_\ell} \min(A_K, B_K),
+	\intracount(i) \coloneqq \sum_{K \in T_i} \min(A_K, B_K),
 \]
-which is the size of the largest intra-cluster matching possible under $T_\ell$.
-The first index for which $\intracount(\ell) \geq k$ is $i$.
+which is the size of the largest intra-cluster matching possible under $T_i$.
+The first index for which $\intracount(i) \geq k$ is $i^*$.
 
 \begin{lemma}
 \label{lemma:mult_cluster}
+\hspace{2em}
 \begin{enumerate}[(i)]
-%\item $c(e_i) \leq \cost(M^*) \leq kn^q \cdot c(e_i)$. %TODO second half not needed?
+%\item $c(e_{i^*}) \leq \cost(M^*) \leq kn^q \cdot c(e_{i^*})$. %TODO second half not needed?
 \item \label{item:mult_cluster1}
-	$c(e_i) \leq \cost(M^*)$
+	$c(e_{i^*}) \leq \cost(M^*)$
 \item \label{item:mult_cluster2}
-	The bottleneck matching value for $A \cup B$ is at most $n^q \cdot c(e_i)$.
+	The minimum bottleneck value for the reduction network on $A \cup B$
+	is at most $n^q \cdot c(e_{i^*})$.
 \end{enumerate}
 \end{lemma}
 \begin{proof}
-First, by definition of $i$, $M^*$ is inter-cluster in $T_{i-1}$.
-Although $M^*$ need not be intra-cluster in $T_i$, this implies that at least
-one edge $e \in M^*$ has $c(e) \geq c(e_i)$.
-It follows that $c(e_i) \leq \cost(M^*)$.
+First, by definition of $i^*$, $M^*$ is inter-cluster in $T_{i^*-1}$.
+Although $M^*$ need not be intra-cluster in $T_{i^*}$, this implies that at
+least one edge $e \in M^*$ has $c(e) \geq c(e_{i^*})$.
+It follows that $c(e_{i^*}) \leq \cost(M^*)$.
 
-Second, let $M$ be the intra-cluster $k$-matching purported to exist in $T_i$.
-Each component of $T_i$ has first-power diameter at most $n\norm{e_i}$,
-so the longest edge in $M$ has cost at most $n^q \cdot c(e_i)$.
-The bottleneck matching value of $A \cup B$ is at most that.
-%so $\cost(M) \leq kn^q \cdot c(e_i)$.
-%Optimality of $M^*$ then gives $\cost(M^*) \leq kn^q \cdot c(e_i)$.
+Second, let $M$ be the intra-cluster $k$-matching purported to exist in $T_{i^*}$.
+Each component of $T_{i^*}$ has first-power diameter at most $n\norm{e_{i^*}}$,
+so the longest edge in $M$ has cost at most $n^q \cdot c(e_{i^*})$.
+In the reduction network $N$, $M$ corresponds to a circulation
+where the most expensive arc costs at most $n^q \cdot c(e_{i^*})$;
+the minimum bottleneck value of $N$ is at most that.
 \end{proof}
 
 With Lemma~\ref{lemma:mult_cluster}, we can complete the proof of
 Lemma~\ref{lemma:cost_scale_approx}.
 
 \begin{proof}[Proof of Lemma~\ref{lemma:cost_scale_approx}]
-We can determine $i$ and $c(e_i)$ in $O(n\polylog n)$ time, as described above.
-Fix $\alpha = c(e_i)$.
-Combining Lemma~\ref{lemma:mult_cluster}.\ref{item:mult_cluster2} and
-Lemma~\ref{lemma:goldberg_refine_iterations},
-the cost scaling algorithm will execute correctly when initialized with
-scale $\eps_0 \coloneqq 2n^q \cdot c(e_{i'}) = n^q \alpha$.
+We can determine $i^*$ and $c(e_{i^*})$ in $O(n\polylog n)$ time, as described above.
+Fix $\alpha = c(e_{i^*})$.
+By Lemma~\ref{lemma:mult_cluster}.\ref{item:mult_cluster2} the minimum
+bottleneck value of the reduction network is at most $n^q \alpha$.
 Computing an $(\alpha\eps/6k)$-optimal circulation produces a partial matching
 of cost at most
 \begin{equation*}
-\cost(M^*) + 6k(\alpha\eps/6k) = \cost(M^*) + \eps \cdot c(e_i)
+\cost(M^*) + 6k(\alpha\eps/6k) = \cost(M^*) + \eps \cdot c(e_{i^*})
 	\leq (1+\eps) \cost(M^*)
 \end{equation*}
 where the inequality follows from Lemma~\ref{lemma:mult_cluster}.\ref{item:mult_cluster1}.
@@ -1019,19 +1008,18 @@ where the inequality follows from Lemma~\ref{lemma:mult_cluster}.\ref{item:mult_
 % \end{proof}
 \end{toappendix}
 
-%TODO fix description for bottleneck
 \begin{lemma}
 \label{lemma:cost_scale_approx}
 Computing $(1+\eps)$-approximate geometric partial matching reduces to the following problem in $O(n \polylog n)$ time:
-Given reduction network $N$ over a point set with diameter $O(kn^{2q} \alpha)$
-for some constant $\alpha$, compute an $(\alpha\eps/6k)$-optimal circulation on~$N$.
+For a fixed $\alpha$, compute an $(\alpha\eps/6k)$-optimal circulation on a
+reduction network $N$ with min-bottleneck value at most $n^q \alpha$.
 \end{lemma}
 
 
 \subsection{High-Level Description of Cost-Scaling Algorithm}
 \label{SS:cost-scaling}
 
-Our main algorithm for the unit-capacity minimum-cost flow problem is based on the \EMPH{cost-scaling} technique,
+Our main algorithm for the unit-capacity min-cost flow problem is based on the \EMPH{cost-scaling} technique,
 %(also known as \EMPH{successive approximation} \cite{\cite{GT90}}),
 originally due to Goldberg and
 Tarjan~\cite{GT90}; Goldberg \etal~\cite{GHKT17} applied the technique on unit-capacity networks.
@@ -1072,20 +1060,23 @@ partial matching setting (with respect to $L_p$ norms) the costs are generally n
 % \end{minipage}
 % \end{figure*}
 
+\note{this section about $\eps_0$ feels a disorganized} %TODO
+
 The cost-scaling algorithm initializes the flow $f$ and the potential $\pi$ to be zero.
-As for the initial scale parameter, denoted $\EMPH{$\eps_0$}$,
-the general algorithm \cite{GHKT17} uses $\eps_0 \coloneqq C$.
+The initial value of the scale parameter, denoted $\EMPH{$\eps_0$}$,
+is set to $C$ by the original algorithm \cite{GHKT17}.
+This is insufficient for our bounds.
 Instead, we use
 \[
-\eps_0 \in \{x \in \reals_{\geq 0} \mid \text{there exists a circulation supported on edges of cost $\leq x$}\}.
+\eps_0 \in 2 \cdot \{x \in \reals_{\geq 0} \mid \text{there exists a circulation supported on edges of cost $\leq x$}\},
 \]
+or in the terminology of Lemma~\ref{lemma:cost_scale_approx}, $\eps_0 = 2n^q \alpha$.
 We show that this is sufficient for correctness in Lemma~\ref{lemma:goldberg_refine_iterations}.
 Choosing this type of $\eps_0$ is important for turning the cost-scaling
 algorithm into a multiplicative approximation --- explained in
 Section~\ref{SSA:multiplicative-approx} --- where we also give the precise
-method for choosing $\eps_0$.
-The minimum possible $x$ is called the \EMPH{bottleneck objective}~\cite{GT88}
-of the min-cost circulation problem (versus sum-of-costs).
+method for choosing $\alpha$.
+Note that the minimum possible $x$ is the \emph{minimum bottleneck value} of the network.
 With this choice of $\eps_0$, the number of cost scales is greatly reduced when
 e.g. $\cost(M^*) \ll C$.
 
@@ -1093,16 +1084,17 @@ Within each scale, the algorithm performs the following:
 \begin{itemize}
 \item \textsc{Scale-Init} takes the previous circulation (now $2\eps$-optimal)
 and transforms it into an $\eps$-optimal pseudoflow with $O(k)$ excess.
-\item \textsc{Refine} then reduces the excess in the newly constructed
-pseudoflow to zero, making it an $\eps$-optimal circulation.
+\item \textsc{Refine} then reduces the excess to zero while maintaining
+$\eps$-optimality, turning $f$ into an $\eps$-optimal circulation.
 \end{itemize}
 Thus for any $\eps^* > 0$, the algorithm produces an $\eps^*$-optimal circulation after
 $O(\log(\eps_0/\eps^*))$ scales.
 Using the reduction in Lemma~\ref{lemma:cost_scale_approx}, we have an initial
-scale $\eps_0 = O(\alpha \cdot kn^{2q})$ that is at least the bottleneck
-objective, for some fixed value $\alpha$.
-By setting $\eps^*$ to be $\alpha \cdot \eps/6k$, the number of cost scales is
-$O(\log(n/\eps))$.
+scale $\eps_0 = 2n^q\alpha$ that is at least the min-bottleneck value, for some fixed value $\alpha$.
+For $\eps^* = \eps\alpha/6k$, as requested by Lemma~\ref{lemma:cost_scale_approx},
+the number of cost scales is $O(\log(n/\eps))$.
+
+\note{notation collision of $\eps$ for cost scale and approx quality} %TODO
 
 
 \paragraph{Scale initialization.}
@@ -1254,13 +1246,8 @@ In the following lemma, we prove the number of iterations of $\textsc{Refine}$
 required in each cost scale.
 This is also the place where our assumptions on the initial cost scale $\eps_0$
 become important (indeed, the only place).
-Let the \EMPH{bottleneck value} of a flow be 
-\[
-\max_{e \in E(\supp(f))} c(e),
-\]
-i.e. the most expensive edge in $N_H$ used by $f$.
 We require that $\eps_0$ is sufficiently high such that $N_H$ there exists a
-circulation $f$ whose bottleneck value is at most $\eps_0/2$.
+circulation whose bottleneck value is at most $\eps_0/2$.
 
 \begin{lemmarep}
 \label{lemma:goldberg_refine_iterations}
@@ -1338,12 +1325,12 @@ To overcome this issue, we replace the residual graph with an equivalent graph t
 and run the Hungarian search and depth-first search on the resulting graph instead.
 
 \paragraph{Null vertices.}
-We say a vertex $v$ in the residual graph $N_f$ is a \EMPH{null vertex} if $\fsupply_f(v) = 0$ and no arcs of $\supp(f)$ is incident to $v$.
+We say a vertex $v$ in the residual graph $N_f$ is a \EMPH{null vertex} if $\fsupply_f(v) = 0$ and no arc of $\supp(f)$ is incident to $v$.
 %We are unable to charge relaxation steps involving null vertices to $|\supp(f)|$, so the algorithm must deal with them separately.
 We use \EMPH{$A_\emptyset$} and \EMPH{$B_\emptyset$} to denote the null vertices $A$ and $B$ respectively.
 Vertices that are not null are called \EMPH{normal vertices}.
 %
-A \EMPH{null 2-path} is a length-$2$ subpath in $N_f$ from a normal vertex to another normal vertex, passing through a null vertex.
+A \EMPH{null 2-path} is a length-$2$ path in $N_f$ from a normal vertex to another normal vertex, passing through a null vertex.
 As every vertex in $A$ has in-degree $1$ and every vertex in $B$ has out-degree $1$ in the residual graph, the null 2-paths must be of the form either $(s, v, b)$ for some vertex $b$ in $B \setminus B_\emptyset$ or $(a, v, t)$ for some vertex $a$ in $A \setminus A_\emptyset$.
 In either case, we say that the null 2-path \EMPH{passes through} null vertex $v$.
 %
@@ -1353,7 +1340,7 @@ vertices to be a \EMPH{null 3-path}.
 Because reduced costs telescope for residual paths, the reduced cost of any null path does not depend on the potentials of the null vertices it passes through.
 
 \paragraph{Shortcut graph.}
-We construct the \EMPH{shortcut graph $\tilde{H}_f$} from the reduction network $H$ by removing all
+We construct the \EMPH{shortcut graph $\tilde{H}_f$} from the reduction graph $H$ by removing all
 null vertices and their incident edges, followed by inserting an arc
 from the head of each each null path $\Pi$ to its tail, with cost equals to the sum of costs on the arcs.
 We call this arc the \EMPH{shortcut} of null path $\Pi$, denoted as \EMPH{$\short(\Pi)$}.
@@ -1826,8 +1813,9 @@ Summing up we have an $O(k\sqrt{k})$ bound over the course of \textsc{Refine}.
 % $O((n + k\sqrt{k})\polylog n)$.
 % Together with Lemmas~\ref{lemma:goldberg_scales} and \ref{lemma:scale_init},
 %
-Now combining Lemma~\ref{lemma:goldberg_hs_time}, Lemma~\ref{lemma:goldberg_dfs_time}, and
-Lemma~\ref{lemma:empty_updates}
+Now combining Lemma~\ref{lemma:cost_scale_approx},
+Lemma~\ref{lemma:goldberg_refine_iterations}, Lemma~\ref{lemma:goldberg_hs_time}, 
+Lemma~\ref{lemma:goldberg_dfs_time}, and Lemma~\ref{lemma:empty_updates}
 completes the proof of Theorem~\ref{theorem:gmcm}.
 
 \end{toappendix}
