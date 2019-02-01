@@ -609,6 +609,7 @@ The goal of this section and the next is to prove Theorem~\ref{theorem:gmcm}; th
 After introducing the necessary terminologies in Section~\ref{SS:prelim-flow}, we reduce the partial matching problem to computing an approximate minimum-cost flow on a unit-capacity reduction network in Section~\ref{SS:reduction}.
 In Section~\ref{SS:cost-scaling} we prove a high-level overview of the cost-scaling algorithm, executed on the reduction network.
 We postpone the fast implementation using dynamic data structures to Section~\ref{S:implementation}.
+For lack of space, the proofs for lemmas in this section have been moved to the appendix.
 
 
 \subsection{Preliminaries on Network Flows}
@@ -706,7 +707,7 @@ In other words, the set of residual arcs are precisely those arcs in the residua
 The algorithms we use for solving the min-cost flow problem are primal-dual algorithms
 Let $G = (V,E)$ be a given directed graph with the corresponding network $N = (V,\vec{E},c,u,\fsupply)$.
 Formally, the
-\EMPH{potentials $\pi(v)$} are the variables of the linear program dual to the standard linear program for the min-cost flow problem with variables $f(v,w)$ for each directed edge in $E$.
+\EMPH{potentials $\pi(v)$} are the variables of the linear program dual to the standard linear program for the min-cost flow problem with variables $f(\arc{v,w})$ for each directed edge in $E$.
 Assignments to the primal variables satisfying the capacity constraints extend naturally into a pseudoflow on the network $N$.
 %\note{which primal problem? State the corresponding linear problems explicitly}.
 Let $G_f = (V,\vec{E}_f)$ be the residual graph under pseudoflow $f$.
@@ -737,12 +738,7 @@ We say that a pseudoflow $g$ in $G_f$ is \EMPH{admissible} if all support arcs o
 %
 Throughout the rest of the paper we make use of the property that performing
 an admissible flow augmentation preserves $\eps$-optimality.
-To our knowledge this is folklore;
-see Lemma~\ref{lemma:eps_opt_preserve} for a proof.
-The proofs of the following lemmas have been moved to the appendix.
-
-\begin{toappendix}
-\paragraph{Admissible flow augmentation.}
+To our knowledge this is folklore; we provide a proof in the appendix.
 
 \begin{lemmarep}
 \label{lemma:eps_opt_preserve}
@@ -770,7 +766,6 @@ By antisymmetry of reduced costs, this implies $c_\pi(\arc vw) \geq 0 \geq -\eps
 Therefore, all arcs with $u_{f+f'}(v, w) > 0$ respect the $\eps$-optimality condition,
 and thus $f+f'$ is $\eps$-optimal.
 \end{proof}
-\end{toappendix}
 
 %In Section~\ref{section:goldberg}, we use $\eps$-optimality to prove the approximation quality of an $\eps$-optimal circulation.
 
@@ -803,7 +798,7 @@ Notice that the cost of the circulation $f$ is equal to the cost of the correspo
 %
 %In other words, a $(1+\eps)$-approximation to the MCF problem on the reduction network $N_H$ translates to a $(1+\eps)$-approximation to the geometric matching problem on the input graph $G$.
 
-First we show that the number of arcs used by any integer pseudoflow in $N_H$ is asymptotically bounded by the excess of the pseudoflow.
+First we show that the number of arcs used by any integer pseudoflow in $N_H$ is bounded by three times excess of the pseudoflow.
 
 \begin{lemmarep}
 \label{lemma:support_size}
@@ -1019,15 +1014,13 @@ reduction network $N$ with min-bottleneck value at most $n^q \alpha$.
 \subsection{High-Level Description of Cost-Scaling Algorithm}
 \label{SS:cost-scaling}
 
-Our main algorithm for the unit-capacity min-cost flow problem is based on the \EMPH{cost-scaling} technique,
-%(also known as \EMPH{successive approximation} \cite{\cite{GT90}}),
-originally due to Goldberg and
-Tarjan~\cite{GT90}; Goldberg \etal~\cite{GHKT17} applied the technique on unit-capacity networks.
-%
+The main body of our algorithm is an implementation of the unit-capacity
+min-cost flow algorithm of Goldberg \etal~\cite{GHKT17}.
+Their algorithm is based on the \EMPH{cost-scaling} technique, originally due to 
+originally due to Goldberg and Tarjan~\cite{GT90}.
 The algorithm finds $\eps$-optimal circulations for geometrically shrinking
-values of $\eps$.
-Each fixed value of $\eps$ is called a
-\EMPH{cost scale}.
+(halving) values of $\eps$.
+Each fixed value of $\eps$ is called a \EMPH{cost scale}.
 Once $\eps$ is sufficiently small, the $\eps$-optimal flow is a suitable
 approximation according to Lemma~\ref{lemma:cost_scale_approx}.%
 \footnote{When the costs are integers, an $\eps$-optimal circulation for a sufficiently small $\eps$ (say less than $1/n$) is itself an optimal solution~\cite{GT90,GHKT17}.
@@ -1060,12 +1053,12 @@ partial matching setting (with respect to $L_p$ norms) the costs are generally n
 % \end{minipage}
 % \end{figure*}
 
-\note{this section about $\eps_0$ feels a disorganized} %TODO
-
+In what follows, we use \EMPH{$\eps^*$} to denote the ``target'' scale of the 
+cost-scaling (i.e. we seek an $\eps^*$-optimal circulation).
 The cost-scaling algorithm initializes the flow $f$ and the potential $\pi$ to be zero.
 The initial value of the scale parameter, denoted $\EMPH{$\eps_0$}$,
 is set to $C$ by the original algorithm \cite{GHKT17}.
-This is insufficient for our bounds.
+This does not work well with the multiplicative approximation reduction (Lemma~\ref{lemma:cost_scale_approx}).
 Instead, we use
 \[
 \eps_0 \in 2 \cdot \{x \in \reals_{\geq 0} \mid \text{there exists a circulation supported on edges of cost $\leq x$}\},
@@ -1077,24 +1070,24 @@ algorithm into a multiplicative approximation --- explained in
 Section~\ref{SSA:multiplicative-approx} --- where we also give the precise
 method for choosing $\alpha$.
 Note that the minimum possible $x$ is the \emph{minimum bottleneck value} of the network.
-With this choice of $\eps_0$, the number of cost scales is greatly reduced when
-e.g. $\cost(M^*) \ll C$.
 
 Within each scale, the algorithm performs the following:
 \begin{itemize}
-\item \textsc{Scale-Init} takes the previous circulation (now $2\eps$-optimal)
-and transforms it into an $\eps$-optimal pseudoflow with $O(k)$ excess.
+\item For scales after the first, \textsc{Scale-Init} takes the previous
+	circulation (now $2\eps$-optimal) and transforms it into an
+	$\eps$-optimal pseudoflow with $O(k)$ excess.
+	On the first scale ($\eps = \eps_0$), it does nothing.
 \item \textsc{Refine} then reduces the excess to zero while maintaining
-$\eps$-optimality, turning $f$ into an $\eps$-optimal circulation.
+	$\eps$-optimality, turning $f$ into an $\eps$-optimal circulation.
 \end{itemize}
-Thus for any $\eps^* > 0$, the algorithm produces an $\eps^*$-optimal circulation after
-$O(\log(\eps_0/\eps^*))$ scales.
+If $\eps \leq \eps^*$, then $f$ is an $\eps^*$-optimal circulation and we are done.
+Otherwise, $\eps$ is halved and the next scale begins.
+The algorithm produces an $\eps^*$-optimal circulation after $O(\log(\eps_0/\eps^*))$ scales.
 Using the reduction in Lemma~\ref{lemma:cost_scale_approx}, we have an initial
-scale $\eps_0 = 2n^q\alpha$ that is at least the min-bottleneck value, for some fixed value $\alpha$.
-For $\eps^* = \eps\alpha/6k$, as requested by Lemma~\ref{lemma:cost_scale_approx},
-the number of cost scales is $O(\log(n/\eps))$.
+scale $\eps_0 = 2n^q\alpha$ and target scale $\eps^* = \eps\alpha/6k$.
+Thus, the number of cost scales after the reduction is $O(\log(n/\eps))$.
 
-\note{notation collision of $\eps$ for cost scale and approx quality} %TODO
+\note{We should really resolve the notation collsion between different eps: pm-approx quality, cost scale, starting scale, target scale }
 
 
 \paragraph{Scale initialization.}
