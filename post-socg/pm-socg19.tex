@@ -707,7 +707,7 @@ In other words, the set of residual arcs are precisely those arcs in the residua
 The algorithms we use for solving the min-cost flow problem are primal-dual algorithms
 Let $G = (V,E)$ be a given directed graph with the corresponding network $N = (V,\vec{E},c,u,\fsupply)$.
 Formally, the
-\EMPH{potentials $\pi(v)$} are the variables of the linear program dual to the standard linear program for the min-cost flow problem with variables $f(\arc{v,w})$ for each directed edge in $E$.
+\EMPH{potentials $\pi(v)$} are the variables of the linear program dual to the standard linear program for the min-cost flow problem with variables $f(\arc{v}{w})$ for each directed edge in $E$.
 Assignments to the primal variables satisfying the capacity constraints extend naturally into a pseudoflow on the network $N$.
 %\note{which primal problem? State the corresponding linear problems explicitly}.
 Let $G_f = (V,\vec{E}_f)$ be the residual graph under pseudoflow $f$.
@@ -726,34 +726,36 @@ The \EMPH{dual feasibility constraint} says that $c_\pi(\arc vw) \geq 0$ holds f
 %
 Suppose we relax the dual feasibility constraint to allow some small violation in the value of $c_\pi(\arc vw)$.
 We say that a pair of pseudoflow $f$ and potential $\pi$ is
-\EMPH{$\eps$-optimal}~\cite{T85,BE87} if $c_\pi(\arc vw) \geq -\eps$ for every
-residual arc $\arc vw$ in $\vec{E}_f$.
-Pseudoflow $f$ is \emph{$\eps$-optimal} if it is $\eps$-optimal with respect to
-some potentials $\pi$; potential $\pi$ is \emph{$\eps$-optimal} if it is
-$\eps$-optimal with respect to some pseudoflow $f$.
+\EMPH{$\theta$-optimal}%
+\footnote{This is commonly written as $\eps$-optimality in the min-cost flow literature.}
+\cite{T85,BE87}
+if $c_\pi(\arc vw) \geq -\theta$ for every residual arc $\arc vw$ in $\vec{E}_f$.
+Pseudoflow $f$ is \emph{$\theta$-optimal} if it is $\theta$-optimal with respect to
+some potentials $\pi$; potential $\pi$ is \emph{$\theta$-optimal} if it is
+$\theta$-optimal with respect to some pseudoflow $f$.
 %
 Given a pseudoflow $f$ and potentials $\pi$, a residual arc $\arc vw$ in $\vec{E}_f$ is
 \EMPH{admissible} if $c_\pi(\arc vw) \leq 0$.
 We say that a pseudoflow $g$ in $G_f$ is \EMPH{admissible} if all support arcs of $g$ on $G_f$ are admissible; in other words, $g(\arc vw) > 0$ holds only on admissible arcs $\arc vw$.
 %
 Throughout the rest of the paper we make use of the property that performing
-an admissible flow augmentation preserves $\eps$-optimality.
+an admissible flow augmentation preserves $\theta$-optimality.
 To our knowledge this is folklore; we provide a proof in the appendix.
 
 \begin{lemmarep}
 \label{lemma:eps_opt_preserve}
-Let $f$ be an $\eps$-optimal pseudoflow in $G$ and let $f'$ be an
+Let $f$ be a $\theta$-optimal pseudoflow in $G$ and let $f'$ be an
 admissible flow in $G_f$.
-Then $f + f'$ is also $\eps$-optimal.
+Then $f + f'$ is also $\theta$-optimal.
 %\note{Lemma 5.3 in~\cite{GT90}? Also, where is this used?}
 \end{lemmarep}
 
 \begin{proof}
 Augmentation by $f'$ will not change the potentials, so any previously
-$\eps$-optimal arcs remain $\eps$-optimal.
+$\theta$-optimal arcs remain $\theta$-optimal.
 However, it may introduce new arcs $\arc vw$ with $u_{f+f'}(\arc vw) > 0$, that previously had
 $u_f(\arc vw) = 0$.
-We will verify that these arcs satisfy the $\eps$-optimality condition.
+We will verify that these arcs satisfy the $\theta$-optimality condition.
 
 If an arc $\arc vw$ is newly introduced this way, then by definition of residual
 capacities $f(\arc vw) = u(\arc vw)$.
@@ -762,9 +764,9 @@ This means that $f'$ augmented flow in the reverse direction of $\arc vw$,
 i.e. $f'(\arc wv) > 0$.
 By assumption, the arcs of $\supp(f')$ are admissible, so $\arc wv$ was an
 admissible arc ($c_\pi(\arc wv) \leq 0$).
-By antisymmetry of reduced costs, this implies $c_\pi(\arc vw) \geq 0 \geq -\eps$.
-Therefore, all arcs with $u_{f+f'}(v, w) > 0$ respect the $\eps$-optimality condition,
-and thus $f+f'$ is $\eps$-optimal.
+By antisymmetry of reduced costs, this implies $c_\pi(\arc vw) \geq 0 \geq -\theta$.
+Therefore, all arcs with $u_{f+f'}(v, w) > 0$ respect the $\theta$-optimality condition,
+and thus $f+f'$ is $\theta$-optimal.
 \end{proof}
 
 %In Section~\ref{section:goldberg}, we use $\eps$-optimality to prove the approximation quality of an $\eps$-optimal circulation.
@@ -780,8 +782,8 @@ and thus $f+f'$ is $\eps$-optimal.
 \label{SS:reduction}
 
 Here, we reduce the min-cost partial matching problem to the problem of finding 
-an $\eps$-optimal circulation in a unit-capacity min-cost flow instance.
-We first give an additive approximation reduction based on $\eps$-optimality,
+a $\theta$-optimal circulation in a unit-capacity min-cost flow instance.
+We first give an additive approximation reduction based on $\theta$-optimality,
 and then convert it into a multiplicative approximation.
 
 \paragraph{Additive approximation.}
@@ -813,12 +815,12 @@ As every backward arc in the residual network must be induced by positive flow i
 the total number of residual backward arcs is at most $3k$.
 \end{proof}
 
-Using the bound on the support size, we show that an $\eps$-optimal integral circulation gives an additive $O(k\eps)$-approximation to the MCF problem.
+Using the bound on the support size, we show that a $\theta$-optimal integral circulation gives an additive $O(k\theta)$-approximation to the MCF problem.
 
 \begin{lemmarep}
 \label{lemma:goldberg_cost_add}
-Let $f$ be an $\eps$-optimal integer circulation in $N_H$, and $f^*$ be an optimal integer circulation for $N_H$.
-Then, $\cost(f) \leq \cost(f^*) + 6k\eps$.
+Let $f$ be a $\theta$-optimal integer circulation in $N_H$, and $f^*$ be an optimal integer circulation for $N_H$.
+Then, $\cost(f) \leq \cost(f^*) + 6k\theta$.
 \end{lemmarep}
 
 \begin{proof}
@@ -829,19 +831,19 @@ Since both $f$ and $f^*$ are both circulations and $N_H$ has unit-capacity,
 the flow $f - f^*$ is comprised of unit flows on a collection of edge-disjoint residual cycles $\Gamma_1, \ldots, \Gamma_\ell$.
 Observe that each residual cycle $\Gamma_i$ must have exactly half of its arcs being backward arcs, and thus we have $\sum_i |\Gamma_i| \leq 6k$.
 
-Let $\pi$ be some potential certifying that $f$ is $\eps$-optimal.
+Let $\pi$ be some potential certifying that $f$ is $\theta$-optimal.
 Because $\Gamma_i$ is a residual cycle, we have $c_\pi(\Gamma_i) = c(\Gamma_i)$ since the potential terms telescope.
 We then see that
 \[
 	\cost(f) - \cost(f^*)
 	= \sum_i c(\Gamma_i)
 	= \sum_i c_\pi(\Gamma_i)
-	\geq \sum_i (-\eps) \cdot |\Gamma_i|
-	\geq -6k\eps,
+	\geq \sum_i (-\theta) \cdot |\Gamma_i|
+	\geq -6k\theta,
 \]
-where the second-to-last inequality follows from the $\eps$-optimality of $f$
+where the second-to-last inequality follows from the $\theta$-optimality of $f$
 with respect to $\pi$.
-Rearranging the terms we have that $\cost(f) \leq \cost(f^*) + 6k\eps$.
+Rearranging the terms we have that $\cost(f) \leq \cost(f^*) + 6k\theta$.
 \end{proof}
 
 
@@ -944,63 +946,6 @@ where the inequality follows from Lemma~\ref{lemma:mult_cluster}.\ref{item:mult_
 
 
 
-
-
-%TODO diameter version --- translate the components into a line separated by c(e_j)
-%TODO how do we want to distinguish ||a-b|| vs the powered version? i.e., which does ``diameter'' refer to?
-%\paragraph{Translated version.} %TODO remove this label
-
-%Let $j$ be the first index where $c(e_j) \geq kn^q \cdot c(e_i)$.
-%From Lemma~\ref{lemma:mult_cluster}, we have the following corollary.
-%
-%\begin{corollary}
-%$M^*$ is an intra-cluster matching in $T_j$.
-%\end{corollary}
-
-
-%\begin{lemma}
-%The diameter of $G_K$ is at most $2^q kn^{2q} \cdot c(e_{i'})$.
-%\end{lemma}
-%\begin{proof}
-%The first-power diameter per component of $T_j$ is at most $(kn^q)^{1/q} \norm{e_{i'}}$.
-%Each one is spaced from the next in sequence by $(kn^q)^{1/q} \norm{e_{i'}}$,
-%so the first-power diameter of $G_K$ is at most $2n(kn^q)^{1/q} \norm{e_{i'}}$.
-%Taking the $q$-th power, we see that the diameter of $G_K$ is at most
-%$2^q kn^{2q} \cdot c(e_{i'})$.
-%\end{proof}
-%
-%These two lemmas are sufficient for the requirements of Lemma~\ref{lemma:cost_scale_approx}
-%choosing constant $\alpha = c(e_{i'})$.
-%%TODO problem here
-%\note{How are we guaranteed that the approx solution is intracluster? important if we translate.}
-
-
-
-
-
-
-
-
-
-
-% Using this lemma, one can prove Lemma~\ref{lemma:cost_scale_approx} by computing an $(\eps c(e_i)/6kn)$-optimal
-% circulation $f_K$ for each component $K$ in $T_j$; the union of the matchings $M_{f_K}$ will be a $(1+\eps)$-approximate partial matching on $G$.
-%
-% \begin{proof}
-% %[of Lemma~\ref{lemma:cost_scale_approx}]
-% Let $f^*_K$ be the optimal flow on the reduction graph $H_K$ for the component $K$.
-% Combining Lemma~\ref{lemma:goldberg_cost_add} and
-% Lemma~\ref{lemma:sa_partition}, one has
-% \begin{align*}
-% 	\cost(\bigcup_{K \in T_j} M_{f_K})
-% 		&= \sum_{K \in T_j} \cost(M_{f_K}) & \\
-% 		&= \sum_{K \in T_j} \cost(f_K) & \\
-% 		&\leq \sum_{K \in T_j} (\cost(f^*_K) + \eps c(e_i)/n) & \text{\small [Lemma~\ref{lemma:goldberg_cost_add}]} \\
-% 		&= \sum_{K \in T_j} (\cost(M^*_K) + \eps c(e_i)/n) & \\
-% 		&\leq \cost(M^*) + \eps c(e_{ji_1}) & \text{\small [Lemma~\ref{lemma:sa_partition}(i)]} \\
-% 		&\leq (1 + \eps) \cost(M^*). & \text{\small[Lemma~\ref{lemma:sa_partition}(ii)]}
-% \end{align*}
-% \end{proof}
 \end{toappendix}
 
 \begin{lemma}
@@ -1018,12 +963,12 @@ The main body of our algorithm is an implementation of the unit-capacity
 min-cost flow algorithm of Goldberg \etal~\cite{GHKT17}.
 Their algorithm is based on the \EMPH{cost-scaling} technique, originally due to 
 originally due to Goldberg and Tarjan~\cite{GT90}.
-The algorithm finds $\eps$-optimal circulations for geometrically shrinking
-(halving) values of $\eps$.
-Each fixed value of $\eps$ is called a \EMPH{cost scale}.
-Once $\eps$ is sufficiently small, the $\eps$-optimal flow is a suitable
+The algorithm finds $\theta$-optimal circulations for geometrically shrinking
+(halving) values of $\theta$.
+Each fixed value of $\theta$ is called a \EMPH{cost scale}.
+Once $\theta$ is sufficiently small, the $\theta$-optimal flow is a suitable
 approximation according to Lemma~\ref{lemma:cost_scale_approx}.%
-\footnote{When the costs are integers, an $\eps$-optimal circulation for a sufficiently small $\eps$ (say less than $1/n$) is itself an optimal solution~\cite{GT90,GHKT17}.
+\footnote{When the costs are integers, a $\theta$-optimal circulation for a sufficiently small $\theta$ (say less than $1/n$) is itself an optimal solution~\cite{GT90,GHKT17}.
 We present this algorithm without the integral-cost assumption because in the geometric
 partial matching setting (with respect to $L_p$ norms) the costs are generally not integers.}
 
@@ -1053,19 +998,19 @@ partial matching setting (with respect to $L_p$ norms) the costs are generally n
 % \end{minipage}
 % \end{figure*}
 
-In what follows, we use \EMPH{$\eps^*$} to denote the ``target'' scale of the 
-cost-scaling (i.e. we seek an $\eps^*$-optimal circulation).
+In what follows, we use \EMPH{$\theta^*$} to denote the ``target'' scale of the 
+cost-scaling (i.e. we seek a $\theta^*$-optimal circulation).
 The cost-scaling algorithm initializes the flow $f$ and the potential $\pi$ to be zero.
-The initial value of the scale parameter, denoted $\EMPH{$\eps_0$}$,
-is set to $C$ by the original algorithm \cite{GHKT17}.
-This does not work well with the multiplicative approximation reduction (Lemma~\ref{lemma:cost_scale_approx}).
+The initial value of the scale parameter, denoted $\EMPH{$\theta_0$}$,
+is set to $C$ by the original algorithm \cite{GHKT17}, but this does not work
+well with the multiplicative approximation reduction (Lemma~\ref{lemma:cost_scale_approx}).
 Instead, we use
 \[
-\eps_0 \in 2 \cdot \{x \in \reals_{\geq 0} \mid \text{there exists a circulation supported on edges of cost $\leq x$}\},
+\theta_0 \in 2 \cdot \{x \in \reals_{\geq 0} \mid \text{there exists a circulation supported on edges of cost $\leq x$}\},
 \]
-or in the terminology of Lemma~\ref{lemma:cost_scale_approx}, $\eps_0 = 2n^q \alpha$.
+or in the terminology of Lemma~\ref{lemma:cost_scale_approx}, $\theta_0 = 2n^q \alpha$.
 We show that this is sufficient for correctness in Lemma~\ref{lemma:goldberg_refine_iterations}.
-Choosing this type of $\eps_0$ is important for turning the cost-scaling
+Choosing this type of $\theta_0$ is important for turning the cost-scaling
 algorithm into a multiplicative approximation --- explained in
 Section~\ref{SSA:multiplicative-approx} --- where we also give the precise
 method for choosing $\alpha$.
@@ -1074,21 +1019,19 @@ Note that the minimum possible $x$ is the \emph{minimum bottleneck value} of the
 Within each scale, the algorithm performs the following:
 \begin{itemize}
 \item For scales after the first, \textsc{Scale-Init} takes the previous
-	circulation (now $2\eps$-optimal) and transforms it into an
-	$\eps$-optimal pseudoflow with $O(k)$ excess.
-	On the first scale ($\eps = \eps_0$), it does nothing.
+	circulation (now $2\theta$-optimal) and transforms it into an
+	$\theta$-optimal pseudoflow with $O(k)$ excess.
+	On the first scale ($\theta = \theta_0$), it does nothing.
 \item \textsc{Refine} then reduces the excess to zero while maintaining
-	$\eps$-optimality, turning $f$ into an $\eps$-optimal circulation.
+	$\theta$-optimality, turning $f$ into a $\theta$-optimal circulation.
 \end{itemize}
-If $\eps \leq \eps^*$, then $f$ is an $\eps^*$-optimal circulation and we are done.
-Otherwise, $\eps$ is halved and the next scale begins.
-The algorithm produces an $\eps^*$-optimal circulation after $O(\log(\eps_0/\eps^*))$ scales.
+If $\theta \leq \theta^*$, then $f$ is a $\theta^*$-optimal circulation and we are done.
+Otherwise, $\theta$ is halved and the next scale begins.
+The algorithm produces a $\theta^*$-optimal circulation after
+$O(\log(\theta_0/\theta^*))$ scales.
 Using the reduction in Lemma~\ref{lemma:cost_scale_approx}, we have an initial
-scale $\eps_0 = 2n^q\alpha$ and target scale $\eps^* = \eps\alpha/6k$.
+scale $\theta_0 = 2n^q\alpha$ and target scale $\theta^* = \eps\alpha/6k$.
 Thus, the number of cost scales after the reduction is $O(\log(n/\eps))$.
-
-\note{We should really resolve the notation collsion between different eps: pm-approx quality, cost scale, starting scale, target scale }
-
 
 \paragraph{Scale initialization.}
 
@@ -1120,19 +1063,19 @@ Thus, the number of cost scales after the reduction is $O(\log(n/\eps))$.
 For \textsc{Scale-Init}, we use a simple extension to a scale
 initialization procedure proposed for partial matching \cite[Section~6.1]{GHKT17}.
 Namely, the potential changes are the same, but we take the additional step
-to remove arcs violating $\eps$-optimality.
+to remove arcs violating $\theta$-optimality.
 %to fit the blocking flow version of \textsc{Refine}.
 %Recall that $H$ is the \emph{reduction graph} and $N_H$ is the \emph{reduction network}, both constructed in Section~\ref{SS:reduction}.
 The vertex set of $H$ consists of two point sets $A$ and $B$, as well as two dummy vertices $s$ and $t$.  The directed edges in $H$ are pointed from $s$ to $A$, from $A$ to $B$, and from $B$ to $t$.
 We call those arcs in $N_H$ whose direction is consistent with their corresponding directed edges as \EMPH{forward arcs}, and those arcs that points in the opposite direction as \EMPH{backward arcs}.
 
-The procedure \textsc{Scale-Init} transforms a $2\eps$-optimal circulation from the previous cost scale into an $\eps$-optimal flow with $O(k)$ excess, by raising the potentials $\pi$ of all vertices in $A$ by $\eps$, those in $B$ by $2\eps$, and the potential of $t$ by $3\eps$.
+The procedure \textsc{Scale-Init} transforms a $2\theta$-optimal circulation from the previous cost scale into a $\theta$-optimal flow with $O(k)$ excess, by raising the potentials $\pi$ of all vertices in $A$ by $\theta$, those in $B$ by $2\theta$, and the potential of $t$ by $3\theta$.
 The potential of $s$ remains unchanged.
 %
-Now the reduced cost of every forward arc is dropped by $\eps$, and thus all the forward arcs have reduced cost at least~$-\eps$.
+Now the reduced cost of every forward arc is increased by $\theta$, and thus all the forward arcs have reduced cost at least~$-\theta$.
 
-As for backward arcs, the procedure \textsc{Scale-Init} continues by setting the flow on $\arc vw$ to zero for each backward arc $\arc wv$ violating the $\eps$-optimality constraint.  In other words, we set $f(\arc vw) = 0$ whenever $c_\pi(\arc wv) < -\eps$.
-This ensures that all such backward arcs are no longer residual, and therefore the flow (now with excess) is $\eps$-optimal.
+As for backward arcs, the procedure \textsc{Scale-Init} continues by setting the flow on $\arc vw$ to zero for each backward arc $\arc wv$ violating the $\theta$-optimality constraint.  In other words, we set $f(\arc vw) = 0$ whenever $c_\pi(\arc wv) < -\theta$.
+This ensures that all such backward arcs are no longer residual, and therefore the flow (now with excess) is $\theta$-optimal.
 
 Because the arcs are of unit-capacity in $N_H$, each arc desaturation creates one unit of excess.
 By Lemma~\ref{lemma:support_size} the number of backward arcs is at most $3k$.
@@ -1178,7 +1121,7 @@ In other words, there is no admissible augmenting path in $N_{f+g}$ from an exce
 Each iteration of \textsc{Refine} finds an admissible blocking flow that is then added to the current pseudoflow in two stages:
 \begin{enumerate}
 \item
-A \EMPH{Hungarian search}, which increases the dual variables $\pi$ of vertices that are reachable from an excess vertex by at least $\eps$, in a Dijkstra-like manner, until there is an excess-deficit path of admissible edges.
+A \EMPH{Hungarian search}, which increases the dual variables $\pi$ of vertices that are reachable from an excess vertex by at least $\theta$, in a Dijkstra-like manner, until there is an excess-deficit path of admissible edges.
 \item
 A \EMPH{depth-first search} through the set of admissible arcs to construct a blocking flow.
 It suffices to repeatedly extract admissible augmenting paths until no more admissible excess-deficit paths remain.
@@ -1195,8 +1138,7 @@ which proves a $O(\sqrt{n})$ bound on the number of iterations for general
 unit-capacity networks.
 They claimed an analogous $O(\sqrt{k})$ bound for partial matchings in
 \cite[Section~6.1]{GHKT17}, which we reproduce for completeness.
-Due to space constraint we omit all the proofs here;
-see Appendix~\ref{SSA:num-iterations-refine} for complete proofs.
+Due to space constraint we have moved the proof to Appendix~\ref{SSA:num-iterations-refine}.
 
 
 \begin{toappendix}
@@ -1237,15 +1179,15 @@ The size of $\supp(f)$ is at most $O(k)$ for pseudoflow $f$ right before or duri
 
 In the following lemma, we prove the number of iterations of $\textsc{Refine}$
 required in each cost scale.
-This is also the place where our assumptions on the initial cost scale $\eps_0$
+This is also the place where our assumptions on the initial cost scale $\theta_0$
 become important (indeed, the only place).
-We require that $\eps_0$ is sufficiently high such that $N_H$ there exists a
-circulation whose bottleneck value is at most $\eps_0/2$.
+We require that $\theta_0$ is sufficiently high such that $N_H$ there exists a
+circulation whose bottleneck value is at most $\theta_0/2$.
 
 \begin{lemmarep}
 \label{lemma:goldberg_refine_iterations}
-Suppose that $\eps_0$ is chosen such that there exists a circulation in $N_H$
-with bottleneck value at most $\eps_0/2$.
+Suppose that $\theta_0$ is chosen such that there exists a circulation in $N_H$
+with bottleneck value at most $\theta_0/2$.
 In any scale, let $f$ be a pseudoflow in $N_H$ with $O(k)$ excess.
 The procedure \textsc{Refine} runs for $O(\sqrt{k})$ iterations
 %pushes $O(\sqrt{k})$ blocking flows
@@ -1256,10 +1198,10 @@ before the excess of $f$ becomes zero.
 \begin{proof}
 For cost scales after the first, let $f_0$ and $\pi_0$ be the circulation and
 potential at the end of the previous cost scale.
-For the first cost scale, let $\pi_0 = 0$ and $f_0$ be any circulation with bottleneck value $\leq \eps_0/2$.
-In both cases, $f_0$ is a $2\eps$-optimal circulation with respect to $\pi_0$.
+For the first cost scale, let $\pi_0 = 0$ and $f_0$ be any circulation with bottleneck value $\leq \theta_0/2$.
+In both cases, $f_0$ is a $2\theta$-optimal circulation with respect to $\pi_0$.
 Let $f$ and $\pi$ be the current flow and the potential.
-Let \EMPH{$d(v)$} defined to be the amount of potential increase at $v$ since $\pi_0$, measured in units of $\eps$; in other words, $d(v) \coloneqq (\pi(v) - \pi_0(v)) / \eps$.
+Let \EMPH{$d(v)$} defined to be the amount of potential increase at $v$ since $\pi_0$, measured in units of $\theta$; in other words, $d(v) \coloneqq (\pi(v) - \pi_0(v)) / \theta$.
 %
 % Goldberg~\etal~\cite[Lemma~3.5]{GHKT17} showed that every vertex $v$ has $d(v) \le 3n-3$, which we can improve to $O(k)$ on our reduction network,
 % \note{why do we need this bound?}
@@ -1272,7 +1214,7 @@ into two phases:  The transition from the first phase to the second happens when
 %
 At most $\sqrt{k}$ iterations belong to
 %blocking flows are being pushed during
-the first phase as each Hungarian search increases the potential $\pi$ by at least $\eps$ for each excess vertex (and thus increases $d(v)$ by at least one).
+the first phase as each Hungarian search increases the potential $\pi$ by at least $\theta$ for each excess vertex (and thus increases $d(v)$ by at least one).
 
 %Now the number of blocking flows that
 The number of iterations
@@ -1354,18 +1296,18 @@ The resulting multigraph $\tilde{H}_f$ contains only normal vertices of $H_f$, a
 % by replacing each null path contained in $\Pi$ with its shortcut.
 We argue now that $\tilde{H}_f$ is fine as a surrogate for $H_f$.
 %
-Let $\tilde{\pi}$ be an $\eps$-optimal potential on $\tilde{H}_f$.
+Let $\tilde{\pi}$ be a $\theta$-optimal potential on $\tilde{H}_f$.
 Construct potentials $\pi$ on $H_f$ which extends $\tilde{\pi}$ to null vertices, by
 setting $\pi(a) \coloneqq \tilde{\pi}(s)$ for $a \in A_\emptyset$ and
 $\pi(b) \coloneqq \tilde{\pi}(t)$ for $b \in B_\emptyset$.
 
 \begin{lemmarep}
 \label{lemma:empty_correct}
-Consider $\tilde{\pi}$ an $\eps$-optimal potential on $\tilde{H}_f$ and $\pi$ the corresponding potential constructed on $H_f$.
+Consider $\tilde{\pi}$ a $\theta$-optimal potential on $\tilde{H}_f$ and $\pi$ the corresponding potential constructed on $H_f$.
 Then,
 %\begin{enumerate}
 %\item
-(1) potential $\pi$ is $\eps$-optimal on  $H_f$, and
+(1) potential $\pi$ is $\theta$-optimal on  $H_f$, and
 %\item
 (2) if arc $\short(\Pi)$ is admissible under $\tilde{\pi}$, then every arc in $\Pi$ is admissible under $\pi$.
 %\end{enumerate}
@@ -1378,7 +1320,7 @@ Recall that a null path is comprised of one $A$-to-$B$ arc, and one or two
 zero-cost arcs (connecting the null vertex/vertices to $s$ and/or $t$).
 With our choice of null vertex potentials, we observe that the zero-cost arcs
 still have zero reduced cost.
-It remains to prove that an arbitrary \note{residual?} arc $(a, b)$ \note{arc or directed edge?} satisfies the $\eps$-optimality condition and admissibility when either $a$ or $b$ is a null vertex.
+It remains to prove that an arbitrary \note{residual?} arc $(a, b)$ \note{arc or directed edge?} satisfies the $\theta$-optimality condition and admissibility when either $a$ or $b$ is a null vertex.
 
 By construction of the shortcut graph,
 there is always a null path $\Pi$ that contains $(a, b)$.
@@ -1398,7 +1340,7 @@ Observe that $c_\pi(a, b) = c_\pi(\Pi)$, independent to the type of null path.
 % 	\end{equation*}
 % \end{itemize}
 Again by construction, $c_\pi(\Pi) = c_{\tilde{\pi}}(\short(\Pi))$, so we have
-$c_\pi(a, b) = c_{\tilde{\pi}}(\short(\Pi)) \geq -\eps$.
+$c_\pi(a, b) = c_{\tilde{\pi}}(\short(\Pi)) \geq -\theta$.
 Additionally, if $\short(\Pi)$ is admissible under $\tilde{\pi}$, then so is
 $(a, b)$ under $\pi$.
 %
@@ -1734,7 +1676,7 @@ Potentials on the null vertices are only required right before an augmentation s
 null path, making the null vertices it passes normal.
 %as well as at the end of \textsc{Refine} (for the next cost-scale).
 We use the construction from Lemma~\ref{lemma:empty_correct}
-to obtain potential $\pi$ on $H_f$ such that the flow $f$ is both $\eps$-optimal and admissible with respect to $\pi$.
+to obtain potential $\pi$ on $H_f$ such that the flow $f$ is both $\theta$-optimal and admissible with respect to $\pi$.
 
 \paragraph{Size of blocking flows.}
 
@@ -1987,7 +1929,7 @@ Intuitively, $\EuScript{T}$ is a maximal set of linearly independent dual LP
 constraints for the optimal dual ($\pi^*$), so there exists an optimal primal
 solution ($f^*$) with support only on these arcs.
 To see this, we can use a perturbation argument: raising the cost of each
-non-tree edge by $\eps > 0$ does not change $\cost(\pi^*)$ or the feasibility
+non-tree edge by a positive amount does not change $\cost(\pi^*)$ or the feasibility
 of $\pi^*$, but does raise the cost of any circulation $f$ using non-tree edges.
 Strong duality suggests that $\cost(f^*) = \cost(\pi^*)$ is unchanged,
 therefore $f^*$ must have support only on the tree edges.
