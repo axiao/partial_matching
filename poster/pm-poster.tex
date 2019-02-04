@@ -1,0 +1,81 @@
+% instead of \usepackage, tikzposter uses this (place before documentclass)
+\PassOptionsToPackage{usenames,dvipsnames,svgnames,table}{xcolor}
+
+\documentclass{tikzposter}
+\usetheme{Simple}
+%\usecolorstyle[colorPalette=BlueGrayOrange]{Default}
+\usebackgroundstyle{Empty}
+
+\colorlet{titlebgcolor}{MidnightBlue}
+\title{Geometric Partial Matching}
+\author{\large Pankaj K. Agarwal, Hsien-Chih Chang, Allen Xiao}
+
+\def\EMPH#1{\textcolor{MidnightBlue}{\bf #1}}
+
+\def\polylog{\mathop{\mathrm{polylog}}}
+\def\eps{\varepsilon}
+\def\A{\textcolor{BrickRed}{A}}
+\def\B{\textcolor{NavyBlue}{B}}
+
+
+\begin{document}
+\maketitle
+
+\begin{columns}
+
+\column{0.5}
+\block{Problem Statement}{
+	\EMPH{Geometric Bipartite Matching:}
+	Given two equal-sized point sets $\A, \B$ in the plane,
+	find a \emph{perfect matching} minimizing the sum of lengths of matching edges.
+
+	%TODO small figure
+
+	\EMPH{Geometric Partial Matching:}
+	Given two point sets $\A, \B$ in the plane,
+	find a \emph{size-$k$ matching} minimizing the sum of lengths of matching edges.
+
+	%TODO small figure with k
+
+}
+\block{Background}{
+	Let $n = \max(|\A|, |\B|)$ and $m = |\A \times \B| = O(n^2)$.
+	Primal-dual algorithms for general graphs can solve the problem in
+	$O(km + k^2 \log n) = O(kn^2 + k^2 \log n)$ time.
+
+	However, there are faster algorithms for geometric bipartite matching
+	versus perfect matching in general graphs, using dynamic data structures
+	for \EMPH{bichromatic closest pair} and \EMPH{nearest neighbors}.
+	Roughly speaking, we can replace the $O(m)$ with $O(n\polylog n)$ or
+	$O(k\polylog n)$ in many instances.
+	If $O(m)$ is no longer the running time bottleneck, can we design a
+	faster algorithm for partial matching?
+}
+\block{Results}{
+	Building from existing primal-dual algorithms,
+	\begin{enumerate}
+	\item An exact algorithm running in time $O((n + k^2)\polylog n)$,
+		using the Hungarian algorithm.
+	\item A $(1+\eps)$-approximation algorithm running in time
+		$O((n + k\sqrt{k})\polylog n \log(1/\eps))$,
+		using a \EMPH{cost-scaling} algorithm for unit-capacity minimum-cost flow
+		by Goldberg, Hed, Kaplan, and Tarjan.
+	\end{enumerate}
+}
+
+\column{0.5}
+\block{Primal-Dual Augmentation Algorithms}{
+	%TODO figure
+	A classical algorithm for min-cost matching and min-cost flow:
+	grow the matching using the least-cost augmenting path.
+	Essentially, solve a \EMPH{single-source shortest paths} problem (Dijkstra).
+	Improves with geometry --- can query the ``next shortest edge'' as a
+	bichromatic closest pair.
+}
+\block{Techniques}{
+	% rewinding --- can't reconstruct data structures from scratch; build from the initial state of last iteration
+	% skipping dead vertices --- certain vertices cannot be part of an augmenting path, what's left is size O(k)
+}
+
+\end{columns}
+\end{document}
