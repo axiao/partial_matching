@@ -13,6 +13,8 @@
 \usepackage[backend=bibtex]{biblatex}
 \addbibresource{ref.bib}
 
+\graphicspath{{fig/}}
+
 \def\EMPH#1{\textcolor{MidnightBlue}{\bf #1}}
 
 \def\polylog{\mathop{\mathrm{polylog}}}
@@ -32,13 +34,18 @@
 	Given two equal-sized point sets $\A, \B$ in the plane,
 	find a \emph{perfect matching} minimizing the sum of lengths of matching edges.
 
-	%TODO small figure
+	\begin{tikzfigure}
+	\includegraphics[width=0.9\linewidth,page=1]{matching_vs_partial}
+	\end{tikzfigure} 
 
 	\EMPH{Geometric Partial Matching}:
 	Given two point sets $\A, \B$ in the plane,
 	find a \emph{size-$k$ matching} minimizing the sum of lengths of matching edges.
+	(Below, $k = 3$.)
 
-	%TODO small figure with k
+	\begin{tikzfigure}
+	\includegraphics[width=0.9\linewidth,page=2]{matching_vs_partial}
+	\end{tikzfigure} 
 
 }
 \block{Background}{
@@ -56,7 +63,7 @@
 	faster algorithm for partial matching?
 }
 \block{Results}{
-	Building from existing primal-dual augmentation algorithms,
+	Building from existing primal-dual augmentation algorithms:
 	\begin{enumerate}
 	\item An exact algorithm running in time $O((n + k^2)\polylog n)$,
 		using the Hungarian algorithm~\cite{Kuhn55}.
@@ -74,30 +81,43 @@
 
 \column{0.5}
 \block{Primal-Dual Augmentation Algorithms}{
-	%TODO figure
+
+	\begin{tikzfigure}
+	\includegraphics[width=0.9\linewidth]{aug_path}
+	\end{tikzfigure} 
+
 	A classical algorithm for min-cost matching and min-cost flow:
 	grow the matching using the least-cost augmenting path.
 	Essentially, solve a \EMPH{single-source shortest paths} problem (Dijkstra).
 	Improves with geometry --- can query the ``next shortest edge'' as a
 	bichromatic closest pair for $\A, \B$ in the plane.
 }
-\block{Techniques}{
+\block{Our Techniques}{
 	% rewinding --- can't reconstruct data structures from scratch; build from the initial state of last iteration
 	% skipping dead vertices --- certain vertices cannot be part of an augmenting path, what's left is size O(k)
 	\begin{enumerate}
+	\item \EMPH{Null vertices}:
+		Certain vertices cannot be part of any augmenting path.
+		After filtering these out, each BCP query ``makes progress''
+		towards finding an augmenting path so the search for an
+		augmenting path takes $O(k\polylog n)$ time rather than $O(n\polylog n)$.
+		We identify these in our reduction to unit-capacity min-cost flow.
+
+		\begin{tikzfigure}
+		\includegraphics[width=0.7\linewidth]{null}
+		\end{tikzfigure} 
 	\item \EMPH{Rewinding}:
 		It takes $O(n\polylog n)$ time to construct the dynamic data
 		structures from scratch.
 		We can't afford to do this every augmentation, but we can build
 		it from the \emph{initial data structure of the previous
-		augmentation} in $O(\polylog n)$ time.
-		This costs $O(k\polylog n)$ time to ``rewind'' changes and
+		augmentation} in a single update.
+		It costs $O(k\polylog n)$ time to ``rewind'' changes and
 		recover the initial data structure state.
-	\item \EMPH{Null vertices}:
-		Certain vertices cannot be part of any augmenting path.
-		After filtering these out, each BCP query ``makes progress''
-		towards finding an augmenting path so the search for an
-		augmenting path takes $O(k\polylog n)$ time.
+
+		\begin{tikzfigure}
+		\includegraphics[width=0.7\linewidth]{rewind}
+		\end{tikzfigure} 
 	\end{enumerate}
 }
 \block{References}{
