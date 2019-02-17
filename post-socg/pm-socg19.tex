@@ -201,7 +201,7 @@ We present efficient algorithms for geometric partial matching that work for any
 An exact algorithm that runs in $O((n + k^2)\polylog n)$ time, and a $(1 + \eps)$-approximation algorithm that runs in $O((n + k\sqrt{k})\polylog n \cdot \log\eps^{-1})$ time.
 Both algorithms are based on primal-dual flow augmentation scheme; the main improvements are obtained by using dynamic data structures to achieve efficient flow augmentations.
 Using similar techniques, we give an exact algorithm for the planar transportation problem that runs in $O((r^2\sqrt{n} + rn^{3/2})\polylog n)$ time.
-For $r = o(\sqrt{n})$, this algorithm is faster than the state-of-art near-quadratic time algorithm by Agarwal~\etal\ [SOCG 2016].
+For $r = o(\sqrt{n})$, this algorithm is faster than the state-of-art near-quadratic time algorithm by Agarwal~\etal\ [SOCG 2017].
 \end{abstract}
 
 
@@ -249,7 +249,7 @@ economics~\cite{G16},
 engineering~\cite{O87,STTP14},
 and medical imaging~\cite{GPC15}.
 More recently, computational/numerical interest has expanded greatly due to
-the development of fast approximate solvers \cite{C13,AWR17,DGK18,ABRW18};
+the development of fast approximate solvers \cite{C13,AWR17,DGK18,ABRW18}; \note{remove \cite{ABRW18}?}
 see the books by Villani~\cite{V03,V08}, by Cuturi and Peyr{\'e}~\cite{PC18},
 and the survey by Solomon~\cite{S18}.
 
@@ -264,7 +264,7 @@ The first improvement in over thirty years was made by M{\k a}dry~\cite{M13},
 which uses an interior-point algorithm and runs in $O(m^{10/7}\polylog n)$ time.
 
 The Hungarian algorithm~\cite{Kuhn55} computes a minimum-cost maximum matching
-in a bipartite graph in roughly $mn$ time.
+in a bipartite graph in roughly $O(mn)$ time.
 Faster algorithms have been developed since,
 %for minimum-weight bipartite matching,
 such as the $O(m\sqrt{n}\log(nC))$ time algorithms by Gabow and
@@ -294,7 +294,7 @@ $O(n\polylog n \cdot \eps^{-\Omega(1)})$ expected time with high probability,
 assuming $q$---the power of the $L_p$-norm in the matching objective---is equal to one;
 in other words, when the cost is the sum of $L_p$-distances between
 matching pairs.
-Their algorithm can also compute a $(1+\eps)$-approximate optimal partial
+Their algorithm can also compute a $(1+\eps)$-approximate partial
 matching within the same time bound.
 For $q > 1$, the best known approximation algorithm to compute a perfect
 matching runs in $O(n^{3/2}\polylog n \cdot \log\eps^{-1})$ time \cite{SA12}.
@@ -318,7 +318,7 @@ Lee and Sidford~\cite{LS13b} give a weakly polynomial algorithm that runs in
 $O(m\sqrt{n}\polylog(n, U))$ time, where $U$ is the maximum amount of vertex supply-demand.
 Agarwal~\etal~\cite{AFPVX17} showed that Orlin's algorithm can be
 implemented to solve 2D transportation in time $O(n^2\polylog n)$.
-It open whether this algorithm can be implemented to run in
+It is open whether this algorithm can be implemented to run in
 $O(rn\polylog n)$ time (recall that $r$ is the size of $A$).
 By adapting the Lee-Sidford algorithm, they developed a
 $(1+\eps)$-approximation algorithm that runs in $O(n^{3/2}\eps^{-2}\polylog n)$ time.
@@ -458,7 +458,7 @@ The algorithm terminates once $M$ has size $k$;
 Ramshaw and Tarjan~\cite{RT12} showed that $M$ is guaranteed to be an optimal partial matching.
 %\note{For the specific implementation of Hungarian search where in each iteration the roots are all unmatched vertices in $A$.  Picking one as source does not guarantee min-cost partial matching.}
 
-The Hungarian search tries grow a set of \EMPH{reachable vertices $S$}
+The Hungarian search tries to grow a set of \EMPH{reachable vertices $S$}
 % from unmatched vertex $v \in A$
 by augmenting paths consisting of admissible edges.
 Initially, $S$ is the set of unmatched vertices in $A$.
@@ -670,7 +670,7 @@ In this section we assume all networks are of unit-capacity.
 Given a network $N \coloneqq (V,\vec{E},c,u,\fsupply)$,
 a \EMPH{pseudoflow} (or \EMPH{flow} to be short) $f\colon \vec{E} \to \ints$%
 \footnote{In general the pseudoflows are allowed to take real-values. Here under the unit-capacity assumption any optimal flows are integer-valued.}
-on $N$ is an antisymmetric function on the arcs of $N$ satisfying $f(\arc vw) \leq u(\arc vw)$ for every arc $\arc vw$.%
+on $N$ is an antisymmetric function on the arcs of $N$ satisfying $f(\arc vw) \leq u(\arc vw)$ for every arc $\arc vw$.
 %
 We sometimes abuse the terminology by allowing pseudoflow to be defined on a directed graph, in which case we are actually referring to the pseudoflow on the corresponding network by extending the flow values anti-symmetrically to the arcs.
 %
@@ -1078,7 +1078,7 @@ $O(\log(\theta_0/\theta^*))$ scales.
 %
 Using the reduction in Lemma~\ref{lemma:cost_scale_approx}, we have an initial
 scale $\theta_0 = 2n^q\alpha$ and target scale $\theta^* = \eps\alpha/6k$.
-Thus, the number of cost scales after the reduction is $O(\log(n/\eps))$.
+Thus, the number of cost scales after the reduction is $O(\log(n/\eps))$. \note{$\log(kn/\eps)$?}
 
 \paragraph{Scale initialization.}
 
@@ -1808,7 +1808,7 @@ completes the proof of Theorem~\ref{theorem:gmcm}.
 \label{section:orlin}
 
 In this section, we give an exact algorithm which solves the planar transportation
-problem in $O((n + k\sqrt{k})\log(1/\eps)\polylog n)$ time, proving Theorem~\ref{theorem:orlin}.
+problem in $O((r^2\sqrt{n} + rn^{3/2})\polylog n)$ time, proving Theorem~\ref{theorem:orlin}.
 Our strategy is to use the standard reduction to the uncapacitated
 min-cost flow problem, and provide a fast implementation under the geometric setting for the uncapacitated min-cost flow algorithm by Orlin~\cite{O93}, combined with some of the tools developed in Sections~\ref{section:hung} and~\ref{section:goldberg}.
 %Mainly, we batch potential updates and use the rewinding mechanism to initialize each Hungarian search in time proportional to the previous Hungarian search.
@@ -1829,9 +1829,9 @@ For lack of space, we only sketch Orlin's strongly polynomial-time algorithm for
 See Appendix~\ref{SSA:orlin} for a brief introduction, as well as the original paper.
 %
 In short, Orlin's algorithm follows the \EMPH{excess-scaling} paradigm under the primal-dual framework:
-Maintain a \EMPH{scale parameter} $\Delta$, initially set to $U$.
+Maintain a \EMPH{scale parameter $\Delta$}, initially set to $U$.
 A vertex $v$ is \EMPH{active} if $\abs{\fsupply_f(v)} \geq \alpha\Delta$ for a fixed parameter $\alpha \in (0.5, 1)$.
-Repeatedly runs a \emph{Hungarian search} that raises potentials (while maintaining dual
+Repeatedly run a \emph{Hungarian search} that raises potentials (while maintaining dual
 feasibility) to create an admissible augmenting excess-deficit path between active vertices, on which
 we perform flow augmentations.
 Once there are no more active excess or deficit vertices, $\Delta$ is halved.
@@ -1849,7 +1849,7 @@ Orlin's algorithm follows an \EMPH{excess-scaling} paradigm originally due to
 Edmonds and Karp~\cite{EK72}.
 Consider the basic primal-dual framework used in the previous sections:
 The algorithm begins with both flow $f$ and potentials $\pi$ set to zero.
-Repeatedly runs a \emph{Hungarian search} that raises potentials (while maintaining dual
+Repeatedly run a \emph{Hungarian search} that raises potentials (while maintaining dual
 feasibility) to create an admissible augmenting excess-deficit path, on which
 we perform flow augmentations.
 %If supplies/demands are integral and at least one unit of flow is pushed every time, then such an algorithm terminates.
@@ -1860,7 +1860,7 @@ The excess-scaling paradigm builds on top of this skeleton by specifying (i) bet
 excess and deficit vertices we send flows, and (ii) how much flow is sent by the
 augmentation.
 
-The excess-scaling algorithm maintains a \EMPH{scale parameter} $\Delta$,
+The excess-scaling algorithm maintains a \EMPH{scale parameter $\Delta$},
 initially set to $U$.
 A vertex $v$ with $\abs{\fsupply_f(v)} \geq \Delta$ is called \EMPH{active}.
 Each augmenting path is chosen between an active excess vertex and an active
@@ -2033,7 +2033,7 @@ some SPT arcs may be inadmissible.
 Let $d_r(v)$ be the shortest path distance of $v \in A \cup B \cup \{s\}$ from
 $r$, and consider potentials $\pi^\# = \pi^* - d_r$.
 
-\begin{lemma}[Orlin~\cite{O93} Lemma 3]
+\begin{lemma}[(Orlin~{\cite[Lemma 3]{O93}})]
 \label{lemma:orlin_spt_dist}
 Let $f$ be a flow satisfying the optimality conditions with respect to $\pi^*$.
 Then, (i) $f$ satisfies the optimality conditions with respect to $\pi^\#$, and
@@ -2125,11 +2125,11 @@ Without loss of generality, assume $\pi^*$ is nonnegative (raising $\pi^*$
 uniformly on all points does not change the objective or feasibility).
 Recall that $\pi^*$ is feasibility if for all $a \in A$ and $b \in B$
 \[
-	c_{\pi^*}(a, b) = \norm{a-b}_p - \pi^*(a) + \pi^*(b) \geq 0.
+	c_{\pi^*}(\arc ab) = \norm{a-b}_p - \pi^*(a) + \pi^*(b) \geq 0.
 \]
 An arc $\arc ab$ is admissible when
 \[
-	c_{\pi^*}(a, b) = \norm{a-b}_p - \pi^*(a) + \pi^*(b) = 0.
+	c_{\pi^*}(\arc ab) = \norm{a-b}_p - \pi^*(a) + \pi^*(b) = 0.
 \]
 We note that these definitions have a nice visual:
 Place disks $D_q$ of radius $\pi(q)$ at each $q \in A \cup B$.
