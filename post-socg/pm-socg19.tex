@@ -418,6 +418,13 @@ In this section, we solve the geometric partial matching problem and prove Theor
 % In the geometric partial matching setting, we have $E = A \times B$
 % and $c(a, b) = \norm{a-b}_p^q$ for every edge $(a, b)$ in $G$.
 
+A vertex $v$ is \EMPH{matched} by matching $M \subseteq E$ if $v$ is the endpoint of some edge in $M$;
+otherwise $v$ is \EMPH{unmatched}.
+Given a matching $M$, an \EMPH{augmenting path}
+$\Pi = (a_1, b_1, \ldots, a_\ell, b_\ell)$ is an odd-length path with unmatched
+endpoints ($a_1$ and $b_\ell$) that alternates between edges outside and inside of $M$.
+The symmetric difference $M \oplus \Pi$ creates a new matching of size $\abs{M}+1$, called the \EMPH{augmentation} of $M$ by $\Pi$.
+%
 The dual to the standard linear program for partial matching has dual variables
 for each vertex, called \EMPH{potentials $\pi$}.
 Given potentials $\pi$, we can define the \EMPH{reduced cost} on the edges to be
@@ -425,14 +432,8 @@ $\EMPH{$c_\pi(v, w)$} \coloneqq c(v, w) - \pi(v) + \pi(w)$.
 Potentials $\pi$ are \EMPH{feasible} if the reduced costs are nonnegative for all edges in $G$.
 We say that an edge $(v, w)$ is \EMPH{admissible} under potentials $\pi$ if $c_\pi(v, w) = 0$.
 
-A vertex $v$ is \EMPH{matched} by matching $M \subseteq E$ if $v$ is the endpoint of some edge in $M$;
-otherwise $v$ is \EMPH{unmatched}.
-Given a matching $M$, an \EMPH{augmenting path}
-$\Pi = (a_1, b_1, \ldots, a_\ell, b_\ell)$ is an odd-length path with unmatched
-endpoints ($a_1$ and $b_\ell$) that alternates between edges outside and inside of $M$.
-The symmetric difference $M \oplus \Pi$ creates a new matching of size $\abs{M}+1$, called the \EMPH{augmentation} of $M$ by $\Pi$.
+\paragraph{Fast implementation of Hungarian search.}
 
-\paragraph{Fast implementation of Hungarian search}
 The Hungarian algorithm is initialized with $M = \emptyset$ and $\pi = 0$.
 % It maintains the following invariants: (see, for example, \cite{})
 % %\begin{enumerate}[(i)]\itemsep=0pt
@@ -477,8 +478,8 @@ The search finishes when $b$ is unmatched, and an admissible augmenting path now
 %Additionally, there are $k$ augmentations throughout the Hungarian algorithm.
 %so the total time spent on updating the matching (during augmentations) is $O(k^2)$.
 
-\subsection{Fast implementation of Hungarian search}
-\label{SS:fast-hungarian-matching}
+%\subsection{Fast implementation of Hungarian search}
+%\label{SS:fast-hungarian-matching}
 
 % Observe that the Hungarian search makes $O(k)$ relaxations, as each
 % relaxation either leads to an unmatched vertex (ending the search) or
@@ -511,7 +512,9 @@ in $O(k\polylog n)$ time.
 Explained shortly, there is an existing technique to handle potential updates
 without performing BCP updates for each one.
 
-\paragraph{Rewinding mechanism.}
+\subsection{Rewinding mechanism}
+\label{SS:rewinding}
+
 % In the beginning of each iteration,
 % $S$ is initialized to the set of unmatched vertices in $A$,
 % and therefore $Q = B \setminus S$ has size $n$.
@@ -609,14 +612,14 @@ For Sections~\ref{section:goldberg} and \ref{S:implementation}, we assume the ca
 A \EMPH{network $N = (V, \vec{E})$} turns each edge in $E$ into a pair of
 \EMPH{arcs} $\arc vw$ and $\arc wv$ in arc set $\vec{E}$.
 With the unit-capacity assumption on the network, all the pseudoflows in this section take integer values.
-The \EMPH{support} of a pseudoflow $f$ in $N$, is the set of arcs with positive flows:
-\(
-\EMPH{$\supp(f)$} \coloneqq \set{\arc vw \in \vec{E} \mid f(\arc vw) > 0}.
-\)
+The \EMPH{support} of a pseudoflow $f$ in $N$, denoted $\EMPH{$\supp(f)$}$, is the set of arcs with positive flows.
+% \[
+% \EMPH{$\supp(f)$} \coloneqq \set{\arc vw \in \vec{E} \mid f(\arc vw) > 0}.
+% \]
 Given a pseudoflow $f$, we define the \EMPH{imbalance} of a vertex to be
-\(
+\[
 \EMPH{$\fsupply_f (v)$} \coloneqq \fsupply(v) + \sum_{\arc wv \in \vec{E}}{f(\arc wv)} - \sum_{\arc vw \in \vec{E}}{f(\arc vw)}.
-\)
+\]
 If all vertices are \emph{balanced}, the pseudoflow is a \EMPH{circulation}.
 The \EMPH{cost} of a pseudoflow
 %denoted \EMPH{$\cost(f)$},
@@ -626,13 +629,6 @@ is defined to be
 \]
 %
 The \EMPH{minimum-cost flow problem (MCF)} asks to find a circulation of minimum cost inside a given directed graph.
-
-\note{Move to when used} %TODO move it
-The \EMPH{bottleneck value} of a flow is
-\[
- \EMPH{$\operatorname{bottleneck}(f)$} \coloneqq \max_{\arc vw \in \supp(f)} c(\arc vw).
-\]
-The \EMPH{minimum bottleneck value} for a network is the minimum bottleneck value over all circulations.
 
 \begin{toappendix}
 \subsection{Preliminaries on Network Flows}
@@ -736,7 +732,7 @@ Formally, the
 Assignments to the primal variables satisfying the capacity constraints extend naturally into a pseudoflow on the network $N$.
 %\note{which primal problem? State the corresponding linear problems explicitly}.
 Let $G_f = (V,\vec{E}_f)$ be the residual graph under pseudoflow $f$.
-The \EMPH{reduced cost} of an arc $\arc vw$ in $\vec{E}_f$ with respect to $\pi$ is defined as
+The \EMPH{reduced cost} of arc $\arc vw$ in $\vec{E}_f$ with respect to $\pi$ is defined as
 \[
 \EMPH{$c_\pi(\arc vw)$} \coloneqq c(\arc vw) - \pi(v) + \pi(w).
 \]
@@ -751,7 +747,7 @@ The \EMPH{dual feasibility constraint} says that $c_\pi(\arc vw) \geq 0$ holds f
 %
 Suppose we relax the dual feasibility constraint to allow some small violation in the value of $c_\pi(\arc vw)$.
 We say that a pair of pseudoflow $f$ and potential $\pi$ is
-\EMPH{$\theta$-optimal}~\cite{T85,BE87}%
+\EMPH{$\theta$-optimal}~\cite{T85,BE87}
 %\footnote{This is commonly written as $\eps$-optimality in the min-cost flow literature.}
 if $c_\pi(\arc vw) \geq -\theta$ for every residual arc $\arc vw$ in $\vec{E}_f$.
 Pseudoflow $f$ is \emph{$\theta$-optimal} if it is $\theta$-optimal with respect to
@@ -904,7 +900,13 @@ by a low-cost subgraph of the minimum spanning tree (MST) on $G$---%
 to transform the instance into a number of bounded-diameter point sets
 ``preserving'' $M^*$.
 We also perform a single-linkage clustering, but use it to find a good upper
-bound on the minimum bottleneck value of the reduction network instead.
+bound on the minimum \emph{bottleneck value} of the reduction network instead.
+%
+The \EMPH{bottleneck value} of a flow is
+\[
+ \EMPH{$\operatorname{bottleneck}(f)$} \coloneqq \max_{\arc vw \in \supp(f)} c(\arc vw).
+\]
+The \EMPH{minimum bottleneck value} for a network is the minimum bottleneck value over all circulations.
 
 Let $T$ be the minimum spanning tree on input graph $G$ and order
 its edges by increasing length as $e_1, \ldots, e_{r+n-1}$;
@@ -1578,9 +1580,9 @@ The complete time analysis can be found in Appendix~\ref{SSA:num-relaxation}, \r
 %
 First we show (in Appendix~\ref{SSA:num-relaxation}) that both Hungarian search and depth-first search performs $O(k)$ relaxations before a deficit vertex is reached, by looking at shortcut and non-shortcut relaxations separately.  Both types of relaxations are eventually charged to the support size of $f$.
 %
-As for the time analysis (see Appendix~\ref{SSA:time-ananlsis}), using the same rewinding mechanism as in Section~\ref{SS:fast-hungarian-matching}, the running time of the Hungarian search and depth-first search, other than the potential updates, can be charged to the number of relaxations.
+As for the time analysis (see Appendix~\ref{SSA:time-ananlsis}), using the same rewinding mechanism as in Section~\ref{SS:rewinding}, the running time of the Hungarian search and depth-first search, other than the potential updates, can be charged to the number of relaxations.
 Again using the trick by Vaidya~\cite{Vaidya89}
-%in Section~\ref{SS:fast-hungarian-matching}
+%in Section~\ref{SS:rewinding}
 we can charge the potential updates of normal vertices to the number of relaxations in the Hungarian search.
 %
 We never explicitly maintain the potentials on the null vertices; instead they are reconstructed whenever needed, either at the end of each iteration of refinement or when an augmentation sends flow through a null vertex.  We show that such updates does not happen often in Appendix~\ref{SSA:null-potential-update}.
@@ -2588,7 +2590,7 @@ So the total preprocessing time is $O(rn\polylog n)$.
 
 \paragraph{Between searches.}
 After each augmentation, we reset the data structures to their initial
-state plus the change from augmentation using rewinding mechanism (see Section~\ref{SS:fast-hungarian-matching}).
+state plus the change from augmentation using rewinding mechanism (see Section~\ref{SS:rewinding}).
 %By reversing the sequence of insertions/deletions to each data structure over
 %the course of the Hungarian search, we can recover the versions data structures
 %as they were when the Hungarian search began.
