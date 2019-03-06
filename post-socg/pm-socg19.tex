@@ -789,7 +789,7 @@ We call a matching $M$ of $G(A, B)$ \EMPH{intra-cluster} if both endpoints of
 every edge in $M$ lie in the same connected component of $T_i$.
 We define $i^*$ to be the smallest index $i$ such that there exists an
 intra-cluster matching of size $k$ in $T_{i^*}$.
-Set $\overline{theta} \coloneqq n^q \cdot c(e_{i^*})$.
+Set $\overline{\theta} \coloneqq n^q \cdot c(e_{i^*})$.
 The following lemma will be used by our cost-scaling algorithm:
 
 \begin{lemma}
@@ -798,9 +798,9 @@ The following lemma will be used by our cost-scaling algorithm:
 \item \label{item:starting_scale1}
 	The value of $i^*$ can be computed in $O(n\log n)$ time.
 \item \label{item:starting_scale2}
-	$c(e_{i^*}) \leq \cost(f^*) \leq \overline{theta}$.
+	$c(e_{i^*}) \leq \cost(f^*) \leq \overline{\theta}$.
 \item \label{item:starting_scale3}
-	There is a $\overline{theta}$-optimal circulation in the network $N$ with
+	There is a $\overline{\theta}$-optimal circulation in the network $N$ with
 	respect to the 0 potential $\pi = 0$, assuming $\fsupply(s) = k$,
 	$\fsupply(t) = -k$, and $\fsupply(v) = 0$ for all $v \in A \cup B$.
 \end{enumerate}
@@ -831,7 +831,7 @@ In the beginning of each round, we fix a \EMPH{cost scaling parameter}
 
 \note{scale-init also assumes that we have the circulation ON HAND for scales after the first}%TODO
 
-For the initial round, we set $\theta = \overline{theta}$ and $\pi = 0$.
+For the initial round, we set $\theta = \overline{\theta}$ and $\pi = 0$.
 By Lemma~\ref{lemma:starting_scale}\ref{item:starting_scale3},
 \ref{item:scale_inv} is satisfied initially.
 Each round of the algorithm consists of two stages.
@@ -930,7 +930,7 @@ a node may become balanced and then imbalanced across rounds,
 and the potential of excess nodes may be non-uniform.
 We therefore need a more complex data structure.
 
-We call a node $v$ of $N$ \EMPH{inactive} if $e_f(v) = 0$ and no arc of
+We call a node $v$ of $N$ \EMPH{inactive} if $\fsupply_f(v) = 0$ and no arc of
 $\supp(f)$ is incident to it; otherwise $v$ is \EMPH{active}.
 We note that $s$ and $t$ are always active.
 Let $\overline{A}$ (resp. $\overline{B}$, $\overline{X}$) denote the set of
@@ -995,7 +995,7 @@ as the cost of a pair $(v, w)$.
 Since the size of $A \setminus \overline{A}$ is at least $n-k$, we cannot
 explicitly construct this BCP at the beginning of each iteration of Hungarian search.
 Instead, we can again apply the rewinding mechanism from Section~\ref{SS:rewinding}.
-The ``initial state'' of the BCP is between $A 
+The ``initial state'' of the BCP is between
 
 \paragraph{Finding length-3 paths}
 
