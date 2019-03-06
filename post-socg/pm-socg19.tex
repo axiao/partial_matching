@@ -525,8 +525,8 @@ Thus (modulo potential changes), given the initial state of the BCP at the $i$-t
 we can obtain the initial state for the $(i+1)$-th with a single BCP deletion operation.
 Suppose we log the sequence of points added to $S$ in the $i$-th Hungarian search.
 Then, at the start of the $(i+1)$-th Hungarian search, we can \emph{rewind} this
-log by undoing each BCP update operation in reverse order of the log to obtain
-the initial state of the $i$-th BCP.
+log by applying the opposite insert/delete operation for each BCP update in
+reverse order of the log to obtain the initial state of the $i$-th BCP.
 With one additional BCP delete, we have the initial state for the $(i+1)$-th BCP.
 The number of points in the log is $O(k)$, bounded by the number of relaxations
 per Hungarian search.
@@ -591,6 +591,435 @@ The time spent on potential updates per Hungarian search is therefore $O(k)$.
 % ----------------------------------------------------------------------------
 \section{Approximating Min-Cost Partial Matching through Cost-Scaling}
 \label{section:goldberg}
+
+In this section we describe an approximation algorithm for computing a min-cost
+partial matching in the graph $G(A, B)$ defined earlier.
+We reduce the problem to computing a min-cost circulation in a flow network
+(Section~\ref{SS:match-flow-red}).
+We adapt the cost-scaling algorithm by Goldberg~\etal~\cite{GHKT17} for
+computing min-cost flow of a unit-capacity network (Section~\ref{SS:cost-scale}).
+Finally, we show how their algorithm can be implemented in
+$O((n + k^{3/2})\polylog(n)\log(1/\eps))$ time in our setting (Section~\ref{SS:fast_refine}).
+
+\subsection{From matching to circulation}
+\label{SS:match-flow-red}
+
+Given $G \coloneqq G(A, B)$, we construct a flow network
+$N = (V, \vec{E})$ using a standard approach (see e.g. \cite{RT12})
+so that a min-cost matching in $G$ corresponds to a min-cost integral
+circulation in $N$.
+
+\paragraph{Flow network}
+Each vertex in $G$ becomes a node in $N$ and each edge
+$(a, b) \in A \times B$ in $G$ becomes an arc $\arc{a}{b}$ in $N$;
+we refer to these nodes (resp. arcs) as \EMPH{bipartite} nodes (resp. arcs).
+$N$ also includes a \EMPH{source} node $s$ and \EMPH{sink} node $t$.
+For each $a \in A$, we add a \EMPH{left dummy} arc $\arc{s}{a}$ and for each
+$b \in B$ we add a \EMPH{right dummy} arc $\arc{b}{t}$.
+Each arc $\arc{v}{w}$ in $N$ has cost $c(\arc{v}{w})$, which is $c(x, y)$ if
+$\arc{v}{w}$ is a bipartite arc and $0$ if $\arc{v}{w}$ is a dummy arc.
+All arcs in $N$ have unit capacity.
+
+Let $\fsupply: V \to \ints$ be an integral supply/demand function on nodes of $N$.
+The positive values of $\fsupply(v)$ are referred to as \EMPH{supply}, and the
+negative values of $\fsupply(v)$ as \EMPH{demand}.
+A \EMPH{pseudoflow} $f: \vec{E} \to [0, 1]$ is a function on arcs of $N$.
+The \EMPH{support} of $f$ in $N$, denoted as \EMPH{$\supp(f)$}, is the set of arcs with positive flows:
+$\supp(f) \coloneqq \Set{\arc vw \in \vec{E} \mid f(\arc vw) > 0}$.
+Given a pseudoflow $f$, the \EMPH{imbalance} of a vertex (with respect to $f$) is
+\[
+\EMPH{$\fsupply_f (v)$} \coloneqq \fsupply(v) + \sum_{\arc wv \in \vec{E}}{f(\arc wv)} - \sum_{\arc vw \in \vec{E}}{f(\arc vw)}.
+\]
+We call positive imbalance \EMPH{excess} and negative imbalance \EMPH{deficit};
+and vertices with positive (resp. negative) imbalance \EMPH{excess} (resp. \EMPH{deficit}) \EMPH{vertices}.
+A vertex is \EMPH{balanced} if it has zero imbalance.
+If all vertices are balanced, the pseudoflow is a \EMPH{circulation}.
+The \EMPH{cost} of a pseudoflow is defined to be
+\[
+ \EMPH{$\cost(f)$} \coloneqq \sum_{\arc vw \in \supp(f)} c(\arc vw) \cdot f(\arc vw).
+\]
+The \EMPH{minimum-cost flow problem (MCF)} asks to find a circulation of minimum cost inside a given network.
+
+If $f$ is an integral pseudoflow
+(i.e. $f(\arc{v}{w}) \in \{0, 1\}$ for every arc in $\vec{E}$), then each arc
+$\arc{v}{w}$ in $N$ is either \EMPH{idle} with $f(\arc{v}{w}) = 0$ or
+\EMPH{saturated} with $f(\arc{u}{v}) = 1$.
+If we set $\fsupply(s) = k$, $\fsupply(t) = k$, and $\fsupply(v) = 0$ for all
+$v \in A \cup B$, then an integral circulation $f$ corresponds to a partial
+matching $M$ of size $k$ and vice versa.
+Moreover $\cost(M) = \cost(f)$.
+
+Hence, the problem of computing a min-cost matching of size $k$ in $G(A, B)$
+transforms to computing an integral circulation in $N$.
+The following lemma will be useful for our algorithm.
+
+\begin{lemma}
+\label{lemma:supp_size}
+\begin{itemize}[(i)]
+\item For any integral circulation in $N$, the size of $\supp(f)$ is at most $3k$.
+\item For any integral pseudoflow in $N$ with $O(k)$ excess, the size of $\supp(f)$ is $O(k)$.
+\end{itemize}
+\end{lemma}
+
+\subsection{A cost-scaling algorithm}
+\label{SS:cost-scale}
+
+Before describing the algorithm, we need to introduce a few concepts.
+
+\paragraph{Residual network and admissibility}
+Given a pseudoflow $f$, the \EMPH{residual network} $N_f = (V, \vec{E}_f)$ is
+defined as follows.
+For each idle arc $\arc{v}{w}$ in $\vec{E}$, we add a \EMPH{forward} residual
+arc $\arc{v}{w}$ in $N_f$.
+For each saturated arc $\arc{v}{w}$ in $\vec{E}$, we add a \EMPH{backward}
+residual arc $\arc{w}{v}$ in $N_f$.
+That is,
+\[
+\vec{E}_f \coloneqq \{\arc{v}{w} \mid f(\arc{v}{w}) = 0\} \cup \{\arc{w}{v} \mid f(\arc{v}{w}) = 1\}.
+\]
+The cost of a forward residual arc $\arc{v}{w}$ is $c(\arc{v}{w})$,
+while the cost of a backward residual arc is $\arc{w}{v}$ is $-c(\arc{v}{w})$.
+Each arc in $N_f$ also has unit capacity.
+By Lemma~\ref{lemma:supp_size}, $N_f$ has $O(k)$ backward arcs if $f$ has $O(k)$ excess.
+
+\note{Need to include a description of augmenting $f$ by $g$; $f+g$ is incorrect due to no antisymmetry} %TODO
+
+Using LP duality for min-cost flow, we assign a \EMPH{potential} $\pi(v)$ to each node $v$ in $N$.
+The \EMPH{reduced cost} of an arc $\arc{v}{w}$ in $N$ with respect to $\pi$ is
+defined as
+\[
+c_\pi(\arc vw) \coloneqq c(\arc vw) 0 \pi(v) + \pi(w).
+\]
+Similarly we define the reduced cost of edges in $N_f$: the reduced cost of a
+forward arc $\arc vw$ in $N_f$ is $c_\pi(\arc vw)$, and the reduced cost of a
+backward arc $\arc wv$ in $N_f$ is $-c_\pi(\arc vw)$.
+Abusing the notation, we will use $c_\pi$ to denote the reduced cost of arcs
+in $N_f$, in addition to $N$.
+
+The \EMPH{dual feasibility constraint} asks that $c_\pi(\arc vw) \geq 0$ holds
+for every directed edge $(v,w)$ in $\vec{E}$; potentials $\pi$ that satisfy
+this constraint are said to be \EMPH{feasible}.
+Suppose we relax the dual feasibility constraint to allow some small violation
+in the value of $c_\pi(\arc vw)$.
+We say that a pair of pseudoflow $f$ and potential $\pi$ is
+\EMPH{$\theta$-optimal}~\cite{T85,BE87}
+%\footnote{This is commonly written as $\eps$-optimality in the min-cost flow literature.}
+if $c_\pi(\arc vw) \geq -\theta$ for every residual arc $\arc vw$ in $\vec{E}_f$.
+Pseudoflow $f$ is \emph{$\theta$-optimal} if it is $\theta$-optimal with
+respect to some potentials $\pi$;
+potential $\pi$ is \emph{$\theta$-optimal} if it is $\theta$-optimal with
+respect to some pseudoflow $f$.
+Given a pseudoflow $f$ and potentials $\pi$, a residual arc $\arc vw$ in
+$\vec{E}_f$ is \EMPH{admissible} if $c_\pi(\arc vw) \leq 0$.
+We say that a pseudoflow $g$ in $G_f$ is \EMPH{admissible} if all support arcs
+of $g$ on $G_f$ are admissible; in other words, $g(\arc vw) > 0$ holds only on
+admissible arcs $\arc vw$.
+We will widely use the following well-known property of $\theta$-optimality.
+
+\begin{lemma}
+\label{lemma:eps_opt_preserve}
+Let $f$ be an $\theta$-optimal pseudoflow in $N$ and let $g$ be an admissible
+flow in $N_f$.
+Then $f$ augmented by $g$ is also $\theta$-optimal.
+\end{lemma}
+
+%\begin{proof}
+%Augmentation by $f'$ will not change the potentials, so any previously
+%$\theta$-optimal arcs remain $\theta$-optimal.
+%However, it may introduce new arcs $\arc vw$ with $u_{f+f'}(\arc vw) > 0$, that previously had
+%$u_f(\arc vw) = 0$.
+%We will verify that these arcs satisfy the $\theta$-optimality condition.
+%
+%If an arc $\arc vw$ is newly introduced this way, then by definition of residual
+%capacities $f(\arc vw) = u(\arc vw)$.
+%At the same time, $u_{f+f'}(\arc vw) > 0$ implies that $(f+f')(\arc vw) < u(\arc vw)$.
+%This means that $f'$ augmented flow in the reverse direction of $\arc vw$,
+%that is, $f'(\arc wv) > 0$.
+%By assumption, the arcs of $\supp(f')$ are admissible, so $\arc wv$ was an
+%admissible arc ($c_\pi(\arc wv) \leq 0$).
+%By antisymmetry of reduced costs, this implies $c_\pi(\arc vw) \geq 0 \geq -\theta$.
+%Therefore, all arcs with $u_{f+f'}(v, w) > 0$ respect the $\theta$-optimality condition,
+%and thus $f+f'$ is $\theta$-optimal.
+%\end{proof}
+%\end{toappendix}
+
+Using Lemma~\ref{lemma:supp_size}, the following lemma can be proved about
+$\theta$-optimality:
+
+\begin{lemma}
+\label{lemma:goldberg_cost_add}
+Let $f$ be a $\theta$-optimal integer circulation in $N$,
+and $f^*$ be an optimal integer circulation for $N$.
+Then, $\cost(f) \leq \cost(f^*) + 6k\theta$.
+\end{lemma}
+
+%\begin{proof}
+%By Lemma~\ref{lemma:support_size}, the total number of backward arcs in the residual network $N_f$ is at most $3k$.
+%
+%Consider the residual flow in $N_f$ defined by the difference between $f^*$ and $f$.
+%Since both $f$ and $f^*$ are both circulations and $N_H$ has unit-capacity,
+%the flow $f - f^*$ is comprised of unit flows on a collection of edge-disjoint residual cycles $\Gamma_1, \ldots, \Gamma_\ell$.
+%Observe that each residual cycle $\Gamma_i$ must have exactly half of its arcs being backward arcs, and thus we have $\sum_i |\Gamma_i| \leq 6k$.
+%
+%Let $\pi$ be some potential certifying that $f$ is $\theta$-optimal.
+%Because $\Gamma_i$ is a residual cycle, we have $c_\pi(\Gamma_i) = c(\Gamma_i)$ since the potential terms telescope.
+%We then see that
+%\[
+%	\cost(f) - \cost(f^*)
+%	= \sum_i c(\Gamma_i)
+%	= \sum_i c_\pi(\Gamma_i)
+%	\geq \sum_i (-\theta) \cdot |\Gamma_i|
+%	\geq -6k\theta,
+%\]
+%where the second-to-last inequality follows from the $\theta$-optimality of $f$
+%with respect to $\pi$.
+%Rearranging the terms we have that $\cost(f) \leq \cost(f^*) + 6k\theta$.
+%\end{proof}
+
+\paragraph{Estimating the value of $\cost(f^*)$}
+We now describe a procedure for estimating $\cost(f^*)$ within a polynomial factor,
+which will be useful in setting the scaling parameters of the cost-scaling algorithm.
+
+Let $T$ be a minimum spanning tree of $A \cup B$ under the $L_p$-metric.
+Let $e_1, e_2, \ldots, e_{n-1}$ be the edges of $T$ sorted in increasing order
+of length, i.e. $c(e_i) \leq c(e_{i+1})$ where $c(e) = \norm{e}_p^q$,
+and let $T_i$ be the forest consisting of the vertices of $A \cup B$ and
+$e_1, \ldots, e_i$.
+We call a matching $M$ of $G(A, B)$ \EMPH{intra-cluster} if both endpoints of
+every edge in $M$ lie in the same connected component of $T_i$.
+We define $i^*$ to be the smallest index $i$ such that there exists an
+intra-cluster matching of size $k$ in $T_{i^*}$.
+Set $\overline{theta} \coloneqq n^q \cdot c(e_{i^*})$.
+The following lemma will be used by our cost-scaling algorithm:
+
+\begin{lemma}
+\label{lemma:starting_scale}
+\begin{enumerate}[(i)]
+\item \label{item:starting_scale1}
+	The value of $i^*$ can be computed in $O(n\log n)$ time.
+\item \label{item:starting_scale2}
+	$c(e_{i^*}) \leq \cost(f^*) \leq \overline{theta}$.
+\item \label{item:starting_scale3}
+	There is a $\overline{theta}$-optimal circulation in the network $N$ with
+	respect to the 0 potential $\pi = 0$, assuming $\fsupply(s) = k$,
+	$\fsupply(t) = -k$, and $\fsupply(v) = 0$ for all $v \in A \cup B$.
+\end{enumerate}
+\end{lemma}
+
+Set $\underline{\theta} \coloneqq \frac{\eps}{6k} \cdot c(e_{i^*})$.
+As a consequence of Lemmas~\ref{lemma:starting_scale}\ref{item:starting_scale2}
+and \ref{lemma:goldberg_cost_add}, we have:
+
+\begin{corollary}
+\label{corollary:goldberg_approx}
+The cost of a $\underline{\theta}$-optimal integral circulation in $N$ is at
+most $(1+\eps) \cost(f^*)$.
+\end{corollary}
+
+We are now ready to describe our algorithm.
+
+\paragraph{Overview of the algorithm}
+We closely follow the algorithm in \cite{GHKT17}.
+The algorithm works in rounds.
+In the beginning of each round, we fix a \EMPH{cost scaling parameter}
+\EMPH{$\theta$} and maintain potentials $\pi$ with the following property:
+
+\begin{enumerate}[(P1)]
+\item \label{item:scale_inv}
+	There exists a $2\theta$-optimal integral circulation in $N$ with respect to $\pi$.
+\end{enumerate}
+
+\note{scale-init also assumes that we have the circulation ON HAND for scales after the first}%TODO
+
+For the initial round, we set $\theta = \overline{theta}$ and $\pi = 0$.
+By Lemma~\ref{lemma:starting_scale}\ref{item:starting_scale3},
+\ref{item:scale_inv} is satisfied initially.
+Each round of the algorithm consists of two stages.
+In the first stage, called \EMPH{scale initialization} (\textsc{Scale-Init})
+computes a $\theta$-optimal pseudoflow $f$.
+The second stage, called \EMPH{refinement} (\textsc{Refine}) converts $f$ into
+a $\theta$-optimal (integral) circulation $g$.
+In both stages, $\pi$ is updated as necessary.
+If $\theta \leq \underline{\theta}$, we return $g$.
+Otherwise, we set $\theta = \theta/2$ and start the next round.
+Note that \ref{item:scale_inv} is satisfied in the beginning of the next round.
+
+By Corollary~\ref{corollary:goldberg_approx}, when the algorithm terminates,
+it returns an integral circulation $\tilde{f}$ in $N$ of cost at most
+$(1+\eps) \cost(f^*)$, which corresponds to a $(1+\eps)$-approximate min-cost
+matching of size $k$ in $G$.
+The algorithm terminates in
+$\log_2(\overline{\theta}/\underline{\theta}) = O(\log(n/\eps))$ rounds.
+
+Next, we describe the two stages in detail.
+
+\paragraph{Scale initialization.}
+In the first round, we compute a $\overline{\theta}$-optimal pseudoflow by
+simply setting $f(\arc vw) = 0$ for all arcs in $\vec{E}$.
+For subsequent rounds, we adjust the potential and flow in $N$ as follows:
+we raise the potential of all nodes in $A$ by $\theta$, those in $B$ by $2\theta$,
+and of $t$ by $3\theta$.
+The potential of $s$ does not change.
+
+Since the reduced cost of every forward arc in $N_f$ after the previous round
+is at least $-2\theta$, the above step increases the reduced cost of all
+forward arcs by $\theta$, and the reduced cost of all forward arcs is at least
+$-\theta$.
+
+Next, for each backward arc $\arc wv$ in $N_f$ with $c_\pi(\arc wv) < -\theta$,
+we set $f(\arc vw) = 0$, i.e. make arc $\arc vw$ idle, which replaces the
+backward arc $\arc wv$ in $N_f$ with a forward arc of postive reduced cost.
+After this step, the resulting pseudoflow must be $\theta$-optimal as all arcs
+of $N_f$ have reduced cost at least $-\theta$.
+
+The desaturation of a backward arc creates one unit of excess.
+Since there are at most $3k$ backward arcs, the total excess in the resulting
+pseudoflow is at most $3k$.
+There are $O(n)$ potential updates and $O(k)$ arcs on which flow might change,
+therefore the time needed for \textsc{Scale-Init} is $O(n)$.
+
+\paragraph{Refinement}
+The procedure \textsc{Refine} converts a $\theta$-optimal pseudoflow with
+$O(k)$ excess into a $\theta$-optimal circulation, using a primal dual
+augmentation algorithm.
+A path in $N_f$ is an \EMPH{augmenting path} if it begins at an excess vertex
+and ends at a deficit vertex.
+We call an admissible pseudoflow $g$ in the residual network $N_f$ an
+\EMPH{admissible blocking flow} if $g$ saturates at least one arc in every
+admissible augmenting path in $N_g$.
+In other words, there is no admissible excess-deficit path in the residual
+network after augmenting by $g$.
+Each iteration of \textsc{Refine} finds an admissible blocking flow that is
+then added to the current pseudoflow in two steps:
+\begin{enumerate}
+\item
+A \EMPH{Hungarian search}: a Dijkstra-like search that begins at the set of
+excess vertices and raises potentials until there exists an excess-deficit path
+of admissible arcs in $N_f$.
+\item
+\EMPH{Augmentation}: using depth-first search through the set of admissible
+arcs of $N_f$, construct an admissible blocking flow.
+It suffices to repeatedly extract admissible augmenting paths until no more
+admissible excess-deficit paths remain.
+\end{enumerate}
+The algorithm repeats these steps until the total excess becomes zero.
+
+\subsection{Fast implementation of refinement}
+\label{SS:fast_refine}
+
+We now describe a fast implementation of the refinement stage.
+The Hungarian search and augmentation steps are similar ---
+each traversing through the residual network using admissible arcs starting
+from the excess vertices.
+Due to lack of space, we only describe the Hungarian search.
+
+At a high level, let $X$ be the subset of nodes visited by the Hungarian search.
+Initially $X$ is the set of excess nodes.
+At each step, the algorithm finds a minimum reduced cost arc $\arc vw$ in $N_f$
+from $X$ to $V \setminus X$.
+If $\arc vw$ is not admissible, the potential of all nodes in $X$ is increased
+by $\lceil\frac{c_\pi(\arc vw)}{\theta}\rceil$ to make $\arc vw$ admissible.
+If $w $ is a deficit node, the search terminates.
+Othwerise, $w$ is added to $X$ and the search continues.
+
+\note{does the following paragraph give good intuition for why we need active/inactive?} %TODO
+
+Implementing the Hungarian search efficiently is more difficult than in
+Section~\ref{section:hung} because excess nodes may belong to $A$ as well as $B$,
+a node may become balanced and then imbalanced across rounds,
+and the potential of excess nodes may be non-uniform.
+We therefore need a more complex data structure.
+
+We call a node $v$ of $N$ \EMPH{inactive} if $e_f(v) = 0$ and no arc of
+$\supp(f)$ is incident to it; otherwise $v$ is \EMPH{active}.
+We note that $s$ and $t$ are always active.
+Let $\overline{A}$ (resp. $\overline{B}$, $\overline{X}$) denote the set of
+active nodes of $A$ (resp. $B$, $X$).
+We treat active and inactive nodes separately to implement the Hungarian search
+efficiently.
+By definition, inactive vertices only adjoin forward arcs in $N_f$.
+Thus, the in-degree (resp. out-degree) of $\overline{A}$ (resp. $\overline{B}$)
+is 1, and any path passing through an inactive vertex has a subpath of the form
+$s \to v \to b$ for some $b \in B$ or $a \to v \to t$ for some $a \in A$.
+Consequently, a path in $N_f$ may have at most two consecutive inactive nodes,
+and in the case of two consecutive inactive nodes there is a subpath of the
+form $s \to v \to w \to t$ where $v \in \overline{A}$ and $w \in \overline{B}$.
+
+\note{probably should emphasize that there are only $O(k)$ active vertices} %TODO
+
+Using this observation, we adapt the Hungarian search to ``skip over'' inactive
+nodes as follows.
+At each step, we find a minimum reduced cost path of length at most 3 from an
+active node of $X$ to an active node of $V \setminus X$.
+%As we will see below, this enables us to ignore potentials of inactive vertices.
+For each $i \leq 3$, we find the minimum reduced cost path of length $i$,
+and then choose the cheapest among them.
+We now describe a data structure for each path length.
+
+\paragraph{Finding length-1 paths}
+This data structure finds a minimum reduced cost arc from an active node of
+$X$ to an active node of $V \setminus X$.
+There are $O(k)$ backward arcs, so the minimum among backward arcs can be
+maintained explicitly in a priority queue on $c_\pi$ and retrieved in $O(1)$ time.
+
+There are three types of forward arcs: $\arc sa$ for some $a \in \overline{A}$,
+$\arc bt$ for some $b \in \overline{B}$, and bipartite arc $\arc ab$ with two
+active endpoints.
+Edges of the first (resp. second) type can be found by maintaining
+$\overline{A} \setminus X$ (resp. $\overline{B} \cap X$) in a priority queues
+on $\pi$, but should only be queried if $s \in X$ (resp. $t \not\in X$).
+
+The cheapest arc of the third type is an (additively weighted) bichromatic
+closest pair (BCP) of $\overline{A} \cap X$ and $\overline{B} \setminus X$,
+with reduced cost as the pair distance.
+%Indeed, since each arc has unit capacity, it can be shown that there is no
+%backward arc in $N_f$ from $\overline{B} \setminus X$ to $\overline{A} \cap X$.
+We thus maintain $\overline{A} \cap X$, $\overline{B} \setminus X$ in a dynamic
+BCP data structure \cite{KMRSS17} on which insertions/deletions can be performed
+in $O(\polylog k)$ time.
+
+\paragraph{Finding length-2 paths}
+We describe how to find the cheapeast path of the form $s \to v \to b$ where
+$v$ is inactive and $b \in \overline{B}$.
+A cheapest path of the form $a \to v \to t$ can be found similarly.
+
+Note that $c_\pi(s \to v \to b) = c(v, b) + \pi(b) - \pi(s)$.
+Since $\pi(s)$ is common in all such paths, it suffices to find the pair minimizing
+\[
+\min_{v \in A \setminus \overline{A}, w \in \overline{B} \setminus X} c(v, w) + \pi(w)
+\]
+This is done by maintaining a dynamic BCP data structure for
+$A \setminus \overline{A}$, $\overline{B} \setminus X$ with $c(v, w) + \pi(w)$
+as the cost of a pair $(v, w)$.
+%TODO what do we want to say here? what does he want to say?
+Since the size of $A \setminus \overline{A}$ is at least $n-k$, we cannot
+explicitly construct this BCP at the beginning of each iteration of Hungarian search.
+Instead, we can again apply the rewinding mechanism from Section~\ref{SS:rewinding}.
+The ``initial state'' of the BCP is between $A 
+
+\paragraph{Finding length-3 paths}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 In this section we present a $(1+\eps)$-approximation algorithm for computing a
 geometric partial matching that runs in time $O((n + k\sqrt{k})\polylog n \log(1/\eps))$.
@@ -661,30 +1090,15 @@ on $N$ is an antisymmetric function on the arcs of $N$ satisfying $f(\arc vw) \l
 %We sometimes abuse the terminology by allowing pseudoflow to be defined on a directed graph, in which case we are actually referring to the pseudoflow on the corresponding network by extending the flow values anti-symmetrically to the arcs.
 %
 We say that $f$ \EMPH{saturates} an arc $\arc vw$ if $f(\arc vw) = u(\arc vw)$; an arc $\arc vw$ is \EMPH{residual} if $f(\arc vw) < u(\arc vw)$.
-The \EMPH{support} of $f$ in $N$, denoted as \EMPH{$\supp(f)$}, is the set of arcs with positive flows:
-\[
-\supp(f) \coloneqq \Set{\arc vw \in \vec{E} \mid f(\arc vw) > 0}.
-\]
-% In this section algorithms will handle only integer-valued pseudoflows, so in the
-% unit-capacity setting an arc is either saturated or has zero flow.
-% \note{Hmm, do we have unit-capacity after Corollary 5.4?}
-%
-Given a pseudoflow $f$, we define the \EMPH{imbalance} of a vertex (with respect to $f$) to be
-\[
-\EMPH{$\fsupply_f (v)$} \coloneqq \fsupply(v) + \sum_{\arc wv \in \vec{E}}{f(\arc wv)} - \sum_{\arc vw \in \vec{E}}{f(\arc vw)}.
-\]
-We call positive imbalance \EMPH{excess} and negative imbalance \EMPH{deficit};
-and vertices with positive (resp. negative) imbalance \EMPH{excess} (resp. \EMPH{deficit}) \EMPH{vertices}.
-A vertex is \EMPH{balanced} if it has zero imbalance.
-If all vertices are balanced, the pseudoflow is a \EMPH{circulation}.
-The \EMPH{cost} of a pseudoflow
-%denoted \EMPH{$\cost(f)$},
-is defined to be
-\[
- \EMPH{$\cost(f)$} \coloneqq \sum_{\arc vw \in \supp(f)} c(\arc vw) \cdot f(\arc vw).
-\]
-%
-The \EMPH{minimum-cost flow problem (MCF)} asks to find a circulation of minimum cost inside a given network.
+
+
+
+
+
+
+
+
+
 
 %TODO move to where it's used
 %An alternative objective is the \EMPH{bottleneck} objective.
@@ -738,61 +1152,17 @@ The \EMPH{reduced cost} of arc $\arc vw$ in $\vec{E}_f$ with respect to $\pi$ is
 \]
 Notice that the cost function $c_\pi$ is also antisymmetric.
 
-The \EMPH{dual feasibility constraint} says that $c_\pi(\arc vw) \geq 0$ holds for every directed edge $(v,w)$ in $E$; potentials $\pi$ which satisfy this constraint are said to be \EMPH{feasible}.
-%
-% The linear programming \EMPH{optimality condition} states that, for an optimal
-% circulation $f^*$, there are feasible potentials $\pi^*$ satisfying
-% $c_{\pi^*}(\arc vw) = 0$ for every arc $\arc vw$ in the support of $f^*$.
-% \note{Move optimality condition to last section maybe.}
-%
-Suppose we relax the dual feasibility constraint to allow some small violation in the value of $c_\pi(\arc vw)$.
-We say that a pair of pseudoflow $f$ and potential $\pi$ is
-\EMPH{$\theta$-optimal}~\cite{T85,BE87}
-%\footnote{This is commonly written as $\eps$-optimality in the min-cost flow literature.}
-if $c_\pi(\arc vw) \geq -\theta$ for every residual arc $\arc vw$ in $\vec{E}_f$.
-Pseudoflow $f$ is \emph{$\theta$-optimal} if it is $\theta$-optimal with respect to
-some potentials $\pi$; potential $\pi$ is \emph{$\theta$-optimal} if it is
-$\theta$-optimal with respect to some pseudoflow $f$.
-%
-Given a pseudoflow $f$ and potentials $\pi$, a residual arc $\arc vw$ in $\vec{E}_f$ is
-\EMPH{admissible} if $c_\pi(\arc vw) \leq 0$.
-We say that a pseudoflow $g$ in $G_f$ is \EMPH{admissible} if all support arcs of $g$ on $G_f$ are admissible; in other words, $g(\arc vw) > 0$ holds only on admissible arcs $\arc vw$.
-%
-Throughout the rest of the paper we make use of the property that performing
-an admissible flow augmentation preserves $\theta$-optimality.
-To our knowledge this is folklore;
-see Lemma~\ref{lemma:eps_opt_preserve} for a proof.
 
-\begin{toappendix}
-\paragraph{Admissible flow augmentation.}
 
-\begin{lemmarep}
-\label{lemma:eps_opt_preserve}
-Let $f$ be an $\eps$-optimal pseudoflow in $G$ and let $f'$ be an
-admissible flow in $G_f$.
-Then $f + f'$ is also $\theta$-optimal.
-%\note{Lemma 5.3 in~\cite{GT90}? Also, where is this used?}
-\end{lemmarep}
 
-\begin{proof}
-Augmentation by $f'$ will not change the potentials, so any previously
-$\theta$-optimal arcs remain $\theta$-optimal.
-However, it may introduce new arcs $\arc vw$ with $u_{f+f'}(\arc vw) > 0$, that previously had
-$u_f(\arc vw) = 0$.
-We will verify that these arcs satisfy the $\theta$-optimality condition.
 
-If an arc $\arc vw$ is newly introduced this way, then by definition of residual
-capacities $f(\arc vw) = u(\arc vw)$.
-At the same time, $u_{f+f'}(\arc vw) > 0$ implies that $(f+f')(\arc vw) < u(\arc vw)$.
-This means that $f'$ augmented flow in the reverse direction of $\arc vw$,
-that is, $f'(\arc wv) > 0$.
-By assumption, the arcs of $\supp(f')$ are admissible, so $\arc wv$ was an
-admissible arc ($c_\pi(\arc wv) \leq 0$).
-By antisymmetry of reduced costs, this implies $c_\pi(\arc vw) \geq 0 \geq -\theta$.
-Therefore, all arcs with $u_{f+f'}(v, w) > 0$ respect the $\theta$-optimality condition,
-and thus $f+f'$ is $\theta$-optimal.
-\end{proof}
-\end{toappendix}
+
+
+
+
+
+
+
 
 %In Section~\ref{section:goldberg}, we use $\eps$-optimality to prove the approximation quality of an $\eps$-optimal circulation.
 
@@ -844,34 +1214,10 @@ the total number of residual backward arcs is at most $3k$.
 
 Using the bound on the support size, we show that a $\theta$-optimal integral circulation gives an additive $O(k\theta)$-approximation to the MCF problem.
 
-\begin{lemmarep}
-\label{lemma:goldberg_cost_add}
-Let $f$ be a $\theta$-optimal integer circulation in $N_H$, and $f^*$ be an optimal integer circulation for $N_H$.
-Then, $\cost(f) \leq \cost(f^*) + 6k\theta$.
-\end{lemmarep}
 
-\begin{proof}
-By Lemma~\ref{lemma:support_size}, the total number of backward arcs in the residual network $N_f$ is at most $3k$.
-%
-Consider the residual flow in $N_f$ defined by the difference between $f^*$ and $f$.
-Since both $f$ and $f^*$ are both circulations and $N_H$ has unit-capacity,
-the flow $f - f^*$ is comprised of unit flows on a collection of edge-disjoint residual cycles $\Gamma_1, \ldots, \Gamma_\ell$.
-Observe that each residual cycle $\Gamma_i$ must have exactly half of its arcs being backward arcs, and thus we have $\sum_i |\Gamma_i| \leq 6k$.
 
-Let $\pi$ be some potential certifying that $f$ is $\theta$-optimal.
-Because $\Gamma_i$ is a residual cycle, we have $c_\pi(\Gamma_i) = c(\Gamma_i)$ since the potential terms telescope.
-We then see that
-\[
-	\cost(f) - \cost(f^*)
-	= \sum_i c(\Gamma_i)
-	= \sum_i c_\pi(\Gamma_i)
-	\geq \sum_i (-\theta) \cdot |\Gamma_i|
-	\geq -6k\theta,
-\]
-where the second-to-last inequality follows from the $\theta$-optimality of $f$
-with respect to $\pi$.
-Rearranging the terms we have that $\cost(f) \leq \cost(f^*) + 6k\theta$.
-\end{proof}
+
+
 
 
 \paragraph{Multiplicative approximation.}
@@ -1130,45 +1476,19 @@ The procedure \textsc{Refine} is implemented using a primal-dual augmentation al
 which sends flows on admissible arcs to reduce the total excess.
 %like the Hungarian algorithm.
 Unlike the Hungarian algorithm, it uses \emph{blocking flows} instead of augmenting paths.
-%
-%An \EMPH{augmenting path} is a path in the residual network from an excess vertex to a deficit vertex.
-We call a pseudoflow $f$ on residual network $N_g$ a \EMPH{blocking flow} if $f$ saturates at least one residual arc in every augmenting path in $N_g$.
-In other words, there is no admissible augmenting path in $N_{f+g}$ from an excess vertex to a deficit vertex.
 
-% \begin{figure*}[ht]
-% \centering
-% \begin{minipage}{.8\linewidth}
-% \begin{algorithm}[H]
-% \caption{Refinement}
-% \label{algorithm:refine}
-% \begin{algorithmic}[1]
-% \Function{Refine}{$H = (V, E)$, $f$, $\pi$}
-% 	\While{$\sum_{v \in V} |\fsupply_f(v)| > 0$}
-% 		\State $\pi \gets$ \Call{Hungarian-Search2}{$H$, $f$, $\pi$}
-% 		\State $f' \gets$ \Call{DFS}{$H$, $f$, $\pi$}
-% 			\Comment{$f'$ is an admissible blocking flow}
-% 		\State $f \gets f + f'$
-% 	\EndWhile
-% 	\State\Return $(f, \pi)$
-% \EndFunction
-% \end{algorithmic}
-% \end{algorithm}
-% \end{minipage}
-% \end{figure*}
 
-%An \EMPH{iteration} of \textsc{Refine} is a complete execution of the main loop in Algorithm~\ref{algorithm:refine}.
-Each iteration of \textsc{Refine} finds an admissible blocking flow that is then added to the current pseudoflow in two stages:
-\begin{enumerate}
-\item
-A \EMPH{Hungarian search}, which increases the dual variables $\pi$ of vertices that are reachable from an excess vertex by at least $\theta$, in a Dijkstra-like manner, until there is an excess-deficit path of admissible edges.
-\item
-A \EMPH{depth-first search} through the set of admissible arcs to construct a blocking flow.
-It suffices to repeatedly extract admissible augmenting paths until no more admissible excess-deficit paths remain.
-%By definition, the union of such paths is a blocking flow.
-%\note{Move to where the blocking flow is introduced?}
-\end{enumerate}
-The algorithm continues until the total excess becomes zero.
-%and the $\eps$-optimal flow is now a circulation.
+
+
+
+
+
+
+
+
+
+
+
 
 First we analyze the number of iterations executed by \textsc{Refine}.
 %\note{and maybe \S5 of Goldberg-Tarjan?}
