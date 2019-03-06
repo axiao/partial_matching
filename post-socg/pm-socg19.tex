@@ -609,7 +609,7 @@ $N = (V, \vec{E})$ using a standard approach (see e.g. \cite{RT12})
 so that a min-cost matching in $G$ corresponds to a min-cost integral
 circulation in $N$.
 
-\paragraph{Flow network}
+\paragraph{Flow network.}
 Each vertex in $G$ becomes a node in $N$ and each edge
 $(a, b) \in A \times B$ in $G$ becomes an arc $\arc{a}{b}$ in $N$;
 we refer to these nodes (resp. arcs) as \EMPH{bipartite} nodes (resp. arcs).
@@ -655,10 +655,10 @@ The following lemma will be useful for our algorithm.
 
 \begin{lemma}
 \label{lemma:supp_size}
-\begin{itemize}[(i)]
+\begin{enumerate}[(i)]
 \item For any integral circulation in $N$, the size of $\supp(f)$ is at most $3k$.
 \item For any integral pseudoflow in $N$ with $O(k)$ excess, the size of $\supp(f)$ is $O(k)$.
-\end{itemize}
+\end{enumerate}
 \end{lemma}
 
 \subsection{A cost-scaling algorithm}
@@ -666,7 +666,7 @@ The following lemma will be useful for our algorithm.
 
 Before describing the algorithm, we need to introduce a few concepts.
 
-\paragraph{Residual network and admissibility}
+\paragraph{Residual network and admissibility.}
 Given a pseudoflow $f$, the \EMPH{residual network} $N_f = (V, \vec{E}_f)$ is
 defined as follows.
 For each idle arc $\arc{v}{w}$ in $\vec{E}$, we add a \EMPH{forward} residual
@@ -688,17 +688,17 @@ Using LP duality for min-cost flow, we assign a \EMPH{potential} $\pi(v)$ to eac
 The \EMPH{reduced cost} of an arc $\arc{v}{w}$ in $N$ with respect to $\pi$ is
 defined as
 \[
-c_\pi(\arc vw) \coloneqq c(\arc vw) 0 \pi(v) + \pi(w).
+c_\pi(\arc vw) \coloneqq c(\arc vw) - \pi(v) + \pi(w).
 \]
-Similarly we define the reduced cost of edges in $N_f$: the reduced cost of a
+Similarly we define the reduced cost of arcs in $N_f$: the reduced cost of a
 forward arc $\arc vw$ in $N_f$ is $c_\pi(\arc vw)$, and the reduced cost of a
 backward arc $\arc wv$ in $N_f$ is $-c_\pi(\arc vw)$.
-Abusing the notation, we will use $c_\pi$ to denote the reduced cost of arcs
-in $N_f$, in addition to $N$.
+Abusing the notation, we use $c_\pi$ to denote the reduced cost of arcs in
+$N_f$, in addition to $N$.
 
 The \EMPH{dual feasibility constraint} asks that $c_\pi(\arc vw) \geq 0$ holds
-for every directed edge $(v,w)$ in $\vec{E}$; potentials $\pi$ that satisfy
-this constraint are said to be \EMPH{feasible}.
+for every arc $(v,w)$ in $\vec{E}$;
+potentials $\pi$ that satisfy this constraint are said to be \EMPH{feasible}.
 Suppose we relax the dual feasibility constraint to allow some small violation
 in the value of $c_\pi(\arc vw)$.
 We say that a pair of pseudoflow $f$ and potential $\pi$ is
@@ -719,8 +719,8 @@ We will widely use the following well-known property of $\theta$-optimality.
 \begin{lemma}
 \label{lemma:eps_opt_preserve}
 Let $f$ be an $\theta$-optimal pseudoflow in $N$ and let $g$ be an admissible
-flow in $N_f$.
-Then $f$ augmented by $g$ is also $\theta$-optimal.
+pseudoflow in $N_f$.
+Then $f$ augmented by $g$ is also $\theta$-optimal in $N$.
 \end{lemma}
 
 %\begin{proof}
@@ -776,7 +776,7 @@ Then, $\cost(f) \leq \cost(f^*) + 6k\theta$.
 %Rearranging the terms we have that $\cost(f) \leq \cost(f^*) + 6k\theta$.
 %\end{proof}
 
-\paragraph{Estimating the value of $\cost(f^*)$}
+\paragraph{Estimating the value of $\cost(f^*)$.}
 We now describe a procedure for estimating $\cost(f^*)$ within a polynomial factor,
 which will be useful in setting the scaling parameters of the cost-scaling algorithm.
 
@@ -818,7 +818,7 @@ most $(1+\eps) \cost(f^*)$.
 
 We are now ready to describe our algorithm.
 
-\paragraph{Overview of the algorithm}
+\paragraph{Overview of the algorithm.}
 We closely follow the algorithm in \cite{GHKT17}.
 The algorithm works in rounds.
 In the beginning of each round, we fix a \EMPH{cost scaling parameter}
@@ -829,7 +829,7 @@ In the beginning of each round, we fix a \EMPH{cost scaling parameter}
 	There exists a $2\theta$-optimal integral circulation in $N$ with respect to $\pi$.
 \end{enumerate}
 
-\note{scale-init also assumes that we have the circulation ON HAND for scales after the first}%TODO
+\note{Keep this invariant and move scale-init to a post-processing after halving theta}%TODO
 
 For the initial round, we set $\theta = \overline{\theta}$ and $\pi = 0$.
 By Lemma~\ref{lemma:starting_scale}\ref{item:starting_scale3},
@@ -878,7 +878,7 @@ pseudoflow is at most $3k$.
 There are $O(n)$ potential updates and $O(k)$ arcs on which flow might change,
 therefore the time needed for \textsc{Scale-Init} is $O(n)$.
 
-\paragraph{Refinement}
+\paragraph{Refinement.}
 The procedure \textsc{Refine} converts a $\theta$-optimal pseudoflow with
 $O(k)$ excess into a $\theta$-optimal circulation, using a primal dual
 augmentation algorithm.
@@ -893,7 +893,7 @@ Each iteration of \textsc{Refine} finds an admissible blocking flow that is
 then added to the current pseudoflow in two steps:
 \begin{enumerate}
 \item
-A \EMPH{Hungarian search}: a Dijkstra-like search that begins at the set of
+\EMPH{Hungarian search}: a Dijkstra-like search that begins at the set of
 excess vertices and raises potentials until there exists an excess-deficit path
 of admissible arcs in $N_f$.
 \item
@@ -978,6 +978,8 @@ We thus maintain $\overline{A} \cap X$, $\overline{B} \setminus X$ in a dynamic
 BCP data structure \cite{KMRSS17} on which insertions/deletions can be performed
 in $O(\polylog k)$ time.
 
+\note{for now: write this to reference rewinding; and ``additionally'' wrt active-switch} %TODO
+
 \paragraph{Finding length-2 paths}
 We describe how to find the cheapeast path of the form $s \to v \to b$ where
 $v$ is inactive and $b \in \overline{B}$.
@@ -999,6 +1001,7 @@ The ``initial state'' of the BCP is between
 
 \paragraph{Finding length-3 paths}
 
+\note{TODO from here} %TODO
 
 
 
@@ -1007,19 +1010,8 @@ The ``initial state'' of the BCP is between
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+\newpage
+\note{old section 3 (to remove)} %TODO
 
 In this section we present a $(1+\eps)$-approximation algorithm for computing a
 geometric partial matching that runs in time $O((n + k\sqrt{k})\polylog n \log(1/\eps))$.
