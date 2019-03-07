@@ -548,10 +548,8 @@ This proves Theorem~\ref{theorem:hung}.
 %in $O(k\polylog n)$ time after a one-time $O(n\polylog n)$ preprocessing.
 %\end{lemma}
 
-
-\begin{toappendix}
 \subsection{Potential updates}
-\label{SSA:potential-update}
+\label{SS:potential-update}
 
 We modify a trick from Vaidya~\cite{Vaidya89} to batch potential updates.
 Potentials have a \EMPH{stored value}, i.e.\ the currently recorded value of
@@ -582,10 +580,9 @@ persists through the entire algorithm.
 Thus, the initial BCP sets constructed by the rewinding mechanism have true
 potentials accurately represented by $\delta$ and $\omega(p)$.
 
-We update $\delta$ once per edge relaxations; thus $O(k)$ times in total per Hungarian search.
+We update $\delta$ once per edge relaxation; thus $O(k)$ times in total per Hungarian search.
 There are $O(k)$ stored values updated per Hungarian search during the rewinding process.
 The time spent on potential updates per Hungarian search is therefore $O(k)$.
-\end{toappendix}
 
 
 % ----------------------------------------------------------------------------
@@ -609,7 +606,7 @@ $N = (V, \vec{E})$ using a standard approach (see e.g. \cite{RT12})
 so that a min-cost matching in $G$ corresponds to a min-cost integral
 circulation in $N$.
 
-\paragraph{Flow network}
+\paragraph{Flow network.}
 Each vertex in $G$ becomes a node in $N$ and each edge
 $(a, b) \in A \times B$ in $G$ becomes an arc $\arc{a}{b}$ in $N$;
 we refer to these nodes (resp. arcs) as \EMPH{bipartite} nodes (resp. arcs).
@@ -655,10 +652,10 @@ The following lemma will be useful for our algorithm.
 
 \begin{lemma}
 \label{lemma:supp_size}
-\begin{itemize}[(i)]
+\begin{enumerate}[(i)]
 \item For any integral circulation in $N$, the size of $\supp(f)$ is at most $3k$.
 \item For any integral pseudoflow in $N$ with $O(k)$ excess, the size of $\supp(f)$ is $O(k)$.
-\end{itemize}
+\end{enumerate}
 \end{lemma}
 
 \subsection{A cost-scaling algorithm}
@@ -666,7 +663,7 @@ The following lemma will be useful for our algorithm.
 
 Before describing the algorithm, we need to introduce a few concepts.
 
-\paragraph{Residual network and admissibility}
+\paragraph{Residual network and admissibility.}
 Given a pseudoflow $f$, the \EMPH{residual network} $N_f = (V, \vec{E}_f)$ is
 defined as follows.
 For each idle arc $\arc{v}{w}$ in $\vec{E}$, we add a \EMPH{forward} residual
@@ -688,17 +685,17 @@ Using LP duality for min-cost flow, we assign a \EMPH{potential} $\pi(v)$ to eac
 The \EMPH{reduced cost} of an arc $\arc{v}{w}$ in $N$ with respect to $\pi$ is
 defined as
 \[
-c_\pi(\arc vw) \coloneqq c(\arc vw) 0 \pi(v) + \pi(w).
+c_\pi(\arc vw) \coloneqq c(\arc vw) - \pi(v) + \pi(w).
 \]
-Similarly we define the reduced cost of edges in $N_f$: the reduced cost of a
+Similarly we define the reduced cost of arcs in $N_f$: the reduced cost of a
 forward arc $\arc vw$ in $N_f$ is $c_\pi(\arc vw)$, and the reduced cost of a
 backward arc $\arc wv$ in $N_f$ is $-c_\pi(\arc vw)$.
-Abusing the notation, we will use $c_\pi$ to denote the reduced cost of arcs
-in $N_f$, in addition to $N$.
+Abusing the notation, we use $c_\pi$ to denote the reduced cost of arcs in
+$N_f$, in addition to $N$.
 
 The \EMPH{dual feasibility constraint} asks that $c_\pi(\arc vw) \geq 0$ holds
-for every directed edge $(v,w)$ in $\vec{E}$; potentials $\pi$ that satisfy
-this constraint are said to be \EMPH{feasible}.
+for every arc $(v,w)$ in $\vec{E}$;
+potentials $\pi$ that satisfy this constraint are said to be \EMPH{feasible}.
 Suppose we relax the dual feasibility constraint to allow some small violation
 in the value of $c_\pi(\arc vw)$.
 We say that a pair of pseudoflow $f$ and potential $\pi$ is
@@ -719,8 +716,8 @@ We will widely use the following well-known property of $\theta$-optimality.
 \begin{lemma}
 \label{lemma:eps_opt_preserve}
 Let $f$ be an $\theta$-optimal pseudoflow in $N$ and let $g$ be an admissible
-flow in $N_f$.
-Then $f$ augmented by $g$ is also $\theta$-optimal.
+pseudoflow in $N_f$.
+Then $f$ augmented by $g$ is also $\theta$-optimal in $N$.
 \end{lemma}
 
 %\begin{proof}
@@ -776,7 +773,7 @@ Then, $\cost(f) \leq \cost(f^*) + 6k\theta$.
 %Rearranging the terms we have that $\cost(f) \leq \cost(f^*) + 6k\theta$.
 %\end{proof}
 
-\paragraph{Estimating the value of $\cost(f^*)$}
+\paragraph{Estimating the value of $\cost(f^*)$.}
 We now describe a procedure for estimating $\cost(f^*)$ within a polynomial factor,
 which will be useful in setting the scaling parameters of the cost-scaling algorithm.
 
@@ -818,18 +815,20 @@ most $(1+\eps) \cost(f^*)$.
 
 We are now ready to describe our algorithm.
 
-\paragraph{Overview of the algorithm}
+\paragraph{Overview of the algorithm.}
 We closely follow the algorithm in \cite{GHKT17}.
 The algorithm works in rounds.
 In the beginning of each round, we fix a \EMPH{cost scaling parameter}
 \EMPH{$\theta$} and maintain potentials $\pi$ with the following property:
+
+\note{If we want to move scale-init to a post-processing, this invariant needs more proof (potentials being updated by scale-init, thus previous circulation is no longer a certificate)} %TODO
 
 \begin{enumerate}[(P1)]
 \item \label{item:scale_inv}
 	There exists a $2\theta$-optimal integral circulation in $N$ with respect to $\pi$.
 \end{enumerate}
 
-\note{scale-init also assumes that we have the circulation ON HAND for scales after the first}%TODO
+\note{Keep this invariant and move scale-init to a post-processing after halving theta}%TODO
 
 For the initial round, we set $\theta = \overline{\theta}$ and $\pi = 0$.
 By Lemma~\ref{lemma:starting_scale}\ref{item:starting_scale3},
@@ -878,7 +877,7 @@ pseudoflow is at most $3k$.
 There are $O(n)$ potential updates and $O(k)$ arcs on which flow might change,
 therefore the time needed for \textsc{Scale-Init} is $O(n)$.
 
-\paragraph{Refinement}
+\paragraph{Refinement.}
 The procedure \textsc{Refine} converts a $\theta$-optimal pseudoflow with
 $O(k)$ excess into a $\theta$-optimal circulation, using a primal dual
 augmentation algorithm.
@@ -893,7 +892,7 @@ Each iteration of \textsc{Refine} finds an admissible blocking flow that is
 then added to the current pseudoflow in two steps:
 \begin{enumerate}
 \item
-A \EMPH{Hungarian search}: a Dijkstra-like search that begins at the set of
+\EMPH{Hungarian search}: a Dijkstra-like search that begins at the set of
 excess vertices and raises potentials until there exists an excess-deficit path
 of admissible arcs in $N_f$.
 \item
@@ -918,7 +917,7 @@ Initially $X$ is the set of excess nodes.
 At each step, the algorithm finds a minimum reduced cost arc $\arc vw$ in $N_f$
 from $X$ to $V \setminus X$.
 If $\arc vw$ is not admissible, the potential of all nodes in $X$ is increased
-by $\lceil\frac{c_\pi(\arc vw)}{\theta}\rceil$ to make $\arc vw$ admissible.
+by $\Ceil{c_\pi(\arc vw)/\theta}$ to make $\arc vw$ admissible.
 If $w $ is a deficit node, the search terminates.
 Othwerise, $w$ is added to $X$ and the search continues.
 
@@ -945,18 +944,24 @@ Consequently, a path in $N_f$ may have at most two consecutive inactive nodes,
 and in the case of two consecutive inactive nodes there is a subpath of the
 form $s \to v \to w \to t$ where $v \in \overline{A}$ and $w \in \overline{B}$.
 
-\note{probably should emphasize that there are only $O(k)$ active vertices} %TODO
-
 Using this observation, we adapt the Hungarian search to ``skip over'' inactive
 nodes as follows.
 At each step, we find a minimum reduced cost path of length at most 3 from an
-active node of $X$ to an active node of $V \setminus X$.
+active node of $X$ to an active node of $V \setminus X$, and add the nodes of
+this path into $X$ in a single step.
 %As we will see below, this enables us to ignore potentials of inactive vertices.
+The end of this path is the next active node that the original Hungarian search
+would have explored.
+We update potentials in $X$ according to the total reduced cost of this path.
+There are $O(k)$ active nodes, so the number of minimization queries per
+Hungarian search is $O(k)$.
+
 For each $i \leq 3$, we find the minimum reduced cost path of length $i$,
 and then choose the cheapest among them.
 We now describe a data structure for each path length.
+For each data structure, our ``time budget'' per Hungarian search is $O(k\polylog n)$.
 
-\paragraph{Finding length-1 paths}
+\paragraph{Finding length-1 paths.}
 This data structure finds a minimum reduced cost arc from an active node of
 $X$ to an active node of $V \setminus X$.
 There are $O(k)$ backward arcs, so the minimum among backward arcs can be
@@ -978,10 +983,14 @@ We thus maintain $\overline{A} \cap X$, $\overline{B} \setminus X$ in a dynamic
 BCP data structure \cite{KMRSS17} on which insertions/deletions can be performed
 in $O(\polylog k)$ time.
 
-\paragraph{Finding length-2 paths}
+\note{for now: write this to reference rewinding; and ``additionally'' wrt active-switch} %TODO
+
+\paragraph{Finding length-2 paths.}
 We describe how to find the cheapeast path of the form $s \to v \to b$ where
 $v$ is inactive and $b \in \overline{B}$.
 A cheapest path of the form $a \to v \to t$ can be found similarly.
+As for length-1 paths, we only query paths originating from $s$ if $s \in X$,
+and only query paths ending at $t$ if $t \not\in X$.
 
 Note that $c_\pi(s \to v \to b) = c(v, b) + \pi(b) - \pi(s)$.
 Since $\pi(s)$ is common in all such paths, it suffices to find the pair minimizing
@@ -991,1128 +1000,99 @@ Since $\pi(s)$ is common in all such paths, it suffices to find the pair minimiz
 This is done by maintaining a dynamic BCP data structure for
 $A \setminus \overline{A}$, $\overline{B} \setminus X$ with $c(v, w) + \pi(w)$
 as the cost of a pair $(v, w)$.
-%TODO what do we want to say here? what does he want to say?
-Since the size of $A \setminus \overline{A}$ is at least $n-k$, we cannot
-explicitly construct this BCP at the beginning of each iteration of Hungarian search.
-Instead, we can again apply the rewinding mechanism from Section~\ref{SS:rewinding}.
-The ``initial state'' of the BCP is between
-
-\paragraph{Finding length-3 paths}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-In this section we present a $(1+\eps)$-approximation algorithm for computing a
-geometric partial matching that runs in time $O((n + k\sqrt{k})\polylog n \log(1/\eps))$.
-
-After introducing the necessary terminologies in Section~\ref{SS:prelim-flow}, we reduce the partial matching problem to computing an approximate minimum-cost flow on a unit-capacity reduction network in Section~\ref{SS:reduction}.
-In Section~\ref{SS:cost-scaling} we prove a high-level overview of the cost-scaling algorithm, executed on the reduction network.
-We postpone the fast implementation using dynamic data structures to Section~\ref{S:implementation}.
-
-\subsection{Preliminaries on Network Flows}
-\label{SS:prelim-flow}
-
-Due to the space restriction, we omit the definitions of standard network flow theory terminologies from the main text.  For a reference see Appendix~\ref{SSA:prelim-flow}, or any texts on network flows~\cite{O93,GHKT17}.
-%
-We emphasize that a directed graph $G=(V,E)$ is augmented by edge costs $c$ and
-capacities $u$, and a supply-demand function $\fsupply:V \to \ints$.
-We call the positive values of $\fsupply(v)$ \EMPH{supply}, and the negative values of $\fsupply(v)$ \EMPH{demand}.
-We assume that the sum of supplies and demands is equal to zero.
-For Sections~\ref{section:goldberg} and \ref{S:implementation}, we assume the capacity of every edge in $G$ is 1, i.e. $G$ is a unit capacity graph.
-A \EMPH{network $N = (V, \vec{E})$} turns each edge in $E$ into a pair of
-\EMPH{arcs} $\arc vw$ and $\arc wv$ in arc set $\vec{E}$.
-With the unit-capacity assumption on the network, all the pseudoflows in this section take integer values.
-The \EMPH{support} of a pseudoflow $f$ in $N$, denoted $\EMPH{$\supp(f)$}$, is the set of arcs with positive flows.
-% \[
-% \EMPH{$\supp(f)$} \coloneqq \set{\arc vw \in \vec{E} \mid f(\arc vw) > 0}.
-% \]
-Given a pseudoflow $f$, we define the \EMPH{imbalance} of a vertex to be
-\[
-\EMPH{$\fsupply_f (v)$} \coloneqq \fsupply(v) + \sum_{\arc wv \in \vec{E}}{f(\arc wv)} - \sum_{\arc vw \in \vec{E}}{f(\arc vw)}.
-\]
-If all vertices are \emph{balanced}, the pseudoflow is a \EMPH{circulation}.
-The \EMPH{cost} of a pseudoflow
-%denoted \EMPH{$\cost(f)$},
-is defined to be
-\[
- \EMPH{$\cost(f)$} \coloneqq \sum_{\arc vw \in \supp(f)} c(\arc vw) \cdot f(\arc vw).
-\]
-%
-The \EMPH{minimum-cost flow problem (MCF)} asks to find a circulation of minimum cost inside a given directed graph.
-
-\begin{toappendix}
-\subsection{Preliminaries on Network Flows}
-\label{SSA:prelim-flow}
-
-\paragraph{Network.}
-Let $G=(V,E)$ be a directed graph, augmented by edge costs $c$ and capacities $u$, and a supply-demand function $\fsupply$ defined on the vertices.
-%
-We can turn the graph $G$ into a \EMPH{network $N = (V, \vec{E})$}:
-For each directed edge $(v,w)$ in $E$, insert two \EMPH{arcs} $\arc vw$ and $\arc wv$ into the arc set $\vec{E}$; the \EMPH{forward arc} $\arc vw$ inherits the capacity and cost from the directed graph $G$,
-%(that is, $u(\arc vw) = u(v,w)$ and $c(\arc vw) = c(v,w)$),
-while the \EMPH{backward arc} $\arc wv$ satisfies $u(\arc wv) = 0$ and $c(\arc wv) = -c(\arc vw)$.  This we ensure that the graph $(V,\vec{E})$ is \emph{symmetric} and the cost function $c$ is \emph{antisymmetric} on $N$.
-%
-The positive values of $\fsupply(v)$ are referred to as \EMPH{supply}, and the negative values of $\fsupply(v)$ as \EMPH{demand}.
-We assume that all capacities are nonnegative, all supplies and demands are integers, and the sum of supplies and demands is equal to zero.
-% in other words,
-% \[
-% \sum_{v \in V(G)} \fsupply(v) = 0.
-% \]
-%
-A \EMPH{unit-capacity} network has all its edge capacities equal to $1$.
-In this section we assume all networks are of unit-capacity.
-
-\paragraph{Pseudoflows.}
-Given a network $N \coloneqq (V,\vec{E},c,u,\fsupply)$,
-a \EMPH{pseudoflow} (or \EMPH{flow} to be short) $f\colon \vec{E} \to \ints$
-on $N$ is an antisymmetric function on the arcs of $N$ satisfying $f(\arc vw) \leq u(\arc vw)$ for every arc $\arc vw$.
-\footnote{In general the pseudoflows are allowed to take real-values. Here under the unit-capacity assumption any optimal flows are integer-valued.}
-%
-%We sometimes abuse the terminology by allowing pseudoflow to be defined on a directed graph, in which case we are actually referring to the pseudoflow on the corresponding network by extending the flow values anti-symmetrically to the arcs.
-%
-We say that $f$ \EMPH{saturates} an arc $\arc vw$ if $f(\arc vw) = u(\arc vw)$; an arc $\arc vw$ is \EMPH{residual} if $f(\arc vw) < u(\arc vw)$.
-
-
-
-
-
-
-
-
-
-
-%TODO move to where it's used
-%An alternative objective is the \EMPH{bottleneck} objective.
-%We define the \EMPH{bottleneck value} of a flow as
-%\[
-% \EMPH{$\operatorname{bottleneck}(f)$} \coloneqq \max_{\arc vw \in \supp(f)} c(\arc vw).
-%\]
-%The \EMPH{minimum bottleneck value} for a network is the minimum bottleneck value over all circulations.
-%Bottleneck value will play a part in our analysis, but the primary optimization problem of this section uses the sum-of-costs objective.
-%References to ``cost'' of a flow only refer to the sum-of-costs objective,
-%and when bottleneck value appears, it will be referred to explicitly.
-
-\paragraph{Residual graph.}
-Given a pseudoflow $f$, the \emph{residual network} is defined as follows.
-%
-Recall that the set of \emph{residual arcs $\vec{E}_f$} under $f$ are those arcs $\arc vw$ satisfying $f(\arc vw) < u(\arc vw)$.  In other words, an arc that is not saturated by $f$ is a residual arc; similarly, given an arc $\arc vw$ with positive flow value, the backward arc $\arc wv$ is a residual arc.
-
-Let $N = (V,\vec{E},c,u,\fsupply)$ be a network constructed from graph $G$, with a pseudoflow $f$ on $N$.
-The \EMPH{residual graph} $G_f$ of $f$ has $V$ as its vertex set and $\vec{E}_f$ as its arc set.
-%
-The \EMPH{residual capacity $u_f$} with respect to
-pseudoflow $f$ is defined to be $u_f(\arc vw) \coloneqq u(\arc vw) - f(\arc vw)$.
-Observe that the residual capacity is always nonnegative.
-We can define residual arcs differently using residual capacities:
-\[
-\vec{E}_f = \{\arc vw \mid u_f(\arc vw) > 0\}.
-\]
-In other words, the set of residual arcs are precisely those arcs in the residual graph, each of which has nonzero residual capacity.
-%
-%Notice that the network defined that naturally corresponds to a given directed graph is in fact the residual network with respect to the zero flow.
-%
-%We emphasize that edges with reduced capacity zero is not in the residual graph; in other words, if $f$ saturates an edge $(v, w)$ then $\arc vw$ is not in $G_f$.  (However, arc $\arc wv$ might still be in $G_f$.)
-%
-% \note{Well, the cost function changes; do we want to define residual network then?}
-% Define \EMPH{$N_f$} to be the \EMPH{residual network} with respect to pseudoflow $f$, consisting of residual graph $(V,A_f)$, together with antisymmetric cost function $c$ \note{Hmm, we need reduced costs}, residual capacities $u_f$, and the supply-demand function $\fsupply_f$.
-%\note{Maybe I want to define costs later, so the definition of residual network can be done?}
-
-\end{toappendix}
-
-\paragraph{LP-duality and admissibility.}
-We solve the min-cost flow problem using primal-dual algorithms.
-Let $G = (V,E)$ be a given directed graph with the corresponding network $N = (V,\vec{E},c,u,\fsupply)$.
-Formally, the
-\EMPH{potentials $\pi(v)$} are the variables of the linear program dual to the standard linear program for the min-cost flow problem with variables $f(\arc{v}{w})$ for each directed edge in $E$.
-Assignments to the primal variables satisfying the capacity constraints extend naturally into a pseudoflow on the network $N$.
-%\note{which primal problem? State the corresponding linear problems explicitly}.
-Let $G_f = (V,\vec{E}_f)$ be the residual graph under pseudoflow $f$.
-The \EMPH{reduced cost} of arc $\arc vw$ in $\vec{E}_f$ with respect to $\pi$ is defined as
-\[
-\EMPH{$c_\pi(\arc vw)$} \coloneqq c(\arc vw) - \pi(v) + \pi(w).
-\]
-Notice that the cost function $c_\pi$ is also antisymmetric.
-
-
-
-
-
-
-
-
-
-
-
-
-
-%In Section~\ref{section:goldberg}, we use $\eps$-optimality to prove the approximation quality of an $\eps$-optimal circulation.
-
-% There is a similar augmentation procedure for flows, which sends improving
-% flows to gradually reduce the imbalance for all vertices to 0, making it a
-% circulation.
-% By restricting augmentations to residual arcs satisfying a certain cost
-% condition (admissibility), one can prove that the resulting circulation is
-% minimum cost.
-
-\subsection{Reduction to Unit-Capacity Min-Cost Flow Problem}
-\label{SS:reduction}
-
-Here, we reduce the min-cost partial matching problem to finding
-a $\theta$-optimal circulation in a unit-capacity min-cost flow instance.
-%We first give an additive approximation reduction based on $\theta$-optimality,
-%and then convert it into a multiplicative approximation.
-%\note{HC: This is redundant.}
-
-\paragraph{Additive approximation.}
-Given a bipartite graph $G = (A,B,E_0)$ for the geometric partial matching problem with cost function $c$, we construct the \EMPH{reduction graph $H$} as follows:
-Direct the edges in $E_0$ from $A$ to $B$, and assign each directed edge with capacity $1$.  Now add a dummy vertex $s$ with directed edges to all vertices in $A$, and add a dummy vertex $t$ with directed edges from all vertices in $B$; each edge added has cost $0$ and capacity $1$.
-%The \EMPH{reduction graph $H$} consists of vertex set $V = A \cup B \cup \set{s,t}$ and edge set $E$.
-Assign vertex $s$ with supply $k$ and vertex $t$ with demand $-k$; the rest of the vertices in $H$ have zero supply-demand.
-We call the network corresponding to $H$ the \EMPH{reduction network $N_H$}.
-%
-It is straightforward to show that any integer circulation $f$ on $N_H$ uses exactly
-$k$ of the $A$-to-$B$ arcs, which correspond to the edges of a size-$k$
-matching \EMPH{$M_f$}.
-Notice that the cost of the circulation $f$ is equal to the cost of the corresponding matching $M_f$.
-%
-%In other words, a $(1+\eps)$-approximation to the MCF problem on the reduction network $N_H$ translates to a $(1+\eps)$-approximation to the geometric matching problem on the input graph $G$.
-
-First we show that the number of arcs used by any integer pseudoflow in $N_H$ is bounded by the excess of the pseudoflow.
-%\note{HC: Don't spell out the precise bound to avoid redundancy.}
-
-\begin{lemmarep}
-\label{lemma:support_size}
-The size of $\supp(f)$ is at most $3k$ for any integer circulation $f$ in reduction network $N_H$.
-As a corollary, the number of residual backward arcs is at most $3k$.
-\end{lemmarep}
-
-\begin{proof}
-Because $f$ is a circulation, $\supp(f)$ can be decomposed into $k$  paths from $s$ to $t$.
-Each $s$-to-$t$ path in $N_H$ is of length three, so the size of $\supp(f)$ is at most $3k$.
-As every backward arc in the residual network must be induced by positive flow in the opposite direction,
-the total number of residual backward arcs is at most $3k$.
-\end{proof}
-
-Using the bound on the support size, we show that a $\theta$-optimal integral circulation gives an additive $O(k\theta)$-approximation to the MCF problem.
-
-
-
-
-
-
-
-\paragraph{Multiplicative approximation.}
-We employ a technique from Sharathkumar and Agarwal~\cite{SA12} to convert the
-additive approximation into a multiplicative one.
-The reduction does not work out of the box, as they were tackling a similar but
-different problem on geometric transportations.
-See Appendix~\ref{SSA:multiplicative-approx} for details.
-
-% Sharathkumar and Agarwal~{\cite[\S3.5]{SA12}} provide a construction that partitions the input point sets $A$ and $B$ for the geometric partial matching problem into clusters, such that the diameter of each cluster is upper bounded by the cost of the optimal partial matching multiply by a polynomial factor.
-% %
-% To prove Lemma~\ref{lemma:cost_scale_approx}, we further modify the point set by moving the clusters so that the cost of the optimal solution does not change, while the diameter of the \emph{whole} point set is bounded.
-% %
-% Now one can prove Lemma~\ref{lemma:cost_scale_approx} by computing an $(\eps \cost(M^*)/6k)$-optimal
-% circulation $f$ on the modified point set using additive approximation from Lemma~\ref{lemma:goldberg_cost_add}.
-
-
-\begin{toappendix}
-\subsection{Multiplicative approximation}
-\label{SSA:multiplicative-approx}
-
-\note{To be compressed.}
-The reduction in Sharathkumar and Agarwal~\cite{SA12} uses a
-\EMPH{single-linkage clustering} of $G$---the clustering induced
-by a low-cost subgraph of the minimum spanning tree (MST) on $G$---%
-to transform the instance into a number of bounded-diameter point sets
-``preserving'' $M^*$.
-We also perform a single-linkage clustering, but use it to find a good upper
-bound on the minimum \emph{bottleneck value} of the reduction network instead.
-%
-The \EMPH{bottleneck value} of a flow is
-\[
- \EMPH{$\operatorname{bottleneck}(f)$} \coloneqq \max_{\arc vw \in \supp(f)} c(\arc vw).
-\]
-The \EMPH{minimum bottleneck value} for a network is the minimum bottleneck value over all circulations.
-
-Let $T$ be the minimum spanning tree on input graph $G$ and order
-its edges by increasing length as $e_1, \ldots, e_{r+n-1}$;
-both $T$ and the sorted edges can be constructed in $O(n\polylog n)$ time using
-a dynamic data structure for planar nearest neighbors.
-\note{HC: Don't mix construction with analysis.}
-Let $T_i$ denote the connected components of $T$ induced by the first $i$
-edges ($e_1, \ldots, e_{i}$) of $T$.
-Abusing notation, we also use $T_i$ to denote the clustering of $A \cup B$
-induced by the components of $T_i$.
-For each cluster $K \in T_i$, we use $A_K$ and $B_K$ to denote the points of
-$A \cap K$ and $B \cap K$ respectively.
-
-%TODO since only one index, probably change i --> j later
-We say a partial matching $M$ is \EMPH{intra-cluster} with respect to a clustering
-of $A \cup B$ if no edge of $M$ has endpoints in two different clusters.
-Otherwise, the matching is \EMPH{inter-cluster}.
-Let $i^*$ be the smallest index such that $T_{i^*}$ contains an intra-cluster
-partial matching.
-We can compute $i^*$ in $O(n)$ time by traversing the edges
-$e_1,\ldots ,e_{r+n-1}$ in ascending order, tracking the number of $A$ and $B$
-points in each cluster defined by $T_i$.
-Specifically, for each $i \in 1, \ldots, (r+n-1)$ let
-\[
-	\intracount(i) \coloneqq \sum_{K \in T_i} \min(A_K, B_K),
-\]
-which is the size of the largest intra-cluster matching possible under $T_i$.
-The first index for which $\intracount(i) \geq k$ is $i^*$.
+We may require an update operation for each active node added to $X$ during the
+Hungarian search, of which there are $O(k)$, so the time spent during a search
+is $O(k\polylog n)$.
+
+Since the size of $A \setminus \overline{A}$ is at least $r-k$, we cannot
+construct this BCP from scratch at the beginning of each iteration of Hungarian search.
+To resolve this, we use the idea of rewinding from Section~\ref{SS:rewinding},
+with a slight twist.
+There are now \emph{two} ways that the initial BCP may change across
+consecutive Hungarian searches: (1) the initial set $X$ may change as vertices
+lose excess through augmentation, and (2) the set of inactive $A$ vertices may
+change, i.e. when flow is augmented across a vertex of $A \setminus \overline{A}$.
+The first is identical to the situation in Section~\ref{SS:rewinding};
+the number of excess depletions is $O(k)$ over the course of \textsc{Refine}.
+For the second, the active/inactive status of a node can change only if the
+blocking flow found in Augmentation passes through it.
+By Lemma~\ref{lemma:blocking_incidences} below, there are $O(k)$ such changes.
+Thus, updating $A \setminus \overline{A}$ for the BCP (after augmentation)
+can be done in $O(k\polylog n)$ time for each Hungarian search.
+
+\paragraph{Finding length-3 paths.}
+We now describe how to find the cheapest path of the form $s \to v \to w \to t$
+where $v \in A \setminus \overline{A}$ and $w \in B \setminus \overline{B}$.
+Note that $c_\pi(s \to v \to w \to t) = c(\arc vw) - \pi(s) + \pi(t)$.
+Hence, we need to find a BCP of $A \setminus \overline{A}$, $B \setminus \overline{B}$,
+where the cost of a pair $(v, w)$ is simply $c(v, w)$.
+This can be done by maintaining a dynamic BCP data structure similar to the
+case of length-2 paths.
+
+The BCP sets have no dependence on $X$ --- the only updates required correspond
+to changes to $\overline{A}$ or $\overline{B}$, after an augmentation.
+Applying Lemma~\ref{lemma:blocking_incidences} again, there are $O(k)$
+active/inactive updates caused by an augmentation, so the time for these updates
+per Hungarian search is $O(k\polylog n)$.
+
+\paragraph{Updating potentials.}
+The Hungarian search periodically raises the potentials for all nodes in $X$,
+and we need to implement this efficiently for the data structures above.
+Note that the data structures above do not utilize potentials of inactive nodes.
+Potentials for active nodes can be updated in a batched fashion using the
+method in Section~\ref{SS:potential-update}.
+
+For inactive nodes, we ignore their potentials entirely and instead recover
+valid potentials for them once they switch from inactive to active
+(and additionally at the end of a round).
+Specifically, for newly-active $a \in A$ we set $c_\pi(a) = c_\pi(s)$
+and for newly-active $b \in B$ we set $c_\pi(b) = c_\pi(t)$.
+It is straightforward to verify that this choice preserves $\theta$-optimality
+throughout $f$ as well the admissibility of any length-2/length-3 paths that
+involved them.
+
+\note{do we need to extend the definition of admissibility to paths?} %TODO
+
+The following lemmas are crucial to analyzing the running time of the Hungarian search.
 
 \begin{lemma}
-\label{lemma:mult_cluster}
-\hspace{2em}
-\begin{enumerate}[(i)]
-%\item $c(e_{i^*}) \leq \cost(M^*) \leq kn^q \cdot c(e_{i^*})$. %TODO second half not needed?
-\item \label{item:mult_cluster1}
-	$c(e_{i^*}) \leq \cost(M^*)$
-\item \label{item:mult_cluster2}
-	The minimum bottleneck value for the reduction network on $A \cup B$
-	is at most $n^q \cdot c(e_{i^*})$.
-\end{enumerate}
+\label{lemma:cost_scale_relaxations}
+The Hungarian search explores $O(k)$ nodes before a deficit vertex is reached,
+and Augmentation explores $O(k)$ nodes before finding a blocking flow.
 \end{lemma}
 \begin{proof}
-First, by definition of $i^*$, $M^*$ is inter-cluster in $T_{i^*-1}$.
-Although $M^*$ need not be intra-cluster in $T_{i^*}$, this implies that at
-least one edge $e \in M^*$ has $c(e) \geq c(e_{i^*})$.
-It follows that $c(e_{i^*}) \leq \cost(M^*)$.
-
-Second, let $M$ be the intra-cluster $k$-matching purported to exist in $T_{i^*}$.
-Each component of $T_{i^*}$ has first-power diameter at most $n\norm{e_{i^*}}$,
-so the longest edge in $M$ has cost at most $n^q \cdot c(e_{i^*})$.
-In the reduction network $N$, $M$ corresponds to a circulation
-where the most expensive arc costs at most $n^q \cdot c(e_{i^*})$;
-the minimum bottleneck value of $N$ is at most that.
+To sketch the proof, both procedures perform a search over the set of active
+nodes, of which there are $O(k)$.
+Nodes are not explored more than once (added to $X$, or a stack) by either search.
 \end{proof}
-
-With Lemma~\ref{lemma:mult_cluster}, we can complete the proof of
-Lemma~\ref{lemma:cost_scale_approx}.
-
-\begin{proof}[Proof of Lemma~\ref{lemma:cost_scale_approx}]
-We can determine $i^*$ and $c(e_{i^*})$ in $O(n\polylog n)$ time, as described above.
-Fix $\alpha = c(e_{i^*})$.
-By Lemma~\ref{lemma:mult_cluster}.\ref{item:mult_cluster2} the minimum
-bottleneck value of the reduction network is at most $n^q \alpha$.
-Computing an $(\alpha\eps/6k)$-optimal circulation produces a partial matching
-of cost at most
-\begin{equation*}
-\cost(M^*) + 6k(\alpha\eps/6k) = \cost(M^*) + \eps \cdot c(e_{i^*})
-	\leq (1+\eps) \cost(M^*)
-\end{equation*}
-where the inequality follows from Lemma~\ref{lemma:mult_cluster}.\ref{item:mult_cluster1}.
-\end{proof}
-
-
-
-\end{toappendix}
 
 \begin{lemma}
-\label{lemma:cost_scale_approx}
-Computing $(1+\eps)$-approximate geometric partial matching reduces to the following problem in $O(n \polylog n)$ time:
-Given a fixed $\alpha$, compute an $(\alpha\eps/6k)$-optimal circulation on a
-reduction network $N$ with min-bottleneck value at most $n^q \alpha$.
+\label{lemma:blocking_incidences}
+The blocking flow found by Augmentation is incident to $O(k)$ vertices.
 \end{lemma}
-
-
-\subsection{High-Level Description of Cost-Scaling Algorithm}
-\label{SS:cost-scaling}
-
-The main body of our algorithm is an implementation of the unit-capacity
-min-cost flow algorithm of Goldberg \etal~\cite{GHKT17}.
-Their algorithm is based on the \emph{cost-scaling} technique, originally due to
-Goldberg and Tarjan~\cite{GT90}.
-The algorithm finds $\theta$-optimal circulations for geometrically shrinking
-values of $\theta$.
-Each fixed value of $\theta$ is called a \EMPH{cost scale}.
-Once $\theta$ is sufficiently small, the $\theta$-optimal flow is a suitable
-approximation according to Lemma~\ref{lemma:cost_scale_approx}.%
-\footnote{When the costs are integers, a $\theta$-optimal circulation for a sufficiently small $\theta$ (say less than $1/n$) is itself an optimal solution~\cite{GT90,GHKT17}.
-We present this algorithm without the integral-cost assumption because in the geometric
-partial matching setting (with respect to $L_p$ norms) the costs are generally not integers.}
-
-%Pseudocode for the cost-scaling algorithm is given in
-%Algorithm~\ref{algorithm:cost-scaling}.
-%
-% \begin{figure*}[t]
-% \centering
-% \begin{minipage}{.5\linewidth}
-% \begin{algorithm}[H]
-% \caption{Cost-Scaling MCF}
-% \label{algorithm:cost-scaling}
-% \begin{algorithmic}[1]
-% \Function{MCF}{$H$, $\eps^*$}
-% 	\State $\eps \gets kC$,
-% 	$f \gets 0$,
-% 	$\pi \gets 0$
-% 	\While{$\eps > \eps^*/6$}
-% 		\State $(f, \pi) \gets$ \Call{Scale-Init}{$H$, $f$, $\pi$}
-% 		\State $(f, \pi) \gets$ \Call{Refine}{$H$, $f$, $\pi$}
-% 		\State $\eps \gets \eps/2$
-% 	\EndWhile
-% 	\State\Return $f$
-% \EndFunction
-% \end{algorithmic}
-% \end{algorithm}
-% \end{minipage}
-% \end{figure*}
-
-In what follows, we use \EMPH{$\theta^*$} to denote the ``target'' scale of the
-cost-scaling (that is, we seek a $\theta^*$-optimal circulation).
-The cost-scaling algorithm initializes the flow $f$ and the potential $\pi$ to be zero.
-
-\note{Unclear; rewrite}
-The initial value of the scale parameter, denoted $\EMPH{$\theta_0$}$,
-is set to $C$ by the original algorithm \cite{GHKT17}, but this does not work
-well with the multiplicative approximation reduction (Lemma~\ref{lemma:cost_scale_approx}).
-Instead, we use
-\[
-\theta_0 \in 2 \cdot \{x \in \reals_{\geq 0} \mid \text{there exists a circulation supported on edges of cost $\leq x$}\},
-\]
-or in the terminology of Lemma~\ref{lemma:cost_scale_approx}, $\theta_0 = 2n^q \alpha$.
-We show that this is sufficient for correctness in Lemma~\ref{lemma:goldberg_refine_iterations}.
-Choosing this type of $\theta_0$ is important for turning the cost-scaling
-algorithm into a multiplicative approximation --- explained in
-Section~\ref{SSA:multiplicative-approx} --- where we also give the precise
-method for choosing $\alpha$.
-Note that the minimum possible $x$ is the \emph{minimum bottleneck value} of the network.
-
-Within each scale, the algorithm performs the following:
-\begin{itemize}
-\item
-\textsc{Scale-Init} takes the previous
-circulation (now $2\theta$-optimal) and transforms it into an
-$\theta$-optimal pseudoflow with $O(k)$ excess.
-(For the first scale when $\theta = \theta_0$, \textsc{Scale-Init} does nothing.
-\item
-\textsc{Refine} then reduces the excess to zero while maintaining $\theta$-optimality, turning $f$ into a $\theta$-optimal circulation.
-\end{itemize}
-If $\theta \leq \theta^*$, then $f$ is a $\theta^*$-optimal circulation and we are done.
-Otherwise, $\theta$ is halved and the next scale begins.
-The algorithm produces a $\theta^*$-optimal circulation after
-$O(\log(\theta_0/\theta^*))$ scales.
-%
-Using the reduction in Lemma~\ref{lemma:cost_scale_approx}, we have an initial
-scale $\theta_0 = 2n^q\alpha$ and target scale $\theta^* = \eps\alpha/6k$.
-Thus, the number of cost scales after the reduction is $O(\log(n/\eps))$. \note{$\log(kn/\eps)$?}
-
-\paragraph{Scale initialization.}
-
-% \begin{figure*}[h]
-% \centering
-% \begin{minipage}{.5\linewidth}
-% \begin{algorithm}[H]
-% \caption{Scale Initialization}
-% \label{algorithm:scale_init}
-% \begin{algorithmic}[1]
-% \Function{Scale-Init}{$H$, $f$, $\pi$}
-% 	\State $\forall a \in A, \pi(a) \gets \pi(a) + \eps$
-% 	\State $\forall b \in B, \pi(b) \gets \pi(b) + 2\eps$
-% 	\State $\pi(t) \gets \pi(t) + 3\eps$
-% 	%\Statex %newline
-% 	\ForAll{$(v, w) \in \supp(f)$}
-% 		\If{$c_\pi(w, v) < -\eps$}
-% 			\State $f(v, w) \gets 0$
-% 		\EndIf
-% 	\EndFor
-% 	\State\Return $(f, \pi)$
-% \EndFunction
-% \end{algorithmic}
-% \end{algorithm}
-% \end{minipage}
-% \end{figure*}
-
-
-For \textsc{Scale-Init}, we use a simple extension to a scale
-initialization procedure proposed for partial matching \cite[Section~6.1]{GHKT17}.
-Namely, the potential changes are the same, but we take the additional step
-to remove arcs violating $\theta$-optimality.
-%to fit the blocking flow version of \textsc{Refine}.
-%Recall that $H$ is the \emph{reduction graph} and $N_H$ is the \emph{reduction network}, both constructed in Section~\ref{SS:reduction}.
-The vertex set of $H$ consists of two point sets $A$ and $B$, as well as two dummy vertices $s$ and $t$.  The directed edges in $H$ are pointed from $s$ to $A$, from $A$ to $B$, and from $B$ to $t$.
-We call those arcs in $N_H$ whose direction is consistent with their corresponding directed edges as \EMPH{forward arcs}, and those arcs that points in the opposite direction as \EMPH{backward arcs}.
-
-The procedure \textsc{Scale-Init} transforms a $2\theta$-optimal circulation from the previous cost scale into a $\theta$-optimal flow with $O(k)$ excess, by raising the potentials $\pi$ of all vertices in $A$ by $\theta$, those in $B$ by $2\theta$, and the potential of $t$ by $3\theta$.
-The potential of $s$ remains unchanged.
-%
-Now the reduced cost of every forward arc is increased by $\theta$, and thus all the forward arcs have reduced cost at least~$-\theta$.
-
-As for backward arcs, the procedure \textsc{Scale-Init} continues by setting the flow on $\arc vw$ to zero for each backward arc $\arc wv$ violating the $\theta$-optimality constraint.  In other words, we set $f(\arc vw) = 0$ whenever $c_\pi(\arc wv) < -\theta$.
-This ensures that all such backward arcs are no longer residual, and therefore the flow (now with excess) is $\theta$-optimal.
-
-Because the arcs are of unit-capacity in $N_H$, each arc desaturation creates one unit of excess.
-By Lemma~\ref{lemma:support_size} the number of backward arcs is at most $3k$.
-Thus the total amount of excess created is also $O(k)$.
-%
-In total,
-%potential updates and backward arc desaturations, thus
-the whole procedure \textsc{Scale-Init} takes $O(n)$ time.
-
-\paragraph{Refinement.}
-
-The procedure \textsc{Refine} is implemented using a primal-dual augmentation algorithm,
-which sends flows on admissible arcs to reduce the total excess.
-%like the Hungarian algorithm.
-Unlike the Hungarian algorithm, it uses \emph{blocking flows} instead of augmenting paths.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-First we analyze the number of iterations executed by \textsc{Refine}.
-%\note{and maybe \S5 of Goldberg-Tarjan?}
-The proof follows the strategy in Goldberg~\etal~\cite[Section~3.2]{GHKT17},
-which proves a $O(\sqrt{n})$ bound on the number of iterations for general
-unit-capacity networks.
-They claimed an analogous $O(\sqrt{k})$ bound for partial matchings in
-\cite[Section~6.1]{GHKT17}, which we reproduce for completeness.
-Due to space constraint we have moved the proofs to Appendix~\ref{SSA:num-iterations-refine}.
-
-
-\begin{toappendix}
-\subsection{Number of iterations during refinement.}
-\label{SSA:num-iterations-refine}
-
-% Using the properties of blocking flows and the unit-capacity input graph,
-% Goldberg~{\etal}~\cite{GHKT17} prove that there are $O(k)$ blocking
-% flows before excess becomes 0, but on a slightly different reduction graph
-% and under a slightly different model of minimum-cost flow.
-% We provide a sketch of their proof technique adapted for the reduction network
-% $N_H$.
-
-To this end we need a bound on the size of the support of $f$ right before and throughout the execution of \textsc{Refine}.
-This bound will also be useful later for bounding the overall running time.
-
-\begin{lemmarep}
-\label{lemma:reduction_count}
-Let $f$ be an integer pseudoflow in $N_H$ with $O(k)$ excess.
-Then, the size of the support of $f$ is at most $O(k)$.
-\end{lemmarep}
-
 \begin{proof}
-Observe that the reduction graph $H$ is a directed acyclic graph, and thus the support of $f$ does not contain a cycle.
-Now $\supp(f)$ can be decomposed into a set of inclusion-maximal paths,
-each of which contributes a single unit of excess to the flow if the path does not terminate at $t$ or if more than $k$ paths terminate at $t$.
-By assumption, there are $O(k)$ units of excess to which we can associate to the paths, and at most $k$ paths (those that terminate at $t$) that we cannot associate with a unit of excess.
-The length of any such paths is at most  three by construction of the reduction graph $H$.
-Therefore we can conclude that the number of arcs in the support of $f$ is $O(k)$.
+Each excess-deficit path that composes the blocking flow is a sequence of
+active nodes connected by a subpath across 0, 1, or 2 inactive nodes.
+Each such subpath corresponds to the depth-first search of Augmentation
+exploring a new active node.
+By Lemma~\ref{lemma:cost_scale_relaxations}, the total number of nodes
+crossed is therefore $O(k)$.
 \end{proof}
 
-\begin{corollary}
-\label{corollary:support_size_during}
-The size of $\supp(f)$ is at most $O(k)$ for pseudoflow $f$ right before or during the execution of \textsc{Refine}.
-\end{corollary}
-
-\end{toappendix}
-
-In the following lemma, we prove the number of iterations of $\textsc{Refine}$
-required at each cost scale.
-This is also the (only) place where our assumption on $\theta_0$
-become important. \note{the following?}
-We require that $\theta_0$ is sufficiently high such that a
-circulation with bottleneck value at most $\theta_0/2$ exists in $N_H$.
-
-\begin{lemmarep}
-\label{lemma:goldberg_refine_iterations}
-Suppose that $\theta_0$ is chosen so that a circulation in $N_H$
-with bottleneck value at most $\theta_0/2$ exists.
-At any scale, let $f$ be a pseudoflow in $N_H$ with $O(k)$ excess.
-The procedure \textsc{Refine} runs for $O(\sqrt{k})$ iterations
-%pushes $O(\sqrt{k})$ blocking flows
-before the excess of $f$ becomes zero.
-\end{lemmarep}
-
-%TODO double check this
-\begin{proof}
-Let $f_0$ and $\pi_0$ be the circulation and
-potential at the end of the previous cost scale.
-For the first cost scale, let $\pi_0 \coloneqq 0$ and $f_0$ be any circulation with bottleneck value $\leq \theta_0/2$.
-In both cases, $f_0$ is a $2\theta$-optimal circulation with respect to $\pi_0$.
-Let $f$ and $\pi$ be the current flow and the potential.
-Let \EMPH{$d(v)$} defined to be the amount of potential increase at $v$ since $\pi_0$, measured in units of $\theta$; in other words, $d(v) \coloneqq (\pi(v) - \pi_0(v)) / \theta$.
-%
-% Goldberg~\etal~\cite[Lemma~3.5]{GHKT17} showed that every vertex $v$ has $d(v) \le 3n-3$, which we can improve to $O(k)$ on our reduction network,
-% \note{why do we need this bound?}
-% by the fact that the size of $E^+$ is bounded by the sum of support sizes of $f$ and $f_0$, which by Corollary~\ref{corollary:support_size_during} is at most $O(k)$.
-
-Now divide the iterations executed by
-%the blocking flows pushed by
-the procedure \textsc{Refine}
-into two phases:  The transition from the first phase to the second happens when every excess vertex $v$ has $d(v) \ge \sqrt{k}$.
-%
-At most $\sqrt{k}$ iterations belong to
-%blocking flows are being pushed during
-the first phase as each Hungarian search increases the potential $\pi$ by at least $\theta$ for each excess vertex (and thus increases $d(v)$ by at least one).
-
-%Now the number of blocking flows that
-The number of iterations
-belonging to the second phase is upper bounded by the amount of total excess at the end of the first phase, because each subsequent push of a blocking flow reduces the total excess by at least one.  We now show that the amount of such excess is at most $O(\sqrt{k})$.
-%
-Consider the set of arcs $E^+ \coloneqq \Set{\arc vw \mid f(\arc vw) < f_0(\arc vw)}$.
-The total amount of excess is upper bounded by the number of arcs in $E^+$ that crosses an arbitrarily given cut $X$ that separates the excess vertices from the deficit vertices, when the network has unit-capacity~\cite[Lemma~3.6]{GHKT17}.
-%
-Consider the set of cuts $X_i \coloneqq \Set{v \mid d(v) > i}$ for $0 \le i < \sqrt{k}$; every such cut separates the excess vertices from the deficit vertices at the end of first phase.
-Each arc in $E^+$ crosses at most $3$ cuts of type $X_i$~\cite[Lemma~3.1]{GHKT17}.  So there is one $X_i$ crossed by at most $3\abs{E^+}/\sqrt{k}$ arcs in $E^+$.
-%
-The size of $E^+$ is bounded by the sum of support sizes of $f$ and $f_0$; by Corollary~\ref{corollary:support_size_during} the size of $E^+$ is $O(k)$.
-This implies an $O(\sqrt{k})$ bound on the total excess after the first phase, which in turn bounds the number of iterations in the second phase.
-\end{proof}
-
-
-% ----------------------------------------------------------------------------
-\section{Fast Implementation of Refinement}
-\label{S:implementation}
-
-The goal of the section is to show that after $O(n \polylog n)$ time preprocessing, each Hungarian search and depth-first search can be implemented in $O(k \polylog n)$ time.
-%
-Combined with Lemma~\ref{lemma:goldberg_refine_iterations}
-%the $O(\sqrt{k})$ bound on the number of iterations we proved in Section~\ref{SS:cost-scaling},
-the procedure \textsc{Refine} can be implemented in $O((n+k\sqrt{k}) \polylog n)$ time.  Together with our analysis on scale initialization and the bound on number of cost scales, this concludes the proof to Theorem~\ref{theorem:gmcm}.
-%\note{Well, there's the null vertex potential updates.  Hide it?}
-
-The Hungarian search and depth-first search are similar, traversing through the residual graph using admissible arcs starting from the excess vertices.
-Each step of the search procedures \EMPH{relaxes} a minimum-reduced-cost arc from the set of visited vertices to an unvisited vertex, until a deficit vertex is reached.
-%
-At a high level, our analysis strategy is to charge the relaxation events to the support arcs of $f$.
-%which has size at most $O(k)$ by Corollary~\ref{corollary:support_size_during}.
-
-\subsection{Null vertices and shortcut graph}
-
-%\note{A figure might be helpful for this section.}
-
-As it turns out, there are some vertices visited by a relaxation event which we cannot charge to $\supp(f)$.
-Unfortunately the number of such vertices can be as large as $\Omega(n)$.
-%(consider the residual graph under the zero flow).
-%
-To overcome this issue, we replace the residual graph with an equivalent graph that excludes these \emph{null vertices},
-and run the Hungarian search and depth-first search on the resulting graph instead.
-
-\paragraph{Null vertices.}
-We say a vertex $v$ in the residual graph $N_f$ is a \EMPH{null vertex} if $\fsupply_f(v) = 0$ and no arc of $\supp(f)$ is incident to $v$.
-%We are unable to charge relaxation steps involving null vertices to $|\supp(f)|$, so the algorithm must deal with them separately.
-We use \EMPH{$A_\emptyset$} and \EMPH{$B_\emptyset$} to denote the null vertices $A$ and $B$ respectively.
-Vertices that are not null are called \EMPH{normal vertices}.
-%
-A \EMPH{null 2-path} is a length-$2$ path in $N_f$ from a normal vertex to another normal vertex, passing through a null vertex.
-As every vertex in $A$ has in-degree $1$ and every vertex in $B$ has out-degree $1$ in the residual graph, the null 2-paths must be of the form either $(s, v, b)$ for some vertex $b$ in $B \setminus B_\emptyset$ or $(a, v, t)$ for some vertex $a$ in $A \setminus A_\emptyset$.
-In either case, we say that the null 2-path \EMPH{passes through} null vertex $v$.
-%
-Similarly, we define the length-$3$ path from $s$ to $t$ that passes through two null
-vertices to be a \EMPH{null 3-path}.
-%
-Because reduced costs telescope for residual paths, the reduced cost of any null path does not depend on the potentials of the null vertices it passes through.
-
-\paragraph{Shortcut graph.}
-We construct the \EMPH{shortcut graph $\tilde{H}_f$} from the reduction graph $H$ by removing all
-null vertices and their incident edges, followed by inserting an arc
-from the head of each each null path $\Pi$ to its tail, with cost equals to the sum of costs on the arcs.
-We call this arc the \EMPH{shortcut} of null path $\Pi$, denoted as \EMPH{$\short(\Pi)$}.
-% For example, the null 2-path $(s, v, b)$ for $v \in A_\emptyset$ is replaced
-% with a shortcut $(s, b)$ of cost $c(\short(s, v, b)) \coloneqq c(v, b)$.
-% Similarly, the null 3-path $(s, v_1, v_2, t)$ would be replaced with a
-% shortcut $(s, t)$ of cost $c(\short((s, v_1, v_2 t))) \coloneqq c(v_1, v_2)$.
-%
-The resulting multigraph $\tilde{H}_f$ contains only normal vertices of $H_f$, and the reduced cost of any path between normal vertices are preserved.
-%in other words, we have $c_\pi(\Pi) = c_{\tilde\pi}(\tilde{\Pi})$. \note{Do we want this just for the null path, or any normal-to-normal path?  In any case $\tilde{\Pi}$ is undefined.}
-%
-%\note{Do we need the fact that every null vertex is passed by a null path? ANS: not here, do it in the proof}
-% Consider a path $\Pi$ from normal $v$ to normal $w$ in $H_f$.
-% Any null vertex in $\Pi$ is passed by an empty 2- or 3-path contained
-% in $\Pi$, since the only nontrivial residual paths through a null vertex are
-% its passing null paths.
-% Thus, there is a corresponding $v$-to-$w$ path $\tilde{\Pi}$ in $\tilde{H}_f$
-% by replacing each null path contained in $\Pi$ with its shortcut.
-We argue now that $\tilde{H}_f$ is fine as a surrogate for $H_f$.
-%
-Let $\tilde{\pi}$ be a $\theta$-optimal potential on $\tilde{H}_f$.
-Construct potentials $\pi$ on $H_f$ which extends $\tilde{\pi}$ to null vertices, by
-setting $\pi(a) \coloneqq \tilde{\pi}(s)$ for $a \in A_\emptyset$ and
-$\pi(b) \coloneqq \tilde{\pi}(t)$ for $b \in B_\emptyset$.
-
-\begin{lemmarep}
-\label{lemma:empty_correct}
-Consider $\tilde{\pi}$ a $\theta$-optimal potential on $\tilde{H}_f$ and $\pi$ the corresponding potential constructed on $H_f$.
-Then,
-%\begin{enumerate}
-%\item
-(1) potential $\pi$ is $\theta$-optimal on $H_f$, and
-%\item
-(2) if arc $\short(\Pi)$ is admissible under $\tilde{\pi}$, then every arc in $\Pi$ is admissible under $\pi$.
-%\end{enumerate}
-\end{lemmarep}
-
-\begin{proof}
-Reduced costs for any arc from a normal vertex another is unchanged under either
-$\tilde{\pi}$ or $\pi$.
-Recall that a null path is comprised of one $A$-to-$B$ arc, and one or two
-zero-cost arcs (connecting the null vertex/vertices to $s$ and/or $t$).
-With our choice of null vertex potentials, we observe that the zero-cost arcs
-still have zero reduced cost.
-It remains to prove that an arbitrary \note{residual?} arc $(a, b)$ \note{arc or directed edge?} satisfies the $\theta$-optimality condition and admissibility when either $a$ or $b$ is a null vertex.
-
-By construction of the shortcut graph,
-there is always a null path $\Pi$ that contains $(a, b)$.
-Observe that $c_\pi(a, b) = c_\pi(\Pi)$, independent to the type of null path.
-% \begin{itemize}
-% \item If $\Pi = (s, a, b)$ for $a \in A_\emptyset$:
-% 	\begin{equation*}
-% 	c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b) = c(a, b) - \pi(s) + \pi(b) = c_\pi(\Pi)
-% 	\end{equation*}
-% \item If $\Pi = (a, b, t)$ for $b \in B_\emptyset$:
-% 	\begin{equation*}
-% 	c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b) = c(a, b) - \pi(a) + \pi(t) = c_\pi(\Pi)
-% 	\end{equation*}
-% \item If $\Pi = (s, a, b, t)$ for $a \in A_\emptyset$ and $b \in B_\emptyset$:
-% 	\begin{equation*}
-% 	c_\pi(a, b) = c(a, b) - \pi(a) + \pi(b) = c(a, b) - \pi(s) + \pi(t) = c_\pi(\Pi)
-% 	\end{equation*}
-% \end{itemize}
-Again by construction, $c_\pi(\Pi) = c_{\tilde{\pi}}(\short(\Pi))$, so we have
-$c_\pi(a, b) = c_{\tilde{\pi}}(\short(\Pi)) \geq -\theta$.
-Additionally, if $\short(\Pi)$ is admissible under $\tilde{\pi}$, then so is
-$(a, b)$ under $\pi$.
-%
-This proves the lemma.
-\end{proof}
-
-%\note{Talk about the size of shortcut graph briefly.} \note{HC: really? already did in intro}
-
-\subsection{Dynamic data structures for search procedures}
-\label{SS:ds-search}
-
-\paragraph{Hungarian search.}
-%
-% \begin{figure*}
-% \centering
-% \begin{minipage}{.8\linewidth}
-% \begin{algorithm}[H]
-% \caption{Hungarian Search (cost-scaling)}
-% \begin{algorithmic}[1]
-% \Function{Hungarian-Search2}{$H = (V, E)$, $f$, $\pi$}
-% 	\State $\tilde{H}_f \gets$ the shortcut graph of $H$ with respect to $f$
-% 	\State $S \gets \{v \in V \mid \fsupply_f(v) > 0\}$
-% 	\Repeat
-% 		\State $(v', w') \gets \argmin\{c_\pi(v', w') \mid v' \in S, w' \not\in S, (v', w') \in \tilde{H}_f)\}$
-% 			\label{line:hs_relaxation}
-% 		\State $\gamma \gets c_\pi(v', w')$
-% 		\If{$\gamma > 0$}
-% 			\Comment{make $(v', w')$ admissible if it isn't}
-% 			\State $\pi(v) \gets \pi(v) + \lceil\frac{\gamma}{\eps}\rceil\cdot \eps \quad \forall v \in S$
-% 		\EndIf
-% 		\State $S \gets S \cup \{w'\}$
-% 		\If{$\fsupply_f(w') < 0$} \Comment{reached a deficit}
-% 			\State\Return $\pi$
-% 		\EndIf
-% 	\Until{$S = (A \setminus A_\emptyset) \cup (B \setminus B_\emptyset)$}
-% 	\State\Return failure
-% \EndFunction
-% \end{algorithmic}
-% \end{algorithm}
-% \end{minipage}
-% \end{figure*}
-%
-Conceptually, we execute the Hungarian search
-%(``raise prices'') from \cite[Section 3.2]{GHKT17}
-on the shortcut graph $\tilde{H}_f$.
-We describe how we can query the minimum-reduced-cost arc leaving $\tilde{S}$ in
-$O(\polylog n)$ time for $\tilde{H}_f$, without constructing it explicitly.
-For this purpose, let \EMPH{$S$} be a set of ``reached'' vertices maintained,
-identical to $\tilde{S}$ except whenever a shortcut is relaxed, we add the null vertices passed by the corresponding null path to $S$ in addition to its (normal) endpoints.
-%\note{$S$ should be $\tilde{S}$ and $S'$ should be $S$?}
-%
-Observe that the arcs of $\tilde{H}_f$ leaving $\tilde{S}$ fall into $O(1)$ categories:
-\begin{itemize}\itemsep=0pt
-\item non-shortcut backward arcs $(v, w)$ with $(w, v) \in \supp(f)$;
-\item non-shortcut $A$-to-$B$ forward arcs;
-\item non-shortcut forward arcs from $s$-to-$A$ and from $B$-to-$t$;
-\item shortcut arcs $(s, b)$ corresponding to null 2-paths from $s$ to
-	$b \in (B \setminus B_\emptyset) \setminus S$;
-\item shortcut arcs $(a, t)$ corresponding to null 2-paths from
-	$a \in (A \setminus A_\emptyset) \cap S$ to $t$; and
-\item shortcut arcs $(s, t)$ corresponding to null 3-paths.
-\end{itemize}
-For each category of arcs we maintain a proper data structure (either heap or BCP) to answer to the min-cost arc query.
-
-\begin{toappendix}
-\subsection{Dynamic data structures for search procedures}
-\label{SSA:ds-search}
-
-Here we formally describe in details the set of dynamic data structure we use for the Hungarian search and depth-first search procedures.
-
-For Hungarian search, we maintain the following for each type of outgoing arcs of $\tilde{H}_f$ leaving $\tilde{S}$:
-\begin{enumerate}
-\item Non-shortcut backward arcs $(v, w)$ with $(w, v) \in \supp(f)$.
-	For these, we can maintain a min-heap on $\supp(f)$ arcs as each $v$
-	arrives in $\tilde{S}$.
-\item Non-shortcut $A$-to-$B$ forward arcs.
-	For these, we can use a BCP data structure between
-	$(A \setminus A_\emptyset) \cap \tilde{S}$ and
-	$(B \setminus B_\emptyset) \setminus \tilde{S}$, weighted by potential.
-\item Non-shortcut forward arcs from $s$-to-$A$ and from $B$-to-$t$.
-	For $s$, we can maintain a min-heap on the potentials of
-	$B \setminus \tilde{S}$, queried while $s \in \tilde{S}$.
-	For $t$, we can maintain a max-heap on the potentials of
-	$A \cap \tilde{S}$, queried while $t \not\in \tilde{S}$.
-
-\item Shortcut arcs $(s, b)$ corresponding to null 2-paths from $s$ to
-	$b \in (B \setminus B_\emptyset) \setminus S$.
-	For these, we maintain a BCP data structure with $P = A_\emptyset$,
-	$Q = (B \setminus B_\emptyset) \setminus S$ with weights
-	$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for
-	all $q \in Q$.
-	A response $(a, b)$ corresponds to th null 2-path $(s, a, b)$.
-	This is only queried while $s \in S$.
-\item Shortcut arcs $(a, t)$ corresponding to null 2-paths from
-	$a \in (A \setminus A_\emptyset) \cap S$ to $t$.
-	For these, we maintain a BCP data structure with
-	$P = (A \setminus A_\emptyset) \cap S$,
-	$Q = B_\emptyset \setminus S$ with weights $\omega(p) = \pi(p)$ for
-	all $p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
-	A response $(a, b)$ corresponds to th null 2-path $(a, b, t)$.
-	This is only queried while $t \not\in S$.
-\item Shortcut arcs $(s, t)$ corresponding to null 3-paths.
-	For these, we maintain in a BCP data structure with
-	$P = A_\emptyset \setminus S$, $Q = B_\emptyset \setminus S$ with
-	weights $\omega(p) = \pi(s)$ for all
-	$p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
-	A response $(a, b)$ corresponds to th null 3-path $(s, a, b, t)$.
-	This is only queried while $s \in S$ and $t \not\in S$.
-\end{enumerate}
-
-\end{toappendix}
-
-% By construction, the distance returned by each of the BCP data structure
-% %in (4)--(6)
-% is equal to the reduced cost of the shortcut, which is equal to the reduced cost of the corresponding null path.
-%
-% Each of the above data structures requires one query per relaxation, and an update operation whenever a new vertex moves into $\tilde{S}$.
-% So in collaboration each relaxation can be implemented in $O(\polylog n)$ time.
-% The running time of the Hungarian search, other than the potential updates, can be
-% charged to the number of relaxation steps. \note{Not needed here.}
-
-
-\paragraph{Depth-first search.}
-Depth-first search is similar to Hungarian search in that it
-uses the relaxation of minimum-reduced-cost arcs/null paths, this time to
-identify admissible arcs/null paths in a depth-first manner.
-%
-Similar to the Hungarian search, for each category of arcs in $\tilde{H}_f$
-leaving $\tilde{S}$, we maintain a proper data structure to answer the
-minimum-reduced cost arc leaving a \emph{fixed} vertex in $\tilde{S}$ given
-by the query.
-Thus unlike Hungarian search which uses BCP data structures, we use dynamic
-nearest-neighbor data structures instead~\cite{KMRSS17}.
-%
-\begin{toappendix}
-
-For depth-first search, we maintain the following for each type of outgoing arcs of $\tilde{H}_f$ leaving $\tilde{S}$:
-%
-\begin{enumerate}
-\item Non-shortcut backward arcs $(v', w')$ with $(w', v') \in \supp(f)$.
-	For these, we can maintain a min-heap on $(w', v') \in \supp(f)$ arcs
-	for each normal $v' \in V$.
-\item Non-shortcut $A$-to-$B$ forward arcs.
-	For these, we maintain a NN data structure over
-	$P = (B \setminus B_\emptyset) \setminus \tilde{S}$, with weights
-	$\omega(p) = \pi(p)$ for each $p \in P$.
-	We subtract $\pi(v')$ from the NN distance to recover the reduced cost
-	of the arc from $v'$.
-\item Non-shortcut forward arcs from $s$-to-$A$ and from $B$-to-$t$.
-	For $s$, we can maintain a min-heap on the potentials of
-	$B \setminus \tilde{S}$, queried only if $v' = s$.
-	For $B$-to-$t$ arcs, there is only one arc to check if $v' \in B$,
-	which we can examine manually.
-
-\item Shortcut arcs $(s, b)$ corresponding to null 2-paths from $s$ to
-	$b \in (B \setminus B_\emptyset) \setminus S$.
-	For these, we maintain a NN data structure with $P = A_\emptyset$,
-	$Q = (B \setminus B_\emptyset) \setminus S$ with weights
-	$\omega(p) = \pi(s)$ for all $p \in P$, and $\omega(q) = \pi(q)$ for
-	all $q \in Q$.
-	A response $(a, b)$ corresponds to th null 2-path $(s, a, b)$.
-	This is only queried if $v' = s$.
-\item Shortcut arcs $(a, t)$ corresponding to null 2-paths from
-	$a \in (A \setminus A_\emptyset) \cap S$ to $t$.
-	For these, we maintain a NN data structure over
-	$P = B_\emptyset \setminus S$ with weights $\omega(p) = \pi(t)$ for
-	each $p \in P$.
-	A response $(v', b)$ corresponds to th null 2-path $(v', b, t)$.
-	We subtract $\pi(v')$ from the NN distance to recover the reduced cost
-	of the arc from $v'$.
-	This is not queried if $t \in \tilde{S}$.
-\item Shortcut arcs $(s, t)$ corresponding to null 3-paths.
-	For these, we maintain in a NN data structure with
-	$P = A_\emptyset \setminus S$, $Q = B_\emptyset \setminus S$ with
-	weights $\omega(p) = \pi(s)$ for all
-	$p \in P$, and $\omega(q) = \pi(t)$ for all $q \in Q$.
-	A response $(a, b)$ corresponds to th null 3-path $(s, a, b, t)$.
-	This is only queried while $v' = s$ and $t \not\in S$.
-\end{enumerate}
-
-\end{toappendix}
-%
-Each data structure requires $O(1)$ queries and updates per relaxation.
-So in collaboration each relaxation can be implemented in $O(\polylog n)$ time~\cite{KMRSS17}.
-%Thus the running time of the Hungarian search and depth-first search, other than the potential updates, can be charged to the number of relaxation steps, which we will now analyze.
-
-% Each data structure performs a constant number of queries and updates per relaxation,
-% which can be implemented in $O(\polylog n)$ time~\cite{};
-% so the running time is again bounded by $O(\polylog n)$ times the number of relaxations.
-% %Since the pseudoflow is not changed within \textsc{DFS} we can bound the number
-% %of relaxation events in a similar way as \textsc{Hungarian-Search2}.
-
-
-
-%\subsection{Time analysis}
-\paragraph{Time analysis.}
-The complete time analysis can be found in Appendix~\ref{SSA:num-relaxation}, \ref{SSA:time-ananlsis}, and \ref{SSA:null-potential-update}; here we sketch the ideas.
-%
-First we show (in Appendix~\ref{SSA:num-relaxation}) that both Hungarian search and depth-first search performs $O(k)$ relaxations before a deficit vertex is reached, by looking at shortcut and non-shortcut relaxations separately.  Both types of relaxations are eventually charged to the support size of $f$.
-%
-As for the time analysis (see Appendix~\ref{SSA:time-ananlsis}), using the same rewinding mechanism as in Section~\ref{SS:rewinding}, the running time of the Hungarian search and depth-first search, other than the potential updates, can be charged to the number of relaxations.
-Again using the trick by Vaidya~\cite{Vaidya89}
-%in Section~\ref{SS:rewinding}
-we can charge the potential updates of normal vertices to the number of relaxations in the Hungarian search.
-%
-We never explicitly maintain the potentials on the null vertices; instead they are reconstructed whenever needed, either at the end of each iteration of refinement or when an augmentation sends flow through a null vertex.  We show that such updates does not happen often in Appendix~\ref{SSA:null-potential-update}.
-%
-This completes the time analysis, which we summarize as follows:
+Augmentation can also be implemented in $O(k\polylog n)$ time, after
+$O(n\polylog n)$ preprocessing, using a similar set of data structures but
+for nearest neighbor instead of BCP.
+Putting everything together, we obtain the following:
 
 \begin{lemma}
-After $O(n \polylog n)$-time preprocessing,
-each Hungarian search and depth-first search can be implemented in $O(k \polylog n)$ time.
+After $O(n\polylog n)$ preprocessing, each iteration of \textsc{Refine} can be
+implemented in $O(k\polylog n)$ time.
 \end{lemma}
 
-
-\begin{toappendix}
-\subsection{Number of relaxations}
-\label{SSA:num-relaxation}
-
-First we bound the number of relaxations performed by both the Hungarian search and the depth-first search.
-
-\begin{lemmarep}
-\label{lemma:goldberg_hs_length}
-Hungarian search performs $O(k)$ relaxations before a deficit vertex is reached.
-\end{lemmarep}
-
-\begin{proof}
-\note{TO BE REWRITTEN.}
-%\begin{lemma}
-%\label{lemma:goldberg_hs_length1}
-First we prove that there are $O(k)$ non-shortcut relaxations.
-%in Hargarian search before a deficit vertex is reached.
-%\end{lemma}
-%
-Each edge relaxation adds a new vertex to $S$, and non-shortcut relaxations
-only add normal vertices.
-The vertices of $V \setminus S$ fall into several categories:
-(i) $s$ or $t$, (ii) vertices of $A$ or $B$ with 0 imbalance, and (iii)
-deficit vertices of $A$ or $B$ ($S$ contains all excess vertices).
-The number of vertices in (i) and (iii) is $O(k)$, leaving us to bound the
-number of (ii) vertices.
-
-An $A$ or $B$ vertex with $0$ imbalance must have an even number of $\supp(f)$
-edges.
-There is either only one positive-capacity incoming arc (for $A$) or outgoing
-arc (for $B$), so this quantity is either 0 or 2.
-Since the vertex is normal, this must be 2.
-We charge 0.5 to each of the two $\supp(f)$ arcs; the arcs of $\supp(f)$
-have no more than 1 charge each.
-Thus, the number of type (ii) vertex relaxations is $O(|\supp(f)|)$.
-By Corollary~\ref{corollary:support_size_during}, $O(|\supp(f)|) = O(k)$.
-
-%\begin{lemma}
-%\label{lemma:goldberg_hs_length2}
-Next we prove that there are $O(k)$ shortcut relaxations.
-%in Hungarian search before a deficit vertex is reached.
-%\end{lemma}
-%
-Recall the categories of shortcuts from the list of data structures above.
-We have shortcuts corresponding to (i) null 2-paths surrounding
-$a \in A_\emptyset$, (ii) null 2-paths surrounding $b \in B_\emptyset$, and
-(iii) null 3-paths, which go from $s$ to $t$.
-%
-There is only one relaxation of type (iii), since $t$ can only be added to $S$
-once.
-The same argument holds for type (ii).
-
-Each type (i) relaxation adds some normal $b \in B \setminus B_\emptyset$
-into $S$.
-Since $b$ is normal, it must either have deficit or an adjacent arc of
-$\supp(f)$.
-We charge this relaxation to $b$ if it is deficit, or the adjacent arc of
-$\supp(f)$ otherwise.
-No vertex is charged more than once, and no $\supp(f)$ edge is charged more
-than twice, therefore the total number of type (i) relaxations is
-$O(|\supp(f)|)$.
-By Corollary~\ref{corollary:support_size_during}, $O(|\supp(f)|) = O(k)$.
-\end{proof}
-
-Similarly we can prove that there are $O(k)$ relaxations during the DFS.
-
-\begin{corollary}
-\label{corollary:goldberg_dfs_length}
-Depth-first search performs $O(k)$ relaxations before a deficit vertex is reached.
-\end{corollary}
-
-% \begin{lemma}
-% Both Hungarian search and depth-first search performs $O(k)$ relaxations before a deficit vertex is reached.
-% \end{lemma}
+\note{still need to show $\sqrt{k}$ iterations per refine} %TODO
 
 
-\subsection{Time analysis}
-\label{SSA:time-ananlsis}
 
-Now we complete the time analysis by showing that each Hungarian search and
-depth-first search can be implemented in $O(k \polylog n)$ time after a
-one-time $O(n \polylog n)$-time preprocessing.
-
-There are only $O(1)$ data structures for both.
-The rewinding mechanism and potential update scheme of
-Section~\ref{section:hung} to reset for each Hungarian search in
-time $O(\polylog n)$ times the number of relaxations, giving the following.
-The main difference is that we are using blocking flows rather than augmenting
-paths, so the initial $S$ (i.e.\ excess vertices) may change by more than
-one element for each \textsc{Refine} iteration.
-The total number of such changes throughout \textsc{Refine}is $O(k)$, however,
-since \textsc{Refine} begins with $O(k)$ excess and does not gain more.
-We obtain the following:
-
-\begin{lemmarep}
-\label{lemma:goldberg_hs_time}
-After $O(n \polylog n)$-time preprocessing,
-each Hungarian search can be implemented in $O(k \polylog n)$ time.
-\end{lemmarep}
-
-\begin{lemmarep}
-\label{lemma:goldberg_dfs_time}
-After $O(n \polylog n)$-time preprocessing,
-each depth-first search can be implemented in $O(k \polylog n)$ time.
-\end{lemmarep}
-
-\begin{lemmarep}
-The rewinding mechanism takes in total $O(k\polylog n)$ time in \textsc{Refine}.
-\end{lemmarep}
-
-
-\subsection{Number of potential updates on null vertices}
-\label{SSA:null-potential-update}
-
-In our implementation of \textsc{Refine}, we do not explicitly construct $\tilde{H}_f$; instead we query its edges using BCP/NN
-oracles and min/max heaps on elements of $H_f$.
-Potentials on the null vertices are only required right before an augmentation sends a flow through a
-null path, making the null vertices it passes normal.
-%as well as at the end of \textsc{Refine} (for the next cost-scale).
-We use the construction from Lemma~\ref{lemma:empty_correct}
-to obtain potential $\pi$ on $H_f$ such that the flow $f$ is both $\theta$-optimal and admissible with respect to $\pi$.
-
-\paragraph{Size of blocking flows.}
-
-Now we bound the total number arcs whose flow is updated by a blocking flow during the course of \textsc{Refine}.
-This bounds both the time spent updating the flow on these arcs and also the time spent on null vertex potential updates
-(Lemma~\ref{lemma:empty_updates}).
-
-\begin{lemmarep}
-\label{lemma:goldberg_bf_size}
-The support of each blocking flow %\note{on which network?}
-found in \textsc{Refine} is of size $O(k)$.
-%Let $N_i$ be the number of positive flow arcs in the $i$-th blocking flow of \textsc{Refine}.
-%Then, $\sum_i N_i = O(k\sqrt{k})$.
-\end{lemmarep}
-
-\begin{proof}
-Let $i$ be fixed and consider the invocation of \textsc{DFS} which produces the
-$i$-th blocking flow $f_i$.
-\textsc{DFS} constructs $f_i$ as a sequence of admissible excess-deficit paths.
-Let one of these paths be $P$.
-Every arc in $P$ is an arc relaxed by \textsc{DFS}, so $N_i$ is bounded by the
-number of relaxations performed in \textsc{DFS}.
-Using Corollary~\ref{corollary:goldberg_dfs_length}, we have $N_i = O(k)$.
-% By Lemma~\ref{lemma:goldberg_refine_iterations}, there are $O(\sqrt{k})$
-% iterations of \textsc{Refine} before it terminates.
-% Summing, we see that $\sum_i N_i = O(k\sqrt{k})$.
-\end{proof}
-
-
-\begin{lemmarep}
-\label{lemma:empty_updates}
-The number of end-of-\textsc{Refine} null vertex potential updates is $O(n)$.
-The number of augmentation-induced null vertex potential updates in each
-invocation of \textsc{Refine} is $O(k\log k)$.
-\end{lemmarep}
-
-\begin{proof}
-The number of end-of-\textsc{Refine} potential updates is $O(n)$.
-Each update due to flow augmentation involves a blocking flow sending positive
-flow through an null path, causing a potential update on the passed
-null vertex.
-We charge this potential update to the edges of that null path, which are in
-turn arcs with positive flow in the blocking flow.
-For each blocking flow, no positive arc is charged more than twice.
-It follows that the number of augmentation-induced updates is at most the size of support of the blocking flow, which is $O(k)$
-by Lemma~\ref{lemma:goldberg_bf_size}.
-According to Lemma~\ref{lemma:goldberg_refine_iterations} there are $O(\sqrt{k})$ iterations of \textsc{Refine} before it terminates.
-Summing up we have an $O(k\sqrt{k})$ bound over the course of \textsc{Refine}.
-\end{proof}
-
-% We now complete the proof of Lemma~\ref{lemma:goldberg_refine_time}.
-% There $O(\sqrt{k})$ iterations of \textsc{Refine}, each of which executes
-% \textsc{Hungarian-Search2} and \textsc{DFS}.
-% By Lemmas~\ref{lemma:goldberg_hs_time} and \ref{lemma:goldberg_dfs_time},
-% these calls take $O(T_1(n, k) + T_2(n, k)) = O(k\polylog n)$ time per
-% iteration.
-% \textsc{Hungarian-Search2} and \textsc{DFS} require some
-% once-per-\textsc{Refine} preprocessing to initialize data structures
-% in $P_1(n, k) + P_2(n, k) = O(n\polylog n)$ time.
-% Outside of these, we need to account for the time spent on flow value updates
-% and augmentation-induced null vertex potential updates.
-% By Lemma~\ref{lemma:goldberg_bf_size}, the former is $O(k\sqrt{k})$ over the
-% course of \textsc{Refine}.
-% Combining Lemmas~\ref{lemma:goldberg_bf_size} and \ref{lemma:empty_updates},
-% the time for the latter is also $O(k\sqrt{k})$.
-
-% Filling in the values of $P_1(n, k)$, $P_2(n, k)$, $T_1(n, k)$, and
-% $T_2(n, k)$, the total time for \textsc{Refine} is
-% $O((n + k\sqrt{k})\polylog n)$.
-% Together with Lemmas~\ref{lemma:goldberg_scales} and \ref{lemma:scale_init},
-%
-Now combining Lemma~\ref{lemma:cost_scale_approx},
-Lemma~\ref{lemma:goldberg_refine_iterations}, Lemma~\ref{lemma:goldberg_hs_time},
-Lemma~\ref{lemma:goldberg_dfs_time}, and Lemma~\ref{lemma:empty_updates}
-completes the proof of Theorem~\ref{theorem:gmcm}.
-
-\end{toappendix}
 
 
 % ----------------------------------------------------------------------------
