@@ -688,13 +688,13 @@ Using LP duality for min-cost flow, we assign a \EMPH{potential $\pi(v)$} to eac
 The \EMPH{reduced cost} of an arc $\arc{v}{w}$ in $N$ with respect to $\pi$ is
 defined as
 \[
-\EMPH{c_\pi(\arc vw)} \coloneqq c(\arc vw) - \pi(v) + \pi(w).
+c_\pi(\arc vw) \coloneqq c(\arc vw) - \pi(v) + \pi(w).
 \]
 Similarly we define the reduced cost of arcs in $N_f$: the reduced cost of a
 forward residual arc $\arc vw$ in $N_f$ is $c_\pi(\arc vw)$, and the reduced cost of a
 backward residual arc $\arc wv$ in $N_f$ is $-c_\pi(\arc vw)$.
 Abusing the notation, we also use $c_\pi$ to denote the reduced cost of arcs in
-$N_f$. \note{Unclear.  Doese $c_\pi(\arc wv)$ have positive or negative value for a backward arc $\arc wv$?}
+$N_f$. \note{Unclear.  Does $c_\pi(\arc wv)$ have positive or negative value for a backward arc $\arc wv$?}
 
 The \EMPH{dual feasibility constraint} asks that $c_\pi(\arc vw) \geq 0$ holds
 for every arc $\arc vw$ in $\vec{E}$;
@@ -789,7 +789,7 @@ We call a matching $M$ of $G(A, B)$ \EMPH{intra-cluster} if both endpoints of
 every edge in $M$ lie in the same connected component of $T_i$.
 We define \EMPH{$i^*$} to be the smallest index $i$ such that there exists an
 intra-cluster matching of size $k$ in $T_{i^*}$.
-Set $\EMPH{\overline{\theta}} \coloneqq n^q \cdot c(e_{i^*})$.
+Set \EMPH{$\overline{\theta}$} $\coloneqq n^q \cdot c(e_{i^*})$.
 The following lemma will be used by our cost-scaling algorithm:
 
 \begin{lemma}
@@ -806,7 +806,7 @@ The following lemma will be used by our cost-scaling algorithm:
 \end{enumerate}
 \end{lemma}
 
-Set $\EMPH{\underline{\theta}} \coloneqq \frac{\eps}{6k} \cdot c(e_{i^*})$.
+Set $\underline{\theta} \coloneqq \frac{\eps}{6k} \cdot c(e_{i^*})$.
 As a consequence of Lemmas~\ref{lemma:starting_scale}\ref{item:starting_scale2}
 and \ref{lemma:goldberg_cost_add}, we have:
 
