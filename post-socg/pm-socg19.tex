@@ -16,7 +16,7 @@
 \usepackage[dvipsnames,usenames]{xcolor}
 \usepackage[nocompress]{cite}
 \usepackage{amsmath,mathtools,stmaryrd}
-\usepackage{enumerate}
+%\usepackage[shortlabels]{enumitem}
 
 % \usepackage[title]{appendix}
 \usepackage[bibliography=common]{apxproof}
@@ -629,14 +629,14 @@ Given a pseudoflow $f$, the \EMPH{imbalance} of a vertex (with respect to $f$) i
 \EMPH{$\fsupply_f (v)$} \coloneqq \fsupply(v) + \sum_{\arc wv \in \vec{E}}{f(\arc wv)} - \sum_{\arc vw \in \vec{E}}{f(\arc vw)}.
 \]
 We call positive imbalance \EMPH{excess} and negative imbalance \EMPH{deficit};
-and vertices with positive (resp.\ negative) imbalance \EMPH{excess} (resp.\ \EMPH{deficit}) \EMPH{vertices}.
+and vertices with positive (resp.\ negative) imbalance excess (resp.\ deficit) vertices.
 A vertex is \EMPH{balanced} if it has zero imbalance.
 If all vertices are balanced, the pseudoflow is a \EMPH{circulation}.
 The \EMPH{cost} of a pseudoflow is defined to be
 \[
  \EMPH{$\cost(f)$} \coloneqq \sum_{\arc vw \in \supp(f)} c(\arc vw) \cdot f(\arc vw).
 \]
-The \EMPH{minimum-cost flow problem (MCF)} asks to find a circulation of minimum cost inside a given network.
+The \EMPH{minimum-cost flow problem} (MCF) asks to find a circulation of minimum cost inside a given network.
 
 If we set $\fsupply(s) = k$, $\fsupply(t) = k$, and $\fsupply(v) = 0$ for all
 $v \in A \cup B$, then an integral circulation $f$ corresponds to a partial
@@ -649,10 +649,10 @@ The following lemma will be useful for our algorithm.
 
 \begin{lemma}
 \label{lemma:supp_size}
-\note{Define $N$ and $f$ properly.}
+Let $N$ be the network constructed from $G(A, B)$ above.
 \begin{enumerate}[(i)]
-\item For any integral circulation in $N$, the size of $\supp(f)$ is at most $3k$.
-\item For any integral pseudoflow in $N$ with $O(k)$ excess, the size of $\supp(f)$ is $O(k)$.
+\item For any integral circulation $g$ in $N$, the size of $\supp(g)$ is at most $3k$.
+\item For any integral pseudoflow $f$ in $N$ with $O(k)$ excess, the size of $\supp(f)$ is $O(k)$.
 \end{enumerate}
 \end{lemma}
 
@@ -682,7 +682,17 @@ while the cost of a backward residual arc is $\arc{w}{v}$ is $-c(\arc{v}{w})$.
 Each arc in $N_f$ also has unit capacity.
 By Lemma~\ref{lemma:supp_size}, $N_f$ has $O(k)$ backward arcs if $f$ has $O(k)$ excess.
 
-\note{Need to include a description of augmenting $f$ by $g$; $f+g$ is incorrect due to no antisymmetry} %TODO
+A \EMPH{residual pseudoflow} $g$ in $N_f$ can be used to change $f$ into a
+different pseudoflow on $N$ by a process called \EMPH{augmentation}.
+For simplicity, we only describe augmentation for the case where $f$, $g$ are integer.
+Specifically, augmenting $f$ by $g$ produces a pseudoflow $f'$ in $N$ where
+\[
+f'(\arc vw) = \begin{cases}
+	0 & {\arc wv} \in \vec{E}_f \text{ and } g(\arc wv) = 1 \\
+	1 & {\arc vw} \in \vec{E}_f \text{ and } g(\arc vw) = 1 \\
+	f(\arc vw) & \text{otherwise.}
+\end{cases}
+\]
 
 Using LP duality for min-cost flow, we assign a \EMPH{potential $\pi(v)$} to each node $v$ in $N$.
 The \EMPH{reduced cost} of an arc $\arc{v}{w}$ in $N$ with respect to $\pi$ is
@@ -824,14 +834,11 @@ The algorithm works in rounds.
 In the beginning of each round, we fix a \EMPH{cost scaling parameter}
 \EMPH{$\theta$} and maintain potentials $\pi$ with the following property:
 
-\note{If we want to move scale-init to a post-processing, this invariant needs more proof (potentials being updated by scale-init, thus previous circulation is no longer a certificate)} %TODO
-
+\note{would like to use a better/neater/cleaner environment to represent invariant}%TODO
 \begin{enumerate}[(P1)]
 \item \label{item:scale_inv}
 	There exists a $2\theta$-optimal integral circulation in $N$ with respect to $\pi$.
 \end{enumerate}
-
-\note{Keep this invariant and move scale-init to a post-processing after halving theta}%TODO
 
 For the initial round, we set $\theta \gets \overline{\theta}$ and $\pi \gets 0$.
 By Lemma~\ref{lemma:starting_scale}\ref{item:starting_scale3},
@@ -905,6 +912,49 @@ It suffices to repeatedly extract admissible augmenting paths until no more
 admissible excess-deficit paths remain.
 \end{enumerate}
 The algorithm repeats these steps until the total excess becomes zero.
+The following lemma bounds the number of iterations in the \textsc{Refine}
+procedure at each scale.
+
+\begin{lemma}
+\label{lemma:refine_iters}
+Let $\theta$ be the scaling parameter and $\pi_0$ the potential function at the
+beginning of a round, such that there exists an integral $2\theta$-optimal
+circulation with respect to $\pi_0$.
+Let $f$ be a $\theta$-optimal pseudoflow with excess $O(k)$.
+Then \textsc{Refine} terminates within $O(\sqrt{k})$ iterations.
+\end{lemma}
+\begin{proof}
+We sketch the proof, which is adapted from \cite{GHKT17}.
+Let $f_0$ be the assumed $2\theta$-optimal integral circulation with respect to $\pi_0$,
+and let $\pi$ be the potentials maintained and changing during \textsc{Refine}.
+Let $d(v) = (\pi(v) - \pi_0(v))/\theta$, i.e. the increase in potential
+at $v$ in units of $\theta$.
+We divide the iterations of \textsc{Refine} into two phases: before and after
+every (remaining) excess vertex has $d(v) \geq \sqrt{k}$.
+Each Hungarian search raises excess potentials by at least $\theta$,
+since we use blocking flows.
+Thus, the first phase lasts at most $\sqrt{k}$ iterations.
+
+At the start of the second phase, consider the set of arcs
+$E^+ = \{\arc vw \in \vec{E} \mid f(\arc vw) < f_0(\arc vw)\}$.
+One can argue that the remaining excess with respect to $f$ is bounded above by
+the size of any cut separating the excess and deficit vertices.
+The proof examines cuts $Y_i = \{v \mid d(v) > i\}$ for $0 \leq i \leq \sqrt{k}$.
+By $\theta$-optimality of $f$ and $2\theta$-optimality of $f_0$, one can show
+that each arc in $E^+$ crosses at most 3 cuts.
+Furthermore, the size of $E^+$ is $O(k)$, bounded by the support size of $f$ and $f_0$.
+Averaging, there is a cut among the $Y_i$ of size at most $3k/\sqrt{k}$,
+so the total excess remaining is $O(\sqrt{k})$.
+Each iteration of $\textsc{Refine}$ eliminates at least one unit of excess,
+so the number of second phase iterations is also at most $O(\sqrt{k})$.
+\end{proof}
+
+In the next subsection we show that after $O(n\polylog n)$ preprocessing,
+an iteration of \textsc{Refine} can be performed in $O(k\polylog n)$ time
+(cf. Lemma~\ref{lemma:refine_iter_time}).
+By Lemma~\ref{lemma:refine_iters} and the fact the algorithm terminates in
+$O(\log(n/\eps))$ rounds, the overall running time of the algorithm is
+$O((n + k^{3/2})\polylog n \log(1/\eps))$, as claimed in Theorem~\ref{theorem:gmcm}.
 
 \subsection{Fast implementation of refinement}
 \label{SS:fast_refine}
@@ -915,7 +965,8 @@ each traversing through the residual network using admissible arcs starting
 from the excess vertices.
 Due to lack of space, we only describe the Hungarian search process.
 
-At a high level, let $X$ be the subset of nodes visited by the Hungarian search.
+At a high level, let $X$ be the subset of nodes visited by the Hungarian search
+so far.
 Initially $X$ is the set of excess nodes.
 At each step, the algorithm finds a minimum reduced cost arc $\arc vw$ in $N_f$
 from $X$ to $V \setminus X$.
@@ -923,8 +974,6 @@ If $\arc vw$ is not admissible, the potential of all nodes in $X$ is increased
 by $\Ceil{c_\pi(\arc vw)/\theta}$ to make $\arc vw$ admissible.
 If $w $ is a deficit node, the search terminates.
 Othwerise, $w$ is added to $X$ and the search continues.
-
-\note{does the following paragraph give good intuition for why we need active/inactive?} %TODO
 
 Implementing the Hungarian search efficiently is more difficult than in
 Section~\ref{section:hung} because (a) excess nodes may show up in $A$ as well as in $B$,
@@ -937,6 +986,8 @@ $\supp(f)$ is incident to it; otherwise $v$ is \EMPH{active}.
 We note that $s$ and $t$ are always active.
 Let $\overline{A}$ (resp.\ $\overline{B}$, $\overline{X}$) denote the set of
 active nodes of $A$ (resp.\ $B$, $X$).
+There are only $O(k)$ active nodes, as each can be charged to its
+adjoining $\supp(f)$ arcs or its excess/deficit.
 We treat active and inactive nodes separately to implement the Hungarian search
 efficiently.
 By definition, inactive vertices only adjoin forward arcs in $N_f$.
@@ -946,20 +997,24 @@ $s \arcto v \arcto b$ for some $b \in B$ or $a \arcto v \arcto t$ for some $a \i
 Consequently, a path in $N_f$ may have at most two consecutive inactive nodes,
 and in the case of two consecutive inactive nodes there is a subpath of the
 form $s \arcto v \arcto w \arcto t$ where $v \in \overline{A}$ and $w \in \overline{B}$.
+We will call such paths, from an active node to an active node
+with only inactive interior nodes, \EMPH{active-active paths}.
+We extend the notions of reduced cost and admissibility to active-active paths,
+where the reduced cost of the path is the sum of its edges.
+Since reduced costs telescope, the reduced cost of an active-active path
+depends only on the potentials at its (active) endpoints.
 
-Using this observation, we adapt the Hungarian search to ``skip over'' inactive
-nodes as follows.
-At each step, we find a minimum reduced cost path of length at most 3 from an
+Using this observation, we implement the Hungarian search to ``skip over''
+inactive nodes, while logically exploring the same active nodes in the same order.
+Active-active paths may have length 1 (no inactive interior nodes), 2, or 3.
+At each step, we find a minimum reduced cost active-active path $\Pi$ from an
 active node of $X$ to an active node of $V \setminus X$, and add the nodes of
 this path into $X$ in a single step.
-%As we will see below, this enables us to ignore potentials of inactive vertices.
-The end of this path is the next active node that the original Hungarian search
-would have explored.
-We update potentials in $X$ according to the total reduced cost of this path.
+We update potentials in $X$ according to the reduced cost of the path.
 There are $O(k)$ active nodes, so the number of minimization queries per
 Hungarian search is $O(k)$.
 
-We find the minimum reduced cost path of length $1$, $2$, and $3$,
+We find the minimum reduced cost active-active path of length $1$, $2$, and $3$,
 and then choose the cheapest among them.
 We now describe a data structure for each path length.
 For each data structure, our ``time budget'' per Hungarian search is $O(k\polylog n)$.
@@ -985,8 +1040,6 @@ with reduced cost as the pair distance \note{potentials?}.
 We thus maintain $\overline{A} \cap X$, $\overline{B} \setminus X$ in a dynamic
 BCP data structure \cite{KMRSS17} on which insertions/deletions can be performed
 in $O(\polylog k)$ time.
-
-\note{for now: write this to reference rewinding; and ``additionally'' wrt active-switch} %TODO
 
 \paragraph{Finding length-2 paths.}
 We describe how to find the cheapeast path of the form $s \arcto v \arcto b$ where
@@ -1046,24 +1099,24 @@ Potentials for active nodes can be updated in a batched fashion using the
 method in Section~\ref{SS:potential-update}.
 
 For inactive nodes, we ignore their potentials entirely and instead recover
-valid potentials for them once they switch from inactive to active
+``valid'' potentials for them once they switch from inactive to active
 (and additionally, at the end of a round).
 Specifically, for a newly active $a \in A$ we set $c_\pi(a) \gets c_\pi(s)$
 and for newly-active $b \in B$ we set $c_\pi(b) \gets c_\pi(t)$.
-It is straightforward to verify that this choice preserves $\theta$-optimality
-throughout $f$ as well the admissibility of any length-2/length-3 paths that
-involved them.
-
-\note{do we need to extend the definition of admissibility to paths?} %TODO
+Formally, we will say an active-active path is \EMPH{strongly admissible}
+under $\pi$ if all of its arcs are admissible under $\pi$.
+For correctness, we need to show that our choice of recovered potentials
+(1) preserves $\theta$-optimality and (2) makes any admissible active-active
+path from before augmentation strongly admissible.
+It is a straightforward calculation to verify that both properties hold.
 
 The following lemmas are crucial to analyzing the running time of the Hungarian search.
 
 \begin{lemma}
 \label{lemma:cost_scale_relaxations}
 The Hungarian search explores $O(k)$ nodes before a deficit vertex is reached,
-and each Augmentation \note{\textsc?} explores $O(k)$ nodes before finding a blocking flow.
+and each augmentation explores $O(k)$ nodes before finding a blocking flow.
 \end{lemma}
-
 \begin{proof}
 To sketch the proof, both procedures perform a search over the set of active
 nodes, of which there are $O(k)$.
@@ -1072,15 +1125,15 @@ Nodes are not explored more than once (added to $X$, or a stack) by either searc
 
 \begin{lemma}
 \label{lemma:blocking_incidences}
-The blocking flow found by Augmentation is incident to $O(k)$ vertices.
+The blocking flow found by augmentation is incident to $O(k)$ vertices.
 \end{lemma}
 \begin{proof}
 Each excess-deficit path that composes the blocking flow is a sequence of
-active nodes connected by a subpath across 0, 1, or 2 inactive nodes.
-Each such subpath corresponds to the depth-first search of Augmentation
-exploring a new active node.
-By Lemma~\ref{lemma:cost_scale_relaxations}, the total number of nodes
-crossed is therefore $O(k)$.
+active-active paths.
+Each active-active path used is the result of the depth-first search in
+augmentation exploring a non-explored active node.
+Applying Lemma~\ref{lemma:cost_scale_relaxations}, the total number of nodes
+crossed by the flow is $O(k)$, since active-active paths have length at most 3.
 \end{proof}
 
 Augmentation can also be implemented in $O(k\polylog n)$ time, after
@@ -1089,14 +1142,10 @@ for nearest neighbor instead of BCP.
 Putting everything together, we obtain the following:
 
 \begin{lemma}
+\label{lemma:refine_iter_time}
 After $O(n\polylog n)$ preprocessing, each iteration of \textsc{Refine} can be
 implemented in $O(k\polylog n)$ time.
 \end{lemma}
-
-\note{still need to show $\sqrt{k}$ iterations per refine} %TODO
-
-
-
 
 
 % ----------------------------------------------------------------------------
