@@ -51,6 +51,8 @@
 
 \usepackage{mathtools} % for \coloneqq
 
+\usepackage{pifont} % for flower
+
 % \usepackage{etoolbox}
 % \makeatletter
 % \setbool{@fleqn}{false}
@@ -88,7 +90,7 @@
 \def\Brack#1{\left[ #1 \right]}		% need better macro name!
 \def\Indic#1{\left[ #1 \right]}		% indicator variable; Iverson notation
 
-\def\tsupply{\lambda}
+\def\tsupply{\phi}
 \def\fsupply{\phi}
 
 \def\arcto{\mathord\shortrightarrow}
@@ -97,11 +99,16 @@
 \def\Refine{\textsc{Refine}}
 \def\Update{\textsc{Update}}
 
-\def\cost{\operatorname{cost}}
+%\def\cost{\operatorname{cost}}
+\def\cost{c}
 \def\parent{\operatorname{par}}
 \def\short{\operatorname{short}}
 \def\supp{\operatorname{supp}}
 \def\intracount{\operatorname{count}}
+
+\def\alive#1{{#1}^\text{\ding{96}}}
+\def\dead#1{({#1} \setminus \alive{#1})}
+\def\star{\text{\ding{75}}}
 
 
 \theoremstyle{plain}
@@ -357,10 +364,10 @@ a $(1+\eps)$-approximate min-cost matching of size $k$ between $A$
 and $B$ can be computed in $O((n + k\sqrt{k})\polylog n \cdot \log\eps^{-1})$ time.
 \end{theorem}
 
-The main challenge here is the set of \emph{null vertices}
+The main challenge here is the set of \emph{dead vertices}
 which do not play any role in the augmentations, but still contribute to the size of the graph.
 Instead, we run the unit-capacity min-cost flow algorithm on a
-\emph{shortcut graph}, circumventing all null vertices.
+\emph{shortcut graph}, circumventing all dead vertices.
 The shortcut graph itself may have $\Omega(n^2)$ edges,
 but we can represent it implicitly and use a data structure to explore this graph.
 As such, we can implement each augmentation in the Goldberg~\etal algorithm in
@@ -927,7 +934,7 @@ Then \textsc{Refine} terminates within $O(\sqrt{k})$ iterations.
 We sketch the proof, which is adapted from \cite{GHKT17}.
 Let $f_0$ be the assumed $2\theta$-optimal integral circulation with respect to $\pi_0$,
 and let $\pi$ be the potentials maintained and changing during \textsc{Refine}.
-Let $d(v) = (\pi(v) - \pi_0(v))/\theta$, i.e. the increase in potential
+Let $d(v) = (\pi(v) - \pi_0(v))/\theta$, i.e.\ the increase in potential
 at $v$ in units of $\theta$.
 We divide the iterations of \textsc{Refine} into two phases: before and after
 every (remaining) excess vertex has $d(v) \geq \sqrt{k}$.
@@ -981,69 +988,69 @@ Section~\ref{section:hung} because (a) excess nodes may show up in $A$ as well a
 and (c) the potential of excess nodes may be non-uniform.
 We therefore need a more complex data structure.
 
-We call a node $v$ of $N$ \EMPH{inactive} if $\fsupply_f(v) = 0$ and no arc of
-$\supp(f)$ is incident to it; otherwise $v$ is \EMPH{active}.
-We note that $s$ and $t$ are always active.
-Let $\overline{A}$ (resp.\ $\overline{B}$, $\overline{X}$) denote the set of
-active nodes of $A$ (resp.\ $B$, $X$).
-There are only $O(k)$ active nodes, as each can be charged to its
+We call a node $v$ of $N$ \EMPH{dead} if $\fsupply_f(v) = 0$ and no arc of
+$\supp(f)$ is incident to it; otherwise $v$ is \EMPH{alive}.
+We note that $s$ and $t$ are always alive.
+Let $\alive{A}$ (resp.\ $\alive{B}$, $\alive{X}$) denote the set of
+alive nodes of $A$ (resp.\ $B$, $X$).
+There are only $O(k)$ alive nodes, as each can be charged to its
 adjoining $\supp(f)$ arcs or its excess/deficit.
-We treat active and inactive nodes separately to implement the Hungarian search
+We treat alive and dead nodes separately to implement the Hungarian search
 efficiently.
-By definition, inactive vertices only adjoin forward arcs in $N_f$.
-Thus, the in-degree (resp.\ out-degree) of $\overline{A}$ (resp.\ $\overline{B}$)
-is 1, and any path passing through an inactive vertex has a subpath of the form
+By definition, dead vertices only adjoin forward arcs in $N_f$.
+Thus, the in-degree (resp.\ out-degree) of a node in $\dead{A}$ (resp.\ $\dead{B}$)
+is 1, and any path passing through an dead vertex has a subpath of the form
 $s \arcto v \arcto b$ for some $b \in B$ or $a \arcto v \arcto t$ for some $a \in A$.
-Consequently, a path in $N_f$ may have at most two consecutive inactive nodes,
-and in the case of two consecutive inactive nodes there is a subpath of the
-form $s \arcto v \arcto w \arcto t$ where $v \in \overline{A}$ and $w \in \overline{B}$.
-We will call such paths, from an active node to an active node
-with only inactive interior nodes, \EMPH{active-active paths}.
-We extend the notions of reduced cost and admissibility to active-active paths,
+Consequently, a path in $N_f$ may have at most two consecutive dead nodes,
+and in the case of two consecutive dead nodes there is a subpath of the
+form $s \arcto v \arcto w \arcto t$ where $v \in \dead{A}$ and $w \in \dead{B}$.
+We will call such paths, from an alive node to an alive node
+with only dead interior nodes, \EMPH{alive-alive paths}.
+We extend the notions of reduced cost and admissibility to alive-alive paths,
 where the reduced cost of the path is the sum of its edges.
-Since reduced costs telescope, the reduced cost of an active-active path
-depends only on the potentials at its (active) endpoints.
+Since reduced costs telescope, the reduced cost of an alive-alive path
+depends only on the potentials at its (alive) endpoints.
 
 Using this observation, we implement the Hungarian search to ``skip over''
-inactive nodes, while logically exploring the same active nodes in the same order.
-Active-active paths may have length 1 (no inactive interior nodes), 2, or 3.
-At each step, we find a minimum reduced cost active-active path $\Pi$ from an
-active node of $X$ to an active node of $V \setminus X$, and add the nodes of
+dead nodes, while logically exploring the same alive nodes in the same order.
+Alive-alive paths may have length 1 (no dead interior nodes), 2, or 3.
+At each step, we find a minimum reduced cost alive-alive path $\Pi$ from an
+alive node of $X$ to an alive node of $V \setminus X$, and add the nodes of
 this path into $X$ in a single step.
 We update potentials in $X$ according to the reduced cost of the path.
-There are $O(k)$ active nodes, so the number of minimization queries per
+There are $O(k)$ alive nodes, so the number of minimization queries per
 Hungarian search is $O(k)$.
 
-We find the minimum reduced cost active-active path of length $1$, $2$, and $3$,
+We find the minimum reduced cost alive-alive path of length $1$, $2$, and $3$,
 and then choose the cheapest among them.
 We now describe a data structure for each path length.
 For each data structure, our ``time budget'' per Hungarian search is $O(k\polylog n)$.
 
 \paragraph{Finding length-1 paths.}
-This data structure finds a minimum reduced cost arc from an active node of
-$X$ to an active node of $V \setminus X$.
+This data structure finds a minimum reduced cost arc from an alive node of
+$X$ to an alive node of $V \setminus X$.
 There are $O(k)$ backward arcs, so the minimum among backward arcs can be
 maintained explicitly in a priority queue on $c_\pi$ and retrieved in $O(1)$ time.
 
-There are three types of forward arcs: $\arc sa$ for some $a \in \overline{A}$,
-$\arc bt$ for some $b \in \overline{B}$, and bipartite arc $\arc ab$ with two
-active endpoints.
+There are three types of forward arcs: $\arc sa$ for some $a \in \alive{A}$,
+$\arc bt$ for some $b \in \alive{B}$, and bipartite arc $\arc ab$ with two
+alive endpoints.
 Edges of the first (resp.\ second) type can be found by maintaining
-$\overline{A} \setminus X$ (resp.\ $\overline{B} \cap X$) in a priority queues
+$\alive{A} \setminus X$ (resp.\ $\alive{B} \cap X$) in a priority queues
 on $\pi$, but should only be queried if $s \in X$ (resp.\ $t \not\in X$).
 %
 The cheapest arc of the third type is an (additively weighted) bichromatic
-closest pair (BCP) between $\overline{A} \cap X$ and $\overline{B} \setminus X$,
+closest pair (BCP) between $\alive{A} \cap X$ and $\alive{B} \setminus X$,
 with reduced cost as the pair distance \note{potentials?}.
 %Indeed, since each arc has unit capacity, it can be shown that there is no
-%backward arc in $N_f$ from $\overline{B} \setminus X$ to $\overline{A} \cap X$.
-We thus maintain $\overline{A} \cap X$, $\overline{B} \setminus X$ in a dynamic
+%backward arc in $N_f$ from $\alive{B} \setminus X$ to $\alive{A} \cap X$.
+We thus maintain $\alive{A} \cap X$, $\alive{B} \setminus X$ in a dynamic
 BCP data structure \cite{KMRSS17} on which insertions/deletions can be performed
 in $O(\polylog k)$ time.
 
 \paragraph{Finding length-2 paths.}
 We describe how to find the cheapeast path of the form $s \arcto v \arcto b$ where
-$v$ is inactive and $b \in \overline{B}$.
+$v$ is dead and $b \in \alive{B}$.
 A cheapest path of the form $a \arcto v \arcto t$ can be found similarly.
 As for length-1 paths, we only query paths originating from $s$ if $s \in X$,
 and only query paths ending at $t$ if $t \not\in X$.
@@ -1051,62 +1058,62 @@ and only query paths ending at $t$ if $t \not\in X$.
 Note that $c_\pi(s \arcto v \arcto b) = c(v, b) + \pi(b) - \pi(s)$.
 Since $\pi(s)$ is common in all such paths, it suffices to find the pair minimizing
 \[
-\min_{v \in A \setminus \overline{A}, w \in \overline{B} \setminus X} c(v, w) + \pi(w)
+\min_{v \in \dead{A}, w \in \alive{B} \setminus X} c(v, w) + \pi(w)
 \]
 This is done by maintaining a dynamic BCP data structure between
-$A \setminus \overline{A}$ and $\overline{B} \setminus X$ with
+$\dead{A}$ and $\alive{B} \setminus X$ with
 the cost of a pair $(v, w)$ being $c(v, w) + \pi(w)$.
-We may require an update operation for each active node added to $X$ during the
+We may require an update operation for each alive node added to $X$ during the
 Hungarian search, of which there are $O(k)$, so the time spent during a search
 is $O(k\polylog n)$.
 
-Since the size of $A \setminus \overline{A}$ is at least $r-k$, we cannot
+Since the size of $\dead{A}$ is at least $r-k$, we cannot
 construct this BCP from scratch at the beginning of each iteration of Hungarian search.
 To resolve this, we use the idea of rewinding from Section~\ref{SS:rewinding},
 with a slight twist.
 There are now \emph{two} ways that the initial BCP may change across
 consecutive Hungarian searches: (1) the initial set $X$ may change as vertices
-lose excess through augmentation, and (2) the set of inactive $A$ vertices may
-change; that is, when flow is augmented across a vertex of $A \setminus \overline{A}$.
+lose excess through augmentation, and (2) the set of dead $A$ vertices may
+change; that is, when flow is augmented across a vertex of $\dead{A}$.
 The first is identical to the situation in Section~\ref{SS:rewinding};
 the number of excess depletions is $O(k)$ over the course of \textsc{Refine}.
-For the second, the active/inactive status of a node can change only if the
+For the second, the alive/dead status of a node can change only if the
 blocking flow found in the augmentation process passes through it.
 By Lemma~\ref{lemma:blocking_incidences} below, there are $O(k)$ such changes.
-Thus, updating $A \setminus \overline{A}$ for the BCP (after augmentation)
+Thus, updating $\dead{A}$ for the BCP (after augmentation)
 can be done in $O(k\polylog n)$ time for each Hungarian search.
 
 \paragraph{Finding length-3 paths.}
 We now describe how to find the cheapest path of the form $s \arcto v \arcto w \arcto t$
-where $v \in A \setminus \overline{A}$ and $w \in B \setminus \overline{B}$.
+where $v \in \dead{A}$ and $w \in \dead{B}$.
 Note that $c_\pi(s \arcto v \arcto w \arcto t) = c(\arc vw) - \pi(s) + \pi(t)$.
-Hence, we need to find a BCP between $A \setminus \overline{A}$ and $B \setminus \overline{B}$,
+Hence, we need to find a BCP between $\dead{A}$ and $\dead{B}$,
 where the cost of a pair $(v, w)$ is simply $c(v, w)$.
 This can be done by maintaining a dynamic BCP data structure similar to the
 case of length-2 paths.
 
-The BCP sets have no dependence on $X$ --- the only updates required correspond
-to changes to $\overline{A}$ or $\overline{B}$, after an augmentation.
+The BCP sets have no dependence on $X$ --- the only updates required come from
+membership changes to $\alive{A}$ or $\alive{B}$, after an augmentation.
 Applying Lemma~\ref{lemma:blocking_incidences} again, there are $O(k)$
-active/inactive updates caused by an augmentation, so the time for these updates
+alive/dead updates caused by an augmentation, so the time for these updates
 per Hungarian search is $O(k\polylog n)$.
 
 \paragraph{Updating potentials.}
 The Hungarian search periodically raises the potentials for all nodes in $X$,
 and we need to implement this efficiently for the data structures above.
-Note that the data structures above do not utilize potentials of inactive nodes.
-Potentials for active nodes can be updated in a batched fashion using the
+Note that the data structures above do not utilize potentials of dead nodes.
+Potentials for alive nodes can be updated in a batched fashion using the
 method in Section~\ref{SS:potential-update}.
 
-For inactive nodes, we ignore their potentials entirely and instead recover
-``valid'' potentials for them once they switch from inactive to active
+For dead nodes, we ignore their potentials entirely and instead recover
+``valid'' potentials for them once they switch from dead to alive
 (and additionally, at the end of a round).
-Specifically, for a newly active $a \in A$ we set $c_\pi(a) \gets c_\pi(s)$
-and for newly-active $b \in B$ we set $c_\pi(b) \gets c_\pi(t)$.
-Formally, we will say an active-active path is \EMPH{strongly admissible}
+Specifically, for a newly alive $a \in A$ we set $c_\pi(a) \gets c_\pi(s)$
+and for newly-alive $b \in B$ we set $c_\pi(b) \gets c_\pi(t)$.
+Formally, we will say an alive-alive path is \EMPH{strongly admissible}
 under $\pi$ if all of its arcs are admissible under $\pi$.
 For correctness, we need to show that our choice of recovered potentials
-(1) preserves $\theta$-optimality and (2) makes any admissible active-active
+(1) preserves $\theta$-optimality and (2) makes any admissible alive-alive
 path from before augmentation strongly admissible.
 It is a straightforward calculation to verify that both properties hold.
 
@@ -1118,7 +1125,7 @@ The Hungarian search explores $O(k)$ nodes before a deficit vertex is reached,
 and each augmentation explores $O(k)$ nodes before finding a blocking flow.
 \end{lemma}
 \begin{proof}
-To sketch the proof, both procedures perform a search over the set of active
+To sketch the proof, both procedures perform a search over the set of alive
 nodes, of which there are $O(k)$.
 Nodes are not explored more than once (added to $X$, or a stack) by either search.
 \end{proof}
@@ -1129,11 +1136,11 @@ The blocking flow found by augmentation is incident to $O(k)$ vertices.
 \end{lemma}
 \begin{proof}
 Each excess-deficit path that composes the blocking flow is a sequence of
-active-active paths.
-Each active-active path used is the result of the depth-first search in
-augmentation exploring a non-explored active node.
+alive-alive paths.
+Each alive-alive path used is the result of the depth-first search in
+augmentation exploring a non-explored alive node.
 Applying Lemma~\ref{lemma:cost_scale_relaxations}, the total number of nodes
-crossed by the flow is $O(k)$, since active-active paths have length at most 3.
+crossed by the flow is $O(k)$, since alive-alive paths have length at most 3.
 \end{proof}
 
 Augmentation can also be implemented in $O(k\polylog n)$ time, after
@@ -1149,8 +1156,214 @@ implemented in $O(k\polylog n)$ time.
 
 
 % ----------------------------------------------------------------------------
-\section{Unbalanced Transportation}
+\section{Transportation Algorithm}
 \label{section:orlin}
+
+Given two point sets $A$ and $B$ in $\reals^2$ of sizes $r$ and $n$ respectively
+(with $r \leq \sqrt{n}$) and a supply-demand function $\tsupply: A \cup B \to \ints$
+as defined in the introduction, we present an $O(rn^{3/2}\polylog n)$ time
+algorithm for computing an optimal transport map between $A$ and $B$, thereby
+proving Theorem~\ref{theorem:orlin}.
+We use a standard reduction to the uncapacitated min-csot flow problem
+(see e.g. \cite{O93}) and use Orlin's algorithm~\cite{O93} as well as some of
+the ideas from \cite{AFPVX17}
+\note{The full version of the transportation paper is still not available anywhere.} %TODO
+for implementing it faster in geometric settings.
+We first present an overview of the algorithm and then describe its fast
+implementation to achieve the desired running time.
+
+\subsection{Overview of the algorithm}
+
+Orlin's algorithm follows an excess-scaling paradigm and the primal-dual framework.
+It maintains a \EMPH{scale parameter} $\Delta$, a flow function $f$, and
+potentials $\pi$ on the nodes.
+Initially $\Delta = \fsupply(A)$, $f = 0$, and $\pi = 0$.
+We fix a constant parameter $\alpha \in (0.5, 1)$.
+A node $v$ is called \EMPH{active} if $\abs{\fsupply_f(v)} \geq \alpha\Delta$.
+At each step, using the Hungarian search, the algorithm finds an admissible
+active-excess-to-acitve-deficit path in the residual network and pushes a flow
+of $\Delta$ along this path.
+\footnote{Note that this augmentation may convert an excess node into a deficit node.}
+It repeats this step as long as there are both active excess and active deficit nodes.
+When one of these sets becomes empty, $\Delta$ is halved.
+The sequence of augmentations with a fixed value of $\Delta$ is called an
+\EMPH{excess scale}.
+
+The algorithm also performs two preprocessing steps at the beginning of each excess scale.
+If $f(\arc vw) \geq 3n\Delta$, $\arc vw$ is contracted to a single node $z$ with
+$\fsupply(z) = \fsupply(v) + \fsupply(w)$.
+\footnote{Intuitively, $f(\arc vw)$ is so high that future scales cannot deplete
+the flow on $\arc vw$.}
+If there are no active excess nodes and $f(\arc vw) = 0$ for all arcs, $\Delta$
+is lowered to $\max_v \fsupply(v)$.
+
+When the algorithm terminates, it has found an optimal circulation in the
+contracted network.
+We use the algorithm described in \cite{AFPVX17} to recover an optimal
+circulation in the original network.
+Orlin showed that the algorithm terminates within $O(n\log n)$ scales and
+performs a total of $O(n\log n)$ augmentations.
+In the next subsection, we describe an algorithm that after $O(n\polylog n)$
+preprocessing can perform a Hungarian search
+(i.e.\ find an excess-deficit admissible path)
+in $O(r\sqrt{n} \polylog n)$ amortized time.
+Summing this cost over all augmentations, we obtain the desired running time.
+
+\subsection{An efficient implementation}
+
+We use a standard Hungarian search to find an augmenting path.
+Let $X$ be the set of nodes it has explored, which is initially the set of
+active excess nodes.
+Until the algorithm reaches a deficit node, it finds a minimum reduced-cost arc
+${\arc vw} \in X \times (V \setminus X)$, then uniformly raises potentials
+in $X$ such that $\arc vw$ becomes admissible, and lastly adds $v$ to $X$.
+
+The number of active excess/deficit nodes at any scale is $O(r)$, and the
+length of an augmenting path is also $O(r)$.
+Therefore one might hope to find an augmenting path in $O(r\polylog n)$ time,
+by adapting the algorithms described in Sections~\ref{section:hung} and
+\ref{section:goldberg}.
+The challenge to this approach is that $\supp(f)$ may have $\Omega(n)$ size, 
+therefore an algorithm which runs in $O(\abs{\supp(f)})$ time is no longer
+sufficient.
+We do manage to implement a Hungarian search in time roughly $r\sqrt{n}$,
+by exploiting a few properties of $\supp(f)$ as described below.
+
+We note that each arc of $\supp(f)$ is admissible, i.e., its reduced cost is 0,
+so we add an arc of $\supp(f)$ as soon as possible when it arrives in
+$X \times (V \setminus X)$.
+This strategy ensures the following crucial property.
+
+\begin{lemma}
+\label{lemma:supp_acyclic}
+If the arcs of $\supp(f)$ are added as soon as possible, $\supp(f)$ is acyclic.
+\end{lemma}
+
+Next, similar to Section~\ref{section:goldberg}, we call a node $u \in V$
+\EMPH{alive} if $u$ is an active excess/deficit node or if $u$ is incident on
+an arc of $\supp(f)$.
+Otherwise, $u$ is called \EMPH{dead}.
+Unlike Section~\ref{section:goldberg}, once a node becomes alive it cannot
+become dead.
+Furthermore, a dead node may become alive only in the beginning of a scale
+(after we have reduced the value of $\Delta$).
+Unlike Section~\ref{section:goldberg}, an augmenting path cannot pass
+through a dead node.
+Therefore, we can ignore all dead nodes during Hungarian search, work with only
+alive nodes, and update the set of alive nodes in the beginning of a scale.
+For a subset $S \subseteq V$ of nodes, we use $\alive{S}$ to denote
+the set of alive nodes in $S$.
+
+Let $B^\star \subseteq \alive{B}$ be the set of nodes that are either active
+excess/deficit nodes or that are incident on at least two arcs of $\supp(f)$.
+Lemma~\ref{lemma:supp_acyclic} implies the following:
+
+\begin{lemma}
+$\abs{B^\star} = O(r)$.
+\end{lemma}
+
+We can therefore find the min reduced-cost arc $(X \cap \alive{A}) \times (B^\star \setminus X)$
+using a BCP data structure as in Section~\ref{section:hung}, along with lazy
+potential updates and the rewinding mechanism.
+The total time spent by Hungarian search on the nodes of $B^\star$ will be $O(r\polylog n)$.
+We subsequently focus on handling $\alive{B} \setminus B^\star$.
+
+\paragraph{Handling $\alive{B} \setminus B^\star$.}
+We now describe how we query a min reduced-cost arc between $(X \cap \alive{A})$
+and $\alive{B} \setminus (B^\star \cup X)$.
+Each node $b \in \alive{B} \setminus B^\star$ is incident on exactly one arc of
+$\supp(f)$ (i.e., there is only one outgoing arc from $b$).
+We partition these nodes into clusters depending on their neighbor in $N_f$.
+That is, for a node $a \in \alive{A}$,
+let $B_a = \{b \in \alive{B} \setminus B^\star \mid {\arc ab} \in \supp(f)\}$.
+We refer to $B_a$ as the \EMPH{star} of $a$.
+
+The crucial observation is that $a$ is the only node in $N_f$ reachable from
+each $b \in B_a$, so once the Hungarian search reaches a node of $B_a$ and thus
+$a$ (recall we prioritize adding $\supp(f)$ arcs), the Hungarian search need
+not visit any other nodes of $B_a$, as they will only lead to $a$.
+Hence, as soon as one node of $B_a$ is reached, all other nodes of $B_a$ are
+discarded from further consideration.
+Using this observation, we handle $\alive{B} \setminus B^\star$ as follows.
+
+We classify each $a \in \alive{A}$ as \EMPH{light} or \EMPH{heavy}.
+If $a$ is classified as heavy then $\abs{B_a} \geq \sqrt{n}$,
+and if $a$ is classified as light then $\abs{B_a} \leq 2\sqrt{n}$.
+Note that if $\abs{B_a} \in [\sqrt{n}, 2\sqrt{n}]$, then $a$ may be classified
+as light or heavy.
+We allow this flexibility to allow re-classification in a lazy manner.
+Namely, a light node is re-classified heavy once $\abs{B_a} > 2\sqrt{n}$,
+and a heavy node is re-classified light once $\abs{B_a} < \sqrt{n}$.
+This scheme ensures that the star of $a$ has gone through at least $\sqrt{n}$
+updates (insertion/deletion of nodes) between two successive re-classifications,
+and these updates will pay for the time spent in updating the data structure
+when $a$ is re-classified --- see below.
+
+For each heavy node $a \in \alive{A} \setminus X$, we maintain a BCP data
+structure between $B_a$ and $X \cap \alive{A}$.
+Next, for all light $a \in \alive{A} \setminus X$, we collect their stars into
+a single set $B^< = \bigcup_{\text{$a$ light}} B_a$.
+We maintain a BCP data structure between $B^<$ and $\alive{A} \cap X$.
+Thus, we maintain at most $r$ different BCP data structures for stars.
+
+Using these data structures, we can compute a min reduced-cost arc between
+$\alive{A} \cap X$ and $\alive{B} \setminus (B^\star \cup X)$.
+Once an arc ${\arc vw} \in (\alive{A} \cap X) \times (\alive{B} \setminus (B^\star \cup X))$
+is added such that $w \in B_a$ for some star $B_a$, then we also add $a$ to $X$.
+If $a$ is light, then we delete $B_a$ from $B^<$ and update the BCP data structure for $B^<$.
+If $a$ is heavy, then we stop querying the BCP data structure on $B_a$ for the
+remainder of the search.
+Finally, since $a$ becomes a part of $X$, $a$ is added to all $O(r)$ BCP data structures.
+
+Recall that $r \leq \sqrt{n}$ by assumption.
+Adding the arc $\arc vw$ thus involves performing $O(\sqrt{n})$
+insertion/deletion operations in various BCP data structures, thereby taking
+$O(\sqrt{n}\polylog n)$ time.
+
+\paragraph{Putting it together.}
+While proof is omitted, the following lemma bounds the running time of the
+Hungarian search.
+
+\begin{lemma}
+Assuming all BCP data structures are initialized correctly, the Hungarian search
+terminates within $O(r)$ steps, and takes $O(r\sqrt{n}\polylog n)$ time.
+\end{lemma}
+
+Once an augmenting path is found and the augmentation is performed, the set of
+excess/deficit nodes and $\supp(f)$ arcs change.
+We thus need to update the set $B^\star$, $B_a$, and $B^<$.
+This can be accomplished in $O(r\polylog n)$ amortized time.
+When we begin a new Hungarian search, we use the rewinding mechanism
+to set various BCP data structures in the right initial state.
+Finally, when we move from one scale to another, we also update the sets
+$\alive{A}$ and $\alive{B}$.
+Omitting all the details, we conclude the following.
+
+\begin{lemma}
+Each Hungarian search can be performed in $O(r\sqrt{n}\polylog n)$ time.
+\end{lemma}
+
+Since there are $O(n\log n)$ augmentations and the flow in the original network
+can be recovered from that in the contracted network in $O(n\log n)$
+time~\cite{AFPVX17}, the total running time of the algorithm is
+$O(rn^{3/2}\polylog n)$, as claimed in Theorem~\ref{theorem:orlin}.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%TODO
+\newpage
+\note{old transportation section}
 
 In this section, we give an exact algorithm which solves the planar transportation
 problem in $O((r^2\sqrt{n} + rn^{3/2})\polylog n)$ time, proving Theorem~\ref{theorem:orlin}.
@@ -1548,7 +1761,7 @@ Thus, $g_{a_1}(q(t)) \leq g_{a_2}(q(t))$ with equality only at $b_1$.
 Now, we parameterize each point of $\EuScript{F}$ in terms of points on
 $\overline{a_1 b_1}$.
 Every $q \in \EuScript{F}$ can be written as $q(t') = q' + t'(q' - a_2)$ for
-some $q' \in \overline{a_1 b_1}$ and $t \geq 0$, i.e.
+some $q' \in \overline{a_1 b_1}$ and $t \geq 0$, i.e.\
 $q' = \overline{a_1 b_1} \cap \overrightarrow{a_2 q}$.
 We call $q'$ the \EMPH{projection} of $q$ onto $\overline{a_1 b_1}$.
 We can write $g_{a_1}$ and $g_{a_2}$ in terms of $t'$ and observe that
