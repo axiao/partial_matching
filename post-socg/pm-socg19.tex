@@ -180,7 +180,7 @@
 \keywords{partial matching, transportation, optimal transport, minimum-cost flow, bichromatic closest pair}
 \acknowledgements{
 We thank Haim Kaplan for discussion and suggestion to use
-Goldberg~\etal \cite{GHKT17} algorithm.
+Goldberg~\etal~\cite{GHKT17} algorithm.
 We thank Debmalya Panigrahi for helpful discussions.
 }
 \funding{
@@ -208,11 +208,11 @@ BSF Grant 2012/229 from the U.S.-Israel Binational Science Foundation.
 
 \begin{abstract}
 Let $A$ and $B$ be two point sets in the plane of sizes $r$ and $n$ respectively (assume $r \leq n$), and let $k$ be a parameter.
-A matching between $A$ and $B$ is a family $M \subseteq A \times B$ of pairs so that any point of $A \cup B$ appears in at most one pair.
-Given two integers $p, q \geq 1$, we define the cost of $M$ to be $\cost(M) = \sum_{(a, b) \in M}\norm{a-b}_p^q$ where $\norm{\cdot}_p$ is the $L_p$-norm.
+A matching between $A$ and $B$ is a family of pairs in $A \times B$ so that any point of $A \cup B$ appears in at most one pair.
+Given two positive integers $p$ and $q$, we define the cost of matching $M$ to be $\cost(M) = \sum_{(a, b) \in M}\norm{a-b}_p^q$ where $\norm{\cdot}_p$ is the $L_p$-norm.
 The geometric partial matching problem asks to find the minimum-cost size-$k$ matching between $A$ and $B$.
 
-We present efficient algorithms for geometric partial matching that work for any powers of $L_p$-norm matching objective:
+We present efficient algorithms for geometric partial matching problem that work for any powers of $L_p$-norm matching objective:
 An exact algorithm that runs in $O((n + k^2)\polylog n)$ time, and a $(1 + \eps)$-approximation algorithm that runs in $O((n + k\sqrt{k})\polylog n \cdot \log\eps^{-1})$ time.
 Both algorithms are based on the primal-dual flow augmentation scheme; the main improvements are obtained by using dynamic data structures to achieve efficient flow augmentations.
 Using similar techniques, we give an exact algorithm for the planar transportation problem that runs in $O(\min\{n^2, rn^{3/2}\}\polylog n)$ time.
@@ -222,24 +222,24 @@ Using similar techniques, we give an exact algorithm for the planar transportati
 % ----------------------------------------------------------------------------
 \section{Introduction}
 
-Given two point sets $A$ and $B$ in $\reals^2$, we consider the problem of finding
+Given two point sets $A$ and $B$ in the plane, we consider the problem of finding
 the minimum-cost partial matching between $A$ and $B$.
 Formally, suppose $A$ has size $r$ and $B$ has size $n$ where $r \leq n$.
 Let $G(A, B)$ be the undirected complete bipartite graph between
 $A$ and $B$, and let the cost of edge $(a, b)$ be
-$\EMPH{$c(a, b)$} = \norm{a-b}_p^q$, for some $1 \leq p < \infty$.
+$\EMPH{$c(a, b)$} = \norm{a-b}_p^q$, for some positive integers $p$ and $q$.
 %Define $\EMPH{$C$} \coloneqq \max_{(a, b) \in A \times B} c(a, b)$.
 A \EMPH{matching} $M$ in $G(A, B)$ is a set of edges sharing no endpoints.
 The \EMPH{size} of $M$ is the number of edges in $M$.
-Given $q \geq 1$, the cost of $M$, $\cost(M)$, is defined to be the sum of costs of its edges.
-For a parameter $k \leq r$, the problem of finding the minimum-cost
+The cost of matching $M$, denoted \EMPH{$\cost(M)$}, is defined to be the sum of costs of edges in $M$.
+For a parameter $k$, the problem of finding the minimum-cost
 size-$k$ matching in $G(A, B)$ is called the \EMPH{geometric partial matching problem}.
 We call the corresponding problem in general bipartite graphs (with arbitrary
-edge costs) the \EMPH{partial matching} problem.%
+edge costs) the \EMPH{partial matching problem}.%
 \footnote{Partial matching is also called \EMPH{imperfect matching} or \EMPH{imperfect assignment} \cite{RT12,GHKT17}.}
 
 We also consider the following generalization of bipartite matching.
-Let $\tsupply:A \cup B \to \ints$ be a \EMPH{supply-demand function} with
+Let $\tsupply:A \cup B \to \ints$ be an integral \EMPH{supply-demand function} with
 positive value on points of $A$ and negative value on points of $B$, satisfying
 $\sum_{a \in A} \tsupply(a) = - \sum_{b \in B} \tsupply(b)$.
 %Define $\EMPH{$U$} \coloneqq \max_{p \in A \cup B} \abs{\tsupply(p)}$.
@@ -264,14 +264,14 @@ The \EMPH{transportation problem} asks to compute a transportation map of minimu
 %see the books by Villani~\cite{V03,V08}, by Cuturi and Peyr{\'e}~\cite{PC18},
 %and the survey by Solomon~\cite{S18}.
 
-\paragraph{Related work}
+\paragraph{Related work.}
 Maximum-size bipartite matching is a classical problem in graph algorithms.
 Upper bounds include the $O(m\sqrt{n})$ time algorithm by
 Hopcroft and Karp~\cite{HK73} and the $O(m \min\{\sqrt{m}, n^{2/3}\})$ time
 algorithm by Even and Tarjan~\cite{ET75}, where $n$ is the
 number of vertices and $m$ is the number of edges.
 The first improvement in over thirty years was made by M{\k a}dry~\cite{M13},
-which uses an interior-point algorithm and runs in $O(m^{10/7}\polylog n)$ time.
+which uses an interior-point algorithm, runs in $O(m^{10/7}\polylog n)$ time.
 
 The Hungarian algorithm~\cite{Kuhn55} computes a minimum-cost maximum matching
 in a bipartite graph in roughly $O(mn)$ time.
@@ -279,15 +279,15 @@ Faster algorithms have been developed,
 %for minimum-weight bipartite matching,
 such as the $O(m\sqrt{n}\log(nC))$ time algorithms by Gabow and
 Tarjan~\cite{GT89} and the improved $O(m\sqrt{n}\log C)$ time algorithm by
-Duan~\etal~\cite{DPS18} assuming that the edge costs are integral;
+Duan~\etal~\cite{DPS18} assuming the edge costs are integral;
 here $C$ is the maximum cost of an edge.
 Ramshaw and Tarjan~\cite{RT12} showed that the Hungarian algorithm can be extended to compute a minimum-cost partial
-matching of size $k$ in time $O(km + k^2\log r)$ time.
+matching of size $k$ in $O(km + k^2\log r)$ time, where $r$ is the size of the smaller side of the bipartite graph.
 They also proposed a cost-scaling algorithm for partial
 matching that runs in time $O(m\sqrt{k}\log(kC))$, again assuming that costs
 are integral.
 By reduction to unit-capacity min-cost flow, Goldberg~\etal~\cite{GHKT17}
-developed a cost-scaling algorithm for partial matching with running time
+developed a cost-scaling algorithm for partial matching with an identical running time
 $O(m\sqrt{k}\log(kC))$,
 %$= O(nr\sqrt{k}\log(kC))$
 again only for integral edge costs.
@@ -296,23 +296,24 @@ In geometric settings, the Hungarian algorithm can be implemented to compute
 an optimal perfect matching between $A$ and $B$ (assuming equal size)
 in time $O(n^2\polylog n)$~\cite{KMRSS17} (see also \cite{Vaidya89,AES99}).
 This algorithm computes an optimal size-$k$ matching in time $O(kn\polylog n)$.
-Faster approximation algorithms have been developed for computing a perfect
-matching in geometric settings \cite{Vaidya89,V98,AV04,SA12}.
-For $q=1$, the best algorithm to date by Sharathkumar and Agarwal~\cite{SA12m}
-computes a $(1+\eps)$-approximation to the optimal perfect matching in
-$O(n\polylog n \cdot \eps^{-O(1)})$ expected time with high probability.
+Faster approximation algorithms have been developed for computing perfect
+matchings in geometric settings \cite{Vaidya89,V98,AV04,SA12}.
+Recall that the cost of the edges are the $q$th power of their $L_p$-distances.
+When $q = 1$, the best algorithm to date by Sharathkumar and Agarwal~\cite{SA12m}
+computes $(1+\eps)$-approximation to the value of optimal perfect matching in
+$O(n\polylog n \cdot \poly\eps^{-1})$ expected time with high probability.
 Their algorithm can also compute a $(1+\eps)$-approximate partial
 matching within the same time bound.
 For $q > 1$, the best known approximation algorithm to compute a perfect
 matching runs in $O(n^{3/2}\polylog n \log(1/\eps))$ time \cite{SA12};
 it is not obvious how to extend this algorithm to the partial matching setting.
 
-The transportation problem can also be formulated as a minimum-cost flow
-problem in a graph.
+The transportation problem can also be formulated as an instance of the minimum-cost flow
+problem.
 The strongly polynomial uncapacitated min-cost flow algorithm by
 Orlin~\cite{O93} solves the transportation problem in
 $O((m + n\log n) n\log n)$ time.
-Lee and Sidford~\cite{LS13b} give a weakly polynomial algorithm that runs in
+Lee and Sidford~\cite{LS14} give a weakly polynomial algorithm that runs in
 $O(m\sqrt{n}\polylog(n, U))$ time, where $U$ is the maximum amount of vertex supply-demand.
 Agarwal~\etal~\cite{AFPVX17} showed that Orlin's algorithm can be
 implemented to solve 2D transportation in time $O(n^2\polylog n)$.
@@ -326,18 +327,18 @@ high probability.
 \paragraph{Our results.}
 There are three main results in this paper.
 First in Section~\ref{section:hung} we present an efficient algorithm for
-computing an optimal partial matching in $\reals^2$.
+computing an optimal partial matching in the plane.
 
 \begin{theorem}
 \label{theorem:hung}
-Given two point sets $A$ and $B$ in $\reals^2$ each of size at most $n$ and an
+Given two point sets $A$ and $B$ in the plane each of size at most $n$ and an
 integer $k \leq n$, a minimum-cost matching of size $k$ between $A$ and $B$ can
 be computed in $O((n + k^2)\polylog n)$ time.
 \end{theorem}
 
-We use \emph{bichromatic closest pair (BCP)} data structures to implement the Hungarian algorithm efficiently, similar to Agarwal~\etal\ and Kaplan~\etal~\cite{KMRSS17,AES99}.
+We use \emph{bichromatic closest pair (BCP)} data structures to implement the Hungarian algorithm efficiently, similar to Agarwal~\etal~\cite{AES99} and Kaplan~\etal~\cite{KMRSS17}.
 But unlike their algorithms which take $\Omega(n)$ time to find an
-augmenting path, we show that after $O(n\polylog n)$ preprocessing,
+augmenting path, we show that after an $O(n\polylog n)$ time preprocessing,
 an augmenting path can be found in $O(k\polylog n)$ time.
 The key is to recycle (rather than rebuild) our data structures from one
 augmentation to the next.
@@ -348,7 +349,7 @@ We refer to this idea as the \emph{rewinding mechanism}.
 
 Next in Sections~\ref{section:goldberg},
 we obtain a $(1+\eps)$-approximation algorithm for the geometric partial
-matching problem in $\reals^2$ by providing an efficient implementation of the
+matching problem in the plane by providing an efficient implementation of the
 unit-capacity min-cost flow algorithm by Goldberg~\etal~\cite{GHKT17}.
 
 \begin{theorem}
@@ -359,10 +360,10 @@ min-cost matching of size $k$ between $A$ and $B$ can be computed in
 $O((n + k\sqrt{k})\polylog n \cdot \log\eps^{-1})$ time.
 \end{theorem}
 
-The main challenge here is how to deal with the set of \emph{dead nodes},
+The main challenge here is how to deal with the \emph{dead nodes},
 which neither have excess/deficit nor have flow passing through them,
 but still contribute to the size of the graph.
-We show that the number of \emph{alive} nodes is only $O(k)$, and then
+We show that the number of \emph{alive nodes} is only $O(k)$, and then
 represent the dead nodes implicitly so that the Hungarian search and
 computation of a blocking flow can be implemented in $O(k\polylog n)$ time.
 
@@ -379,18 +380,19 @@ an optimal transportation map between $A$ and $B$ can be computed in
 $O(\min\{n^2, rn^{3/2}\}\polylog n)$ time.
 \end{theorem}
 
-Our result improves over the $O(n^2\polylog n)$ time algorithm in
-\cite{AFPVX17} for $r = o(\sqrt{n})$.
-As in \cite{AFPVX17}, we also use the strongly polynomial uncapacitated
-minimum-cost flow algorithm by Orlin~\cite{O93}, but we additional ideas are
-needed to implement it faster for $r \leq \sqrt{n}$.
+Our result improves over the $O(n^2\polylog n)$ time algorithm by Agarwal
+\etal~\cite{AFPVX17} for $r = o(\sqrt{n})$.
+Similar to their algorithm, we also use the strongly polynomial uncapacitated
+minimum-cost flow algorithm by Orlin~\cite{O93}, but additional ideas are
+needed for efficient implementation.
 %\note{``If needed, we can remove this part.''}
 Unlike in the case of matchings, the support of the transportation problem may
 have size $\Omega(n)$ even when $r$ is a constant;
-so na\"ively we can no longer spend time proportional to the size of the
+so na\"ively we can no longer spend time proportional to the size of
 support of the transportation map.
-However, we ensure that the support is acyclic and use a data structure that
-can find an augmenting path in $O(r\sqrt{n} \polylog n)$ time, assuming $r \leq \sqrt{n}$.
+However, with careful implementation we ensure that the support is acyclic,
+and one can find an augmenting path in $O(r\sqrt{n} \polylog n)$ time with
+proper data structures, assuming $r \leq \sqrt{n}$. \note{Do we need this condition for data structures?}
 
 
 % ----------------------------------------------------------------------------
@@ -419,18 +421,19 @@ In this section, we solve the geometric partial matching problem and prove Theor
 % In the geometric partial matching setting, we have $E = A \times B$
 % and $c(a, b) = \norm{a-b}_p^q$ for every edge $(a, b)$ in $G$.
 
-A vertex $v$ is \EMPH{matched} by matching $M \subseteq E$ if $v$ is the endpoint of some edge in $M$;
+A vertex $v$ is \EMPH{matched} by matching $M$ if $v$ is the endpoint of some edge in $M$;
 otherwise $v$ is \EMPH{unmatched}.
 Given a matching $M$, an \EMPH{augmenting path}
 $\Pi = (a_1, b_1, \ldots, a_\ell, b_\ell)$ is an odd-length path with unmatched
 endpoints ($a_1$ and $b_\ell$) that alternates between edges outside and inside of $M$.
 The symmetric difference $M \oplus \Pi$ creates a new matching of size $\abs{M}+1$, called the \EMPH{augmentation} of $M$ by $\Pi$.
 %
-The dual to the standard linear program for partial matching has dual variables
-for each vertex, called \EMPH{potentials $\pi$}.
-Given potentials $\pi$, we can define the \EMPH{reduced cost} on the edges to be
+The dual to the standard linear program for partial matching has one dual variable
+for each vertex $v$, called the \EMPH{potential $\pi(v)$} of $v$.
+Given potentials $\pi$ \note{do we really want plur.?}, we can define the \EMPH{reduced cost} of the edges to be
 $\EMPH{$c_\pi(v, w)$} \coloneqq c(v, w) - \pi(v) + \pi(w)$.
-Potentials $\pi$ are \EMPH{feasible} if the reduced costs are nonnegative for all edges in $G$.
+Potentials $\pi$ are \EMPH{feasible} on edge $(u,v)$ if $c_\pi(v, w)$ is nonnegative.
+Potentials $\pi$ are \EMPH{feasible} if $\pi$ are feasible on every edge in $G$.
 We say that an edge $(v, w)$ is \EMPH{admissible} under potentials $\pi$ if $c_\pi(v, w) = 0$.
 
 \paragraph{Fast implementation of Hungarian search.}
@@ -448,18 +451,18 @@ The Hungarian algorithm is initialized with $M = \emptyset$ and $\pi = 0$.
 Each iteration of the Hungarian algorithm augments $M$ by an admissible
 augmenting path $\Pi$, discovered using a procedure called the
 \EMPH{Hungarian search}.
-The algorithm terminates after $k$ augmentations, when $\abs{M} = k$;
+The algorithm terminates after $k$ augmentations, exactly when $\abs{M} = k$;
 Ramshaw and Tarjan~\cite{RT12} showed that $M$ is guaranteed to be an optimal partial matching.
 %\note{For the specific implementation of Hungarian search where in each iteration the roots are all unmatched vertices in $A$.  Picking one as source does not guarantee min-cost partial matching.}
 
-The Hungarian search grows a set of \EMPH{reachable vertices $X$} \emph{from}
-all unmatched $v \in A$ \emph{using} augmenting paths of admissible edges.
+The Hungarian search grows a set of \EMPH{reachable vertices $X$} from
+all unmatched $v \in A$ using augmenting paths of admissible edges.
 Initially, $X$ is the set of unmatched vertices in $A$.
 Let the \EMPH{frontier} of $X$ be the edges in $(A \cap X) \times (B \setminus X)$.
 $X$ is grown by \EMPH{relaxing} an edge $(a, b)$ in the frontier:
-adding $b$ into $X$, and also modifying potentials to make $(a, b)$ admissible,
-preserve $c_\pi$ on other edges within $X$, and keep $\pi$ feasible on edges outside of $X$.
-Specifically, the algorithm relaxes the minimum-reduced-cost frontier edge $(a, b)$,
+Add $b$ into $X$, modify potentials to make $(a, b)$ admissible,
+preserve $c_\pi$ on other edges within $X$, and keep $\pi$ feasible on edges outside of $X$ \note{what does this mean?}.
+Specifically, the algorithm relaxes the min-reduced-cost frontier edge $(a, b)$,
 and then raises $\pi(v)$ by $c_\pi(a, b)$ for all $v \in X$.
 %It is easy to verify that this potential change preserves feasibility.
 %
@@ -492,8 +495,7 @@ The search finishes when $b$ is unmatched, and an admissible augmenting path now
 %The most expensive step in augmentation is to find the minimum-reduced-cost frontier edge that needs to be relaxed --- the search must ``look at every edge''.
 %e.g.\ by pushing them into a priority queue even if they are not relaxed.
 In the geometric setting, we find the min-reduced-cost frontier edge using a dynamic
-\EMPH{bichromatic closest pair} (BCP) data structure, as observed
-in~\cite{AFPVX17,Vaidya89}.
+\EMPH{bichromatic closest pair} (BCP) data structure, similar to \cite{AFPVX17,Vaidya89}.
 Given two point sets $P$ and $Q$ in the plane and a weight function
 $\omega: P\cup Q \to \reals$, the BCP is two points $a \in P$ and $b \in Q$
 minimizing the additively weighted distance $c(a, b) - \omega(a) + \omega(b)$.
@@ -1191,7 +1193,7 @@ length of an augmenting path is also $O(r)$.
 Therefore one might hope to find an augmenting path in $O(r\polylog n)$ time,
 by adapting the algorithms described in Sections~\ref{section:hung} and
 \ref{section:goldberg}.
-The challenge to this approach is that $\supp(f)$ may have $\Omega(n)$ size, 
+The challenge to this approach is that $\supp(f)$ may have $\Omega(n)$ size,
 therefore an algorithm which runs in $O(\abs{\supp(f)})$ time is no longer
 sufficient.
 Still, we manage to implement a Hungarian search in time roughly $r\sqrt{n}$,
