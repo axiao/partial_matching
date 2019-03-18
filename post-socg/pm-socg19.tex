@@ -438,7 +438,7 @@ We say that an edge $(v, w)$ is \EMPH{admissible} under potentials $\pi$ if $c_\
 
 \paragraph{Fast implementation of Hungarian search.}
 
-The Hungarian algorithm is initialized with $M = \emptyset$ and $\pi = 0$.
+The Hungarian algorithm is initialized with $M \gets \emptyset$ and $\pi \gets 0$.
 % It maintains the following invariants: (see, for example, \cite{})
 % %\begin{enumerate}[(i)]\itemsep=0pt
 % (i) $\pi$ is feasible,
@@ -513,23 +513,24 @@ As $\abs{M} \leq k$ throughout, there are at most $2k$ relaxations in each
 Hungarian search, and the BCP can be used to implement each Hungarian search
 in $O(k\polylog n)$ time.
 Explained shortly, there is an existing technique to handle potential updates
-without performing BCP updates for each one.
+without performing BCP updates for each one \note{?}.
 
 \paragraph{Rewinding mechanism.}
 % In the beginning of each iteration,
 % $X$ is initialized to the set of unmatched vertices in $A$,
 % and therefore $Q = B \setminus X$ has size $n$.
 We observe that exactly one vertex of $A$ is newly matched after an augmentation.
-Thus (modulo potential changes), given the initial state of the BCP at the $i$-th Hungarian search,
-we can obtain the initial state for the $(i+1)$-th with a single BCP deletion operation.
+Thus (modulo potential changes), we can obtain the initial state of the BCP for
+the $(i+1)$-th Hungarian search from the $i$-th one with a single BCP deletion.
 
 If we remember the sequence of points added to $X$ in the $i$-th Hungarian search,
 then at the start of the $(i+1)$-th Hungarian search we can \emph{rewind} this
-sequence by applying the opposite insert/delete operation for each BCP update
+sequence by applying the opposite insert/delete operation to each BCP update
 in reverse order to obtain the initial state of the $i$-th BCP.
-With one additional BCP delete, we have the initial state for the $(i+1)$-th BCP.
-The number of insertions/deletions is $O(k)$, bounded by the number of
-relaxations per Hungarian search, therefore we can recover, in $O(k\polylog n)$
+With one additional BCP deletion, we have the initial state of the $(i+1)$-th BCP.
+The number of insertions/deletions is bounded by the number of
+relaxations per Hungarian search which is $O(k)$.
+Therefore we can recover, in $O(k\polylog n)$
 time, the initial BCP data structure for each Hungarian search beyond the first.
 We refer to this procedure as the \EMPH{rewinding mechanism}.
 
@@ -539,7 +540,7 @@ We refer to this procedure as the \EMPH{rewinding mechanism}.
 %in $O(k\polylog n)$ time after a one-time $O(n\polylog n)$ preprocessing.
 %\end{lemma}
 
-\note{I tried to condense this; please check}%TODO
+%\note{I tried to condense this; please check}%TODO
 
 \paragraph{Potential updates.}
 We modify a trick from Vaidya~\cite{Vaidya89} to batch potential updates.
@@ -560,7 +561,7 @@ Since the BCP weights are uniformly offset from $\pi(v)$ by $\delta$, the pair
 reported by the BCP is still minimum.
 When $b \in B$ is added to $X$, we update its stored value to $\pi(b) - \delta$
 (although it won't be added to a BCP set).
-When a vertex is removed from $X$ (e.g. by augmentation or rewinding), we update
+When a vertex is removed from $X$ (e.g.\ by augmentation or rewinding), we update
 the stored potential $\gamma(v) \gets \pi(v) + \delta$, again for the current
 value of $\delta$.
 Unlike \cite{Vaidya89}, we do not reset $\delta$ across Hungarian searches.
@@ -601,8 +602,8 @@ $(a, b)$ in $G$ becomes an arc $\arc{a}{b}$ in $N$;
 we refer to these nodes (resp.\ arcs) as \EMPH{bipartite nodes} (resp.\ \EMPH{bipartite arcs}).
 We also include a \EMPH{source} node $s$ and \EMPH{sink} node $t$ in $N$.
 For each $a \in A$, we add a \EMPH{left dummy arc} $\arc{s}{a}$ and for each
-$b \in B$ we add a \EMPH{right dummy arc} $\arc{b}{t}$.
-The cost $c(\arc{v}{w})$ of each arc $\arc{v}{w}$ in $N$ is equal to $c(v, w)$ if
+$b \in B$ a \EMPH{right dummy arc} $\arc{b}{t}$.
+The cost \EMPH{$c(\arc{v}{w})$} of each arc $\arc{v}{w}$ is equal to $c(v, w)$ if
 $\arc{v}{w}$ is a bipartite arc and $0$ if $\arc{v}{w}$ is a dummy arc.
 All arcs in $N$ have unit capacity.
 
@@ -617,7 +618,7 @@ Given a pseudoflow $f$, the \EMPH{imbalance} of a vertex (with respect to $f$) i
 \EMPH{$\fsupply_f (v)$} \coloneqq \fsupply(v) + \sum_{\arc wv \in \vec{E}}{f(\arc wv)} - \sum_{\arc vw \in \vec{E}}{f(\arc vw)}.
 \]
 We call positive imbalance \EMPH{excess} and negative imbalance \EMPH{deficit};
-and vertices with positive (resp.\ negative) imbalance excess (resp.\ deficit) vertices.
+and vertices with positive (resp.\ negative) imbalance \EMPH{excess vertices} (resp.\ \EMPH{deficit vertices}).
 A vertex is \EMPH{balanced} if it has zero imbalance.
 If all vertices are balanced, the pseudoflow is a \EMPH{circulation}.
 The \EMPH{cost} of a pseudoflow is defined to be
@@ -631,13 +632,13 @@ $v \in A \cup B$, then an integral circulation $f$ corresponds to a partial
 matching $M$ of size $k$ and vice versa.
 Moreover, $\cost(M) = \cost(f)$.
 %
-Hence, the problem of computing a min-cost matching of size $k$ in $G(A, B)$
+Hence, the problem of computing a min-cost matching of size $k$ in $G$
 transforms to computing an integral circulation in $N$.
 The following lemma will be useful for our algorithm.
 
 \begin{lemma}
 \label{lemma:supp_size}
-Let $N$ be the network constructed from $G(A, B)$ above.
+Let $N$ be the network constructed from the bipartite graph $G$ above.
 \begin{enumerate}[(i)]
 \item For any integral circulation $g$ in $N$, the size of $\supp(g)$ is at most $3k$.
 \item For any integral pseudoflow $f$ in $N$ with $O(k)$ excess, the size of $\supp(f)$ is $O(k)$.
@@ -650,10 +651,11 @@ Let $N$ be the network constructed from $G(A, B)$ above.
 Before describing the algorithm, we need to introduce a few more concepts.
 
 \paragraph{Residual network and admissibility.}
-If $f$ is an integral pseudoflow
+If $f$ is an integral pseudoflow on $N$
 (that is, $f(\arc{v}{w}) \in \{0, 1\}$ for every arc in $\vec{E}$), then each arc
 $\arc{v}{w}$ in $N$ is either \EMPH{idle} with $f(\arc{v}{w}) = 0$ or
-\EMPH{saturated} with $f(\arc{u}{v}) = 1$. \note{define earlier?}
+\EMPH{saturated} with $f(\arc{u}{v}) = 1$.
+%\note{define earlier?}
 
 Given a pseudoflow $f$, the \EMPH{residual network} $N_f = (V, \vec{E}_f)$ is
 defined as follows.
@@ -666,23 +668,23 @@ The set of residual arcs in $N_f$ is therefore
 \vec{E}_f \coloneqq \{\arc{v}{w} \mid f(\arc{v}{w}) = 0\} \cup \{\arc{w}{v} \mid f(\arc{v}{w}) = 1\}.
 \]
 The cost of a forward residual arc $\arc{v}{w}$ is $c(\arc{v}{w})$,
-while the cost of a backward residual arc is $\arc{w}{v}$ is $-c(\arc{v}{w})$.
+while the cost of a backward residual arc $\arc{w}{v}$ is $-c(\arc{v}{w})$.
 Each arc in $N_f$ also has unit capacity.
 By Lemma~\ref{lemma:supp_size}, $N_f$ has $O(k)$ backward arcs if $f$ has $O(k)$ excess.
 
 A \EMPH{residual pseudoflow} $g$ in $N_f$ can be used to change $f$ into a
-different pseudoflow on $N$ by a process called \EMPH{augmentation}.
-For simplicity, we only describe augmentation for the case where $f$, $g$ are integer.
+different pseudoflow on $N$ by \EMPH{augmentation}.
+For simplicity, we only describe augmentation for the case where $f$ and $g$ are integral.
 Specifically, augmenting $f$ by $g$ produces a pseudoflow $f'$ in $N$ where
 \[
 f'(\arc vw) = \begin{cases}
-	0 & {\arc wv} \in \vec{E}_f \text{ and } g(\arc wv) = 1 \\
-	1 & {\arc vw} \in \vec{E}_f \text{ and } g(\arc vw) = 1 \\
+	0 & {\arc wv} \in \vec{E}_f \text{ and } g(\arc wv) = 1, \\
+	1 & {\arc vw} \in \vec{E}_f \text{ and } g(\arc vw) = 1, \\
 	f(\arc vw) & \text{otherwise.}
 \end{cases}
 \]
 
-Using LP duality for min-cost flow, we assign a \EMPH{potential $\pi(v)$} to each node $v$ in $N$.
+Using LP duality for min-cost flow, we assign \EMPH{potential $\pi(v)$} to each node $v$ in $N$.
 The \EMPH{reduced cost} of an arc $\arc{v}{w}$ in $N$ with respect to $\pi$ is
 defined as
 \[
@@ -704,13 +706,13 @@ We say that a pair of pseudoflow $f$ and potential $\pi$ is
 %\footnote{This is commonly written as $\eps$-optimality in the min-cost flow literature.}
 if $c_\pi(\arc vw) \geq -\theta$ for every residual arc $\arc vw$ in $\vec{E}_f$.
 Pseudoflow $f$ is \emph{$\theta$-optimal} if it is $\theta$-optimal with
-respect to some potentials $\pi$;
+respect to some potentials $\pi$ \note{plur?};
 potential $\pi$ is \emph{$\theta$-optimal} if it is $\theta$-optimal with
 respect to some pseudoflow $f$.
 Given a pseudoflow $f$ and potentials $\pi$, a residual arc $\arc vw$ in
 $\vec{E}_f$ is \EMPH{admissible} if $c_\pi(\arc vw) \leq 0$.
 We say that a pseudoflow $g$ in $G_f$ is \EMPH{admissible} if $g(\arc vw) > 0$
-only on admissible arcs $\arc vw$, and $g(\arc vw) = 0$ otherwise.
+only on admissible arcs $\arc vw$, and $g(\arc vw) = 0$ otherwise.%
 \footnote{The same admissibility/feasibility definitions will be used later in
 	Section~\ref{section:orlin}.
 	However, the algorithm in Section~\ref{section:orlin} maintains a
@@ -782,19 +784,23 @@ Then, $\cost(f) \leq \cost(f^*) + 6k\theta$.
 We now describe a procedure for estimating $\cost(f^*)$ within a polynomial factor,
 which will be useful in setting the scaling parameters of the cost-scaling algorithm.
 
-Let \EMPH{$T$} be a minimum spanning tree of $A \cup B$ under the cost function $c(\cdot)$.
+Let \EMPH{$T$} be a minimum spanning tree of $A \cup B$ under the cost function $c$.
 Let $e_1, e_2, \ldots, e_{n-1}$ be the edges of $T$ sorted in nondecreasing order
-of length; in other words, $c(e_i) \leq c(e_{i+1})$.
+of length.
+%in other words, $c(e_i) \leq c(e_{i+1})$.
 Let \EMPH{$T_i$} be the forest consisting of the vertices of $A \cup B$ and
-$e_1, \ldots, e_i$.
-We call a matching $M$ of $G(A, B)$ \EMPH{intra-cluster} if both endpoints of
-every edge in $M$ lie in the same connected component of $T_i$.
-We define \EMPH{$i^*$} to be the smallest index $i$ such that there exists an
-intra-cluster matching of size $k$ in $T_{i^*}$.
-Set \EMPH{$\overline{\theta}$} $\coloneqq n^q \cdot c(e_{i^*})$.
+edges $e_1, \ldots, e_i$.
+We call a matching $M$ \EMPH{intra-cluster} if both endpoints of
+each edge in $M$ lie in the same connected component of $T_i$.
+%
 The following lemma will be used by our cost-scaling algorithm:
 
 \begin{lemma}
+Let $A$ and $B$ be two point sets in the plane.
+Define \EMPH{$i^*$} to be the smallest index $i$ such that there is an
+intra-cluster matching of size $k$ in $T_{i^*}$.
+Set \EMPH{$\overline{\theta}$} $\coloneqq n^q \cdot c(e_{i^*})$.
+Then
 \label{lemma:starting_scale}
 \begin{enumerate}[(i)]
 \item \label{item:starting_scale1}
