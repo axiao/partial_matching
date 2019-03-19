@@ -52,6 +52,7 @@
 \usepackage{mathtools} % for \coloneqq
 
 \usepackage{pifont} % for flower
+%\usepackage{mathapx} % for rip
 
 % \usepackage{etoolbox}
 % \makeatletter
@@ -107,8 +108,9 @@
 \def\intracount{\operatorname{count}}
 
 \def\alive#1{{#1}^\text{\ding{96}}}
-\def\dead#1{({#1} \setminus \alive{#1})}
-\def\star{\text{\ding{75}}}
+\def\dead#1{{#1} \setminus \alive{#1}}
+%\def\dead#1{{#1}^\text{\ding{61}}}
+\def\star{\text{\ding{84}}}
 
 
 \theoremstyle{plain}
@@ -269,7 +271,7 @@ Maximum-size bipartite matching is a classical problem in graph algorithms.
 Upper bounds include the $O(m\sqrt{n})$ time algorithm by
 Hopcroft and Karp~\cite{HK73} and the $O(m \min\{\sqrt{m}, n^{2/3}\})$ time
 algorithm by Even and Tarjan~\cite{ET75}, where $n$ is the
-number of vertices and $m$ is the number of edges.
+number of nodes and $m$ is the number of edges.
 The first improvement in over thirty years was made by M{\k a}dry~\cite{M13},
 which uses an interior-point algorithm, runs in $O(m^{10/7}\polylog n)$ time.
 
@@ -314,7 +316,7 @@ The strongly polynomial uncapacitated min-cost flow algorithm by
 Orlin~\cite{O93} solves the transportation problem in
 $O((m + n\log n) n\log n)$ time.
 Lee and Sidford~\cite{LS14} give a weakly polynomial algorithm that runs in
-$O(m\sqrt{n}\polylog(n, U))$ time, where $U$ is the maximum amount of vertex supply-demand.
+$O(m\sqrt{n}\polylog(n, U))$ time, where $U$ is the maximum amount of node supply-demand.
 Agarwal~\etal~\cite{AFPVX17} showed that Orlin's algorithm can be
 implemented to solve 2D transportation in time $O(n^2\polylog n)$.
 By adapting the Lee-Sidford algorithm, they developed a
@@ -338,7 +340,7 @@ be computed in $O((n + k^2)\polylog n)$ time.
 
 We use \emph{bichromatic closest pair (BCP)} data structures to implement the Hungarian algorithm efficiently, similar to Agarwal~\etal~\cite{AES99} and Kaplan~\etal~\cite{KMRSS17}.
 But unlike their algorithms which take $\Omega(n)$ time to find an
-augmenting path, we show that after an $O(n\polylog n)$ time preprocessing,
+augmenting path, we show that after $O(n\polylog n)$ time preprocessing,
 an augmenting path can be found in $O(k\polylog n)$ time.
 The key is to recycle (rather than rebuild) our data structures from one
 augmentation to the next.
@@ -407,13 +409,13 @@ In this section, we solve the geometric partial matching problem and prove Theor
 %\subsection{Matching Terminologies}
 
 % \note{Move some to intro}
-% Let $G$ be a bipartite graph between vertex sets $A$ and $B$ and edge set $E$,
+% Let $G$ be a bipartite graph between node sets $A$ and $B$ and edge set $E$,
 % with costs $c(v, w)$ for each edge $(v, w)$ in $G$.
 % A \EMPH{matching} $M \subseteq E$ is a set of edges where no two edges share an
 % endpoint.
-% A vertex $v$ is \EMPH{matched} by $M$ if $v$ is the endpoint of some matching edge in $M$;
+% A node $v$ is \EMPH{matched} by $M$ if $v$ is the endpoint of some matching edge in $M$;
 % otherwise $v$ is \EMPH{unmatched}.
-% %We use $V(M)$ to denote the vertices matched by $M$.
+% %We use $V(M)$ to denote the nodes matched by $M$.
 % The \EMPH{size} of a matching is the number of edges in the set, and the
 % \EMPH{cost} of a matching is the sum of costs of its edges.
 % For a parameter $k$, the \EMPH{minimum-cost partial matching problem (MPM)}
@@ -421,7 +423,7 @@ In this section, we solve the geometric partial matching problem and prove Theor
 % In the geometric partial matching setting, we have $E = A \times B$
 % and $c(a, b) = \norm{a-b}_p^q$ for every edge $(a, b)$ in $G$.
 
-A vertex $v$ is \EMPH{matched} by matching $M$ if $v$ is the endpoint of some edge in $M$;
+A node $v$ is \EMPH{matched} by matching $M$ if $v$ is the endpoint of some edge in $M$;
 otherwise $v$ is \EMPH{unmatched}.
 Given a matching $M$, an \EMPH{augmenting path}
 $\Pi = (a_1, b_1, \ldots, a_\ell, b_\ell)$ is an odd-length path with unmatched
@@ -429,12 +431,12 @@ endpoints ($a_1$ and $b_\ell$) that alternates between edges outside and inside 
 The symmetric difference $M \oplus \Pi$ creates a new matching of size $\abs{M}+1$, called the \EMPH{augmentation} of $M$ by $\Pi$.
 %
 The dual to the standard linear program for partial matching has one dual variable
-for each vertex $v$, called the \EMPH{potential $\pi(v)$} of $v$.
-Given potentials $\pi$ \note{do we really want plur.?}, we can define the \EMPH{reduced cost} of the edges to be
+for each node $v$, called the \EMPH{potential $\pi(v)$} of $v$.
+Given potential $\pi$, we can define the \EMPH{reduced cost} of the edges to be
 $\EMPH{$c_\pi(v, w)$} \coloneqq c(v, w) - \pi(v) + \pi(w)$.
-Potentials $\pi$ are \EMPH{feasible} on edge $(u,v)$ if $c_\pi(v, w)$ is nonnegative.
-Potentials $\pi$ are \EMPH{feasible} if $\pi$ are feasible on every edge in $G$.
-We say that an edge $(v, w)$ is \EMPH{admissible} under potentials $\pi$ if $c_\pi(v, w) = 0$.
+Potential $\pi$ is \EMPH{feasible} on edge $(v,w)$ if $c_\pi(v, w)$ is nonnegative.
+Potential $\pi$ is \EMPH{feasible} if $\pi$ are feasible on every edge in $G$.
+We say that an edge $(v, w)$ is \EMPH{admissible} under potential $\pi$ if $c_\pi(v, w) = 0$.
 
 \paragraph{Fast implementation of Hungarian search.}
 
@@ -443,8 +445,8 @@ The Hungarian algorithm is initialized with $M \gets \emptyset$ and $\pi \gets 0
 % %\begin{enumerate}[(i)]\itemsep=0pt
 % (i) $\pi$ is feasible,
 % (ii) all edges in $M$ are admissible,
-% (iii) unmatched vertices of $A$ all have the same potential $\alpha$ satisfying $\alpha \geq \pi(a)$ for any matched vertex $a \in A$, and
-% (iv) unmatched vertices of $B$ all have the same potential $\beta$ satisfying $\beta \leq \pi(b)$ for any matched vertex $b \in B$.
+% (iii) unmatched nodes of $A$ all have the same potential $\alpha$ satisfying $\alpha \geq \pi(a)$ for any matched node $a \in A$, and
+% (iv) unmatched nodes of $B$ all have the same potential $\beta$ satisfying $\beta \leq \pi(b)$ for any matched node $b \in B$.
 % %\end{enumerate}
 % Ramshaw and Tarjan~\cite{RT12} show that these conditions are sufficient to
 % guarantee that $M$ is a minimum-cost matching.
@@ -453,15 +455,15 @@ augmenting path $\Pi$, discovered using a procedure called the
 \EMPH{Hungarian search}.
 The algorithm terminates after $k$ augmentations, exactly when $\abs{M} = k$;
 Ramshaw and Tarjan~\cite{RT12} showed that $M$ is guaranteed to be an optimal partial matching.
-%\note{For the specific implementation of Hungarian search where in each iteration the roots are all unmatched vertices in $A$.  Picking one as source does not guarantee min-cost partial matching.}
+%\note{For the specific implementation of Hungarian search where in each iteration the roots are all unmatched nodes in $A$.  Picking one as source does not guarantee min-cost partial matching.}
 
-The Hungarian search grows a set of \EMPH{reachable vertices $X$} from
+The Hungarian search grows a set of \EMPH{reachable nodes $X$} from
 all unmatched $v \in A$ using augmenting paths of admissible edges.
-Initially, $X$ is the set of unmatched vertices in $A$.
+Initially, $X$ is the set of unmatched nodes in $A$.
 Let the \EMPH{frontier} of $X$ be the edges in $(A \cap X) \times (B \setminus X)$.
 $X$ is grown by \EMPH{relaxing} an edge $(a, b)$ in the frontier:
-Add $b$ into $X$, modify potentials to make $(a, b)$ admissible,
-preserve $c_\pi$ on other edges within $X$, and keep $\pi$ feasible on edges outside of $X$ \note{what does this mean?}.
+Add $b$ into $X$, modify potential to make $(a, b)$ admissible,
+preserve $c_\pi$ on other edges within $X$, and keep $\pi$ feasible on edges outside of $X$.
 Specifically, the algorithm relaxes the min-reduced-cost frontier edge $(a, b)$,
 and then raises $\pi(v)$ by $c_\pi(a, b)$ for all $v \in X$.
 %It is easy to verify that this potential change preserves feasibility.
@@ -469,10 +471,10 @@ and then raises $\pi(v)$ by $c_\pi(a, b)$ for all $v \in X$.
 % \note{Compress details...}
 % As $b \in B$ is added into $X$, we can store a backpointer to $a$, which can be
 % used later to recover the admissible augmenting path through $b$.
-% If $b$ is matched, say to vertex $a'$, then we also relax $(a', b)$ by adding $a'$
+% If $b$ is matched, say to node $a'$, then we also relax $(a', b)$ by adding $a'$
 % into $X$ (no potential change needed, by invariant) with backpointer to $b$.
 % If $b$ is unmatched, the search finishes and we can recover an admissible
-% augmenting path to $b$ by following backpointers to an unmatched vertex $a \in A$.
+% augmenting path to $b$ by following backpointers to an unmatched node $a \in A$.
 % %Once $X$ contains an unmatched $b \in B$, an admissible augmenting path exists.
 % \note{... to here.}
 If $b$ is already matched, then we also relax the matching edge $(a',b)$ and add $a'$ into $X$.
@@ -486,8 +488,8 @@ The search finishes when $b$ is unmatched, and an admissible augmenting path now
 %\label{SS:fast-hungarian-matching}
 
 % Observe that the Hungarian search makes $O(k)$ relaxations, as each
-% relaxation either leads to an unmatched vertex (ending the search) or
-% adds both vertices of a matching edge.
+% relaxation either leads to an unmatched node (ending the search) or
+% adds both nodes of a matching edge.
 % We will implement each relaxation step in $O(\polylog n)$ time, after
 % preprocessing.
 
@@ -517,9 +519,9 @@ without performing BCP updates for each one \note{?}.
 
 \paragraph{Rewinding mechanism.}
 % In the beginning of each iteration,
-% $X$ is initialized to the set of unmatched vertices in $A$,
+% $X$ is initialized to the set of unmatched nodes in $A$,
 % and therefore $Q = B \setminus X$ has size $n$.
-We observe that exactly one vertex of $A$ is newly matched after an augmentation.
+We observe that exactly one node of $A$ is newly matched after an augmentation.
 Thus (modulo potential changes), we can obtain the initial state of the BCP for
 the $(i+1)$-th Hungarian search from the $i$-th one with a single BCP deletion.
 
@@ -544,11 +546,11 @@ We refer to this procedure as the \EMPH{rewinding mechanism}.
 
 \paragraph{Potential updates.}
 We modify a trick from Vaidya~\cite{Vaidya89} to batch potential updates.
-Potentials are tracked with a \EMPH{stored value} $\gamma(v)$, while the
+Potential is tracked with a \EMPH{stored value} $\gamma(v)$, while the
 \EMPH{true value} of $\pi(v)$ may have changed since $\gamma(v)$ was last recorded.
 This is done by aggregating potential changes into a variable $\EMPH{$\delta$}$,
 which is initially 0 at the very beginning of the algorithm.
-Whenever we would raise the potentials of all vertices in $X$, we raise
+Whenever we would raise the potential of all nodes in $X$, we raise
 $\delta$ by that amount instead.
 We maintain the following invariant: $\pi(v) = \gamma(v)$ for $v \not\in X$,
 and $\pi(v) = \gamma(v) + \delta$ for $v \in X$.
@@ -561,10 +563,10 @@ Since the BCP weights are uniformly offset from $\pi(v)$ by $\delta$, the pair
 reported by the BCP is still minimum.
 When $b \in B$ is added to $X$, we update its stored value to $\pi(b) - \delta$
 (although it won't be added to a BCP set).
-When a vertex is removed from $X$ (e.g.\ by augmentation or rewinding), we update
+When a node is removed from $X$ (e.g.\ by augmentation or rewinding), we update
 the stored potential $\gamma(v) \gets \pi(v) + \delta$, again for the current
 value of $\delta$.
-Unlike \cite{Vaidya89}, we do not reset $\delta$ across Hungarian searches.
+Unlike Vaidya~\cite{Vaidya89}, we do not reset $\delta$ across Hungarian searches.
 
 There are $O(k)$ relaxations and thus $O(k)$ updates to $\delta$ per Hungarian search.
 $O(k)$ stored values are updated per rewinding, so the time spent on potential
@@ -591,19 +593,21 @@ $O\Paren{(n + k^{3/2})\polylog(n)\log(1/\eps)}$ time in our setting (Section~\re
 \subsection{From matching to circulation}
 \label{SS:match-flow-red}
 
-Given a bipartite graph $G$ with vertex sets $A$ and $B$, we construct a flow network
+Given a bipartite graph $G$ with node sets $A$ and $B$, we construct a flow network
 $N = (V, \vec{E})$ in a standard way \cite{RT12}
 so that a min-cost matching in $G$ corresponds to a min-cost integral
 circulation in $N$.
 
 \paragraph{Flow network.}
-Each vertex in $G$ becomes a node in $N$ and each edge
+Each node in $G$ becomes a node in $N$ and each edge
 $(a, b)$ in $G$ becomes an arc $\arc{a}{b}$ in $N$;
-we refer to these nodes (resp.\ arcs) as \EMPH{bipartite nodes} (resp.\ \EMPH{bipartite arcs}).
+we refer to these nodes and arcs as \EMPH{bipartite nodes} and \EMPH{bipartite arcs}.
 We also include a \EMPH{source} node $s$ and \EMPH{sink} node $t$ in $N$.
 For each $a \in A$, we add a \EMPH{left dummy arc} $\arc{s}{a}$ and for each
 $b \in B$ a \EMPH{right dummy arc} $\arc{b}{t}$.
-The cost \EMPH{$c(\arc{v}{w})$} of each arc $\arc{v}{w}$ is equal to $c(v, w)$ if
+The cost \EMPH{$c(\arc{v}{w})$}
+%of each arc $\arc{v}{w}$
+is equal to $c(v, w)$ if
 $\arc{v}{w}$ is a bipartite arc and $0$ if $\arc{v}{w}$ is a dummy arc.
 All arcs in $N$ have unit capacity.
 
@@ -613,14 +617,15 @@ negative values of $\fsupply(v)$ as \EMPH{demand}.
 A \EMPH{pseudoflow} $f: \vec{E} \to [0, 1]$ is a function on arcs of $N$.
 The \EMPH{support} of $f$ in $N$, denoted as \EMPH{$\supp(f)$}, is the set of arcs with positive flows:
 $\supp(f) \coloneqq \Set{\arc vw \in \vec{E} \mid f(\arc vw) > 0}$.
-Given a pseudoflow $f$, the \EMPH{imbalance} of a vertex (with respect to $f$) is
+Given a pseudoflow $f$, the \EMPH{imbalance} of a node (with respect to $f$) is
 \[
 \EMPH{$\fsupply_f (v)$} \coloneqq \fsupply(v) + \sum_{\arc wv \in \vec{E}}{f(\arc wv)} - \sum_{\arc vw \in \vec{E}}{f(\arc vw)}.
 \]
-We call positive imbalance \EMPH{excess} and negative imbalance \EMPH{deficit};
-and vertices with positive (resp.\ negative) imbalance \EMPH{excess vertices} (resp.\ \EMPH{deficit vertices}).
-A vertex is \EMPH{balanced} if it has zero imbalance.
-If all vertices are balanced, the pseudoflow is a \EMPH{circulation}.
+We call positive imbalance \EMPH{excess} and negative imbalance \EMPH{deficit}.
+%and nodes with positive (resp.\ negative) imbalance \EMPH{excess nodes} (resp.\ \EMPH{deficit nodes}).
+% we actually use excess nodes later, but we have not defined residual network yet.
+A node is \EMPH{balanced} if it has zero imbalance.
+If all nodes are balanced, the pseudoflow is a \EMPH{circulation}.
 The \EMPH{cost} of a pseudoflow is defined to be
 \[
  \EMPH{$\cost(f)$} \coloneqq \sum_{\arc vw \in \supp(f)} c(\arc vw) \cdot f(\arc vw).
@@ -694,11 +699,12 @@ Similarly we define the reduced cost of arcs in $N_f$: the reduced cost of a
 forward residual arc $\arc vw$ in $N_f$ is $c_\pi(\arc vw)$, and the reduced cost of a
 backward residual arc $\arc wv$ in $N_f$ is $-c_\pi(\arc vw)$.
 Abusing the notation, we also use $c_\pi$ to denote the reduced cost of arcs in
-$N_f$. \note{Unclear.  Does $c_\pi(\arc wv)$ have positive or negative value for a backward arc $\arc wv$?}
+$N_f$.
+%\note{Unclear.  Does $c_\pi(\arc wv)$ have positive or negative value for a backward arc $\arc wv$?}
 
 The \EMPH{dual feasibility constraint} asks that $c_\pi(\arc vw) \geq 0$ holds
 for every arc $\arc vw$ in $\vec{E}$;
-potentials $\pi$ that satisfy this constraint are said to be \EMPH{feasible}.
+potential $\pi$ that satisfy this constraint is said to be \EMPH{feasible}.
 Suppose we relax the dual feasibility constraint to allow some small violation
 in the value of $c_\pi(\arc vw)$.
 We say that a pair of pseudoflow $f$ and potential $\pi$ is
@@ -706,12 +712,12 @@ We say that a pair of pseudoflow $f$ and potential $\pi$ is
 %\footnote{This is commonly written as $\eps$-optimality in the min-cost flow literature.}
 if $c_\pi(\arc vw) \geq -\theta$ for every residual arc $\arc vw$ in $\vec{E}_f$.
 Pseudoflow $f$ is \emph{$\theta$-optimal} if it is $\theta$-optimal with
-respect to some potentials $\pi$ \note{plur?};
+respect to some potential $\pi$;
 potential $\pi$ is \emph{$\theta$-optimal} if it is $\theta$-optimal with
 respect to some pseudoflow $f$.
-Given a pseudoflow $f$ and potentials $\pi$, a residual arc $\arc vw$ in
+Given a pseudoflow $f$ and potential $\pi$, a residual arc $\arc vw$ in
 $\vec{E}_f$ is \EMPH{admissible} if $c_\pi(\arc vw) \leq 0$.
-We say that a pseudoflow $g$ in $G_f$ is \EMPH{admissible} if $g(\arc vw) > 0$
+We say that a pseudoflow $g$ in $N_f$ is \EMPH{admissible} if $g(\arc vw) > 0$
 only on admissible arcs $\arc vw$, and $g(\arc vw) = 0$ otherwise.%
 \footnote{The same admissibility/feasibility definitions will be used later in
 	Section~\ref{section:orlin}.
@@ -728,7 +734,7 @@ Then $f$ augmented by $g$ is also $\theta$-optimal in $N$.
 \end{lemma}
 
 %\begin{proof}
-%Augmentation by $f'$ will not change the potentials, so any previously
+%Augmentation by $f'$ will not change the potential, so any previously
 %$\theta$-optimal arcs remain $\theta$-optimal.
 %However, it may introduce new arcs $\arc vw$ with $u_{f+f'}(\arc vw) > 0$, that previously had
 %$u_f(\arc vw) = 0$.
@@ -788,7 +794,7 @@ Let \EMPH{$T$} be a minimum spanning tree of $A \cup B$ under the cost function 
 Let $e_1, e_2, \ldots, e_{n-1}$ be the edges of $T$ sorted in nondecreasing order
 of length.
 %in other words, $c(e_i) \leq c(e_{i+1})$.
-Let \EMPH{$T_i$} be the forest consisting of the vertices of $A \cup B$ and
+Let \EMPH{$T_i$} be the forest consisting of the nodes of $A \cup B$ and
 edges $e_1, \ldots, e_i$.
 We call a matching $M$ \EMPH{intra-cluster} if both endpoints of
 each edge in $M$ lie in the same connected component of $T_i$.
@@ -796,12 +802,12 @@ each edge in $M$ lie in the same connected component of $T_i$.
 The following lemma will be used by our cost-scaling algorithm:
 
 \begin{lemma}
+\label{lemma:starting_scale}
 Let $A$ and $B$ be two point sets in the plane.
 Define \EMPH{$i^*$} to be the smallest index $i$ such that there is an
 intra-cluster matching of size $k$ in $T_{i^*}$.
 Set \EMPH{$\overline{\theta}$} $\coloneqq n^q \cdot c(e_{i^*})$.
 Then
-\label{lemma:starting_scale}
 \begin{enumerate}[(i)]
 \item \label{item:starting_scale1}
 	The value of $i^*$ can be computed in $O(n\log n)$ time.
@@ -809,19 +815,19 @@ Then
 	$c(e_{i^*}) \leq \cost(f^*) \leq \overline{\theta}$.
 \item \label{item:starting_scale3}
 	There is a $\overline{\theta}$-optimal circulation in the network $N$ with
-	respect to the 0 potential $\pi = 0$, assuming $\fsupply(s) = k$,
+	respect to the all-zero potential, assuming $\fsupply(s) = k$,
 	$\fsupply(t) = -k$, and $\fsupply(v) = 0$ for all $v \in A \cup B$.
 \end{enumerate}
 \end{lemma}
-
-Set $\underline{\theta} \coloneqq \frac{\eps}{6k} \cdot c(e_{i^*})$.
-As a consequence of Lemmas~\ref{lemma:starting_scale}\ref{item:starting_scale2}
+%
+As a consequence of Lemmas~\ref{lemma:starting_scale}(\ref{item:starting_scale2})
 and \ref{lemma:goldberg_cost_add}, we have:
-
+%
 \begin{corollary}
 \label{corollary:goldberg_approx}
 The cost of a $\underline{\theta}$-optimal integral circulation in $N$ is at
-most $(1+\eps) \cost(f^*)$.
+most $(1+\eps) \cost(f^*)$,
+where $\EMPH{$\underline{\theta}$} \coloneqq \frac{\eps}{6k} \cdot c(e_{i^*})$.
 \end{corollary}
 
 We are now ready to describe our algorithm.
@@ -830,9 +836,9 @@ We are now ready to describe our algorithm.
 We closely follow the algorithm of Goldberg \etal~\cite{GHKT17}.
 The algorithm works in rounds.
 In the beginning of each round, we fix a \EMPH{cost scaling parameter}
-\EMPH{$\theta$} and maintain potentials $\pi$ with the following property:
+\EMPH{$\theta$} and maintain potential $\pi$ with the following property:
 
-\note{would like to use a better/neater/cleaner environment to represent invariant}%TODO
+%\note{would like to use a better/neater/cleaner environment to represent invariant}%TODO
 %\begin{enumerate}[(P1)]
 %\item \label{item:scale_inv}
 %	There exists a $2\theta$-optimal integral circulation in $N$ with respect to $\pi$.
@@ -844,16 +850,16 @@ In the beginning of each round, we fix a \EMPH{cost scaling parameter}
 
 For the initial round, we set $\theta \gets \overline{\theta}$ and $\pi \gets 0$.
 By Lemma~\ref{lemma:starting_scale}(\ref{item:starting_scale3}),
-(\ref{item:scale_inv}) is satisfied initially.
+property~(\ref{item:scale_inv}) is satisfied initially.
 Each round of the algorithm consists of two stages.
-In the first stage, called \EMPH{scale initialization} (\textsc{Scale-Init})
+In the \EMPH{scale initialization} stage, \textsc{Scale-Init}
 computes a $\theta$-optimal pseudoflow $f$.
-The second stage, called \EMPH{refinement} (\textsc{Refine}) converts $f$ into
+In the \EMPH{refinement} stage, \textsc{Refine} converts $f$ into
 a $\theta$-optimal (integral) circulation $g$.
 In both stages, $\pi$ is updated as necessary.
 If $\theta \leq \underline{\theta}$, we return $g$.
 Otherwise, we set $\theta \gets \theta/2$ and start the next round.
-Note that (\ref{item:scale_inv}) is satisfied in the beginning of each round.
+Note that property~(\ref{item:scale_inv}) is satisfied in the beginning of each round.
 
 By Corollary~\ref{corollary:goldberg_approx}, when the algorithm terminates,
 it returns an integral circulation $\tilde{f}$ in $N$ of cost at most
@@ -866,20 +872,20 @@ Next, we describe the two stages in detail.
 
 \paragraph{Scale initialization.}
 In the first round, we compute a $\overline{\theta}$-optimal pseudoflow by
-simply setting $f(\arc vw) = 0$ for all arcs in $\vec{E}$.
+simply setting $f(\arc vw) \gets 0$ for all arcs in $\vec{E}$.
 For subsequent rounds, we adjust the potential and flow in $N$ as follows:
 we raise the potential of all nodes in $A$ by $\theta$, those in $B$ by $2\theta$,
 and of $t$ by $3\theta$.
-The potential of $s$ remains unchange.
+The potential of $s$ remains unchanged.
 %
 Since the reduced cost of every forward arc in $N_f$ after the previous round
 is at least $-2\theta$, the above step increases the reduced cost of all
-forward arcs by $\theta$, and the reduced cost of all forward arcs is at least
-$-\theta$.
+forward arcs to at least $-\theta$.
+%by $\theta$, and the reduced cost of all forward arcs is at least $-\theta$.
 
 Next, for each backward arc $\arc wv$ in $N_f$ with $c_\pi(\arc wv) < -\theta$,
-we set $f(\arc vw) = 0$ (that is, make arc $\arc vw$ idle), which replaces the
-backward arc $\arc wv$ in $N_f$ with a forward arc of postive reduced cost.
+we set $f(\arc vw) \gets 0$ (that is, make arc $\arc vw$ idle), which replaces the
+backward arc $\arc wv$ in $N_f$ with forward arc $\arc vw$ of positive reduced cost.
 After this step, the resulting pseudoflow must be $\theta$-optimal as all arcs
 of $N_f$ have reduced cost at least $-\theta$.
 
@@ -893,9 +899,9 @@ therefore the time needed for \textsc{Scale-Init} is $O(n)$.
 The procedure \textsc{Refine} converts a $\theta$-optimal pseudoflow with
 $O(k)$ excess into a $\theta$-optimal circulation, using a primal-dual
 augmentation algorithm.
-A path in $N_f$ is an \EMPH{augmenting path} if it begins at an excess vertex
-and ends at a deficit vertex.
-We call an admissible pseudoflow $g$ in the residual network $N_f$ an
+A path in $N_f$ is an \EMPH{augmenting path} if it begins at an excess node
+and ends at a deficit node.
+We call an admissible pseudoflow $g$ in $N_f$ an
 \EMPH{admissible blocking flow} if $g$ saturates at least one arc in every
 admissible augmenting path in $N_g$.
 In other words, there is no admissible excess-deficit path in the residual
@@ -905,17 +911,17 @@ to the current pseudoflow in two steps:
 \begin{enumerate}
 \item
 \EMPH{Hungarian search}: a Dijkstra-like search that begins at the set of
-excess vertices and raises potentials until there is an excess-deficit path
+excess nodes and raises potential until there is an excess-deficit path
 of admissible arcs in $N_f$.
 \item
-\EMPH{Augmentation}: using depth-first search through the set of admissible
-arcs of $N_f$, construct an admissible blocking flow.
+\EMPH{Augmentation}: construct an admissible blocking flow by performing
+depth-first search on the set of admissible arcs of $N_f$.
 It suffices to repeatedly extract admissible augmenting paths until no more
 admissible excess-deficit paths remain.
 \end{enumerate}
 The algorithm repeats these steps until the total excess becomes zero.
 The following lemma bounds the number of iterations in the \textsc{Refine}
-procedure at each scale.
+procedure at each round.
 
 \begin{lemma}
 \label{lemma:refine_iters}
@@ -925,35 +931,36 @@ circulation with respect to $\pi_0$.
 Let $f$ be a $\theta$-optimal pseudoflow with excess $O(k)$.
 Then \textsc{Refine} terminates within $O(\sqrt{k})$ iterations.
 \end{lemma}
+
 \begin{proof}
-We sketch the proof, which is adapted from \cite{GHKT17}.
+We sketch the proof, which is adapted from Goldberg \etal~\cite{GHKT17}.
 Let $f_0$ be the assumed $2\theta$-optimal integral circulation with respect to $\pi_0$,
-and let $\pi$ be the potentials maintained and changing during \textsc{Refine}.
-Let $d(v) = (\pi(v) - \pi_0(v))/\theta$, i.e.\ the increase in potential
+and let $\pi$ be the potential maintained during \textsc{Refine}.
+Let $\EMPH{$d(v)$} = (\pi(v) - \pi_0(v))/\theta$, that is, the increase in potential
 at $v$ in units of $\theta$.
 We divide the iterations of \textsc{Refine} into two phases: before and after
-every (remaining) excess vertex has $d(v) \geq \sqrt{k}$.
-Each Hungarian search raises excess potentials by at least $\theta$,
+every (remaining) excess node has $d(v) \geq \sqrt{k}$.
+Each Hungarian search raises excess potential by at least $\theta$,
 since we use blocking flows.
 Thus, the first phase lasts at most $\sqrt{k}$ iterations.
 
 At the start of the second phase, consider the set of arcs
-$E^+ = \{\arc vw \in \vec{E} \mid f(\arc vw) < f_0(\arc vw)\}$.
+$\EMPH{$E^+$} \coloneqq \{\arc vw \in \vec{E} \mid f(\arc vw) < f_0(\arc vw)\}$ \note{notation?}.
 One can argue that the remaining excess with respect to $f$ is bounded above by
-the size of any cut separating the excess and deficit vertices.
-The proof examines cuts $Y_i = \{v \mid d(v) > i\}$ for $0 \leq i \leq \sqrt{k}$.
+the size of any cut separating the excess and deficit nodes. \note{Citation}
+The proof examines cuts $\EMPH{$Y_i$} \coloneqq \{v \mid d(v) > i\}$ for $0 \leq i \leq \sqrt{k}$.
 By $\theta$-optimality of $f$ and $2\theta$-optimality of $f_0$, one can show
 that each arc in $E^+$ crosses at most 3 cuts.
 Furthermore, the size of $E^+$ is $O(k)$, bounded by the support size of $f$ and $f_0$.
-Averaging, there is a cut among the $Y_i$ of size at most $3k/\sqrt{k}$,
+Averaging, there is a cut among $Y_i$s of size at most $3k/\sqrt{k}$,
 so the total excess remaining is $O(\sqrt{k})$.
 Each iteration of $\textsc{Refine}$ eliminates at least one unit of excess,
 so the number of second phase iterations is also at most $O(\sqrt{k})$.
 \end{proof}
 
-In the next subsection we show that after $O(n\polylog n)$ preprocessing,
+In the next subsection we show that after $O(n\polylog n)$ time preprocessing,
 an iteration of \textsc{Refine} can be performed in $O(k\polylog n)$ time
-(cf. Lemma~\ref{lemma:refine_iter_time}).
+(Lemma~\ref{lemma:refine_iter_time}).
 By Lemma~\ref{lemma:refine_iters} and the fact the algorithm terminates in
 $O(\log(n/\eps))$ rounds, the overall running time of the algorithm is
 $O((n + k^{3/2})\polylog n \log(1/\eps))$, as claimed in Theorem~\ref{theorem:gmcm}.
@@ -964,18 +971,18 @@ $O((n + k^{3/2})\polylog n \log(1/\eps))$, as claimed in Theorem~\ref{theorem:gm
 We now describe a fast implementation of the refinement stage.
 The Hungarian search and augmentation steps are similar:
 each traversing through the residual network using admissible arcs starting
-from the excess vertices.
+from the excess nodes.
 Due to lack of space, we only describe the Hungarian search process.
 
-At a high level, let $X$ be the subset of nodes visited by the Hungarian search
+At a high level, let \EMPH{$X$} be the subset of nodes visited by the Hungarian search
 so far.
 Initially $X$ is the set of excess nodes.
-At each step, the algorithm finds a minimum reduced cost arc $\arc vw$ in $N_f$
+At each step, the algorithm finds a minimum-reduced-cost arc $\arc vw$ in $N_f$
 from $X$ to $V \setminus X$.
 If $\arc vw$ is not admissible, the potential of all nodes in $X$ is increased
 by $\Ceil{c_\pi(\arc vw)/\theta}$ to make $\arc vw$ admissible.
 If $w $ is a deficit node, the search terminates.
-Othwerise, $w$ is added to $X$ and the search continues.
+Otherwise, $w$ is added to $X$ and the search continues.
 
 Implementing the Hungarian search efficiently is more difficult than in
 Section~\ref{section:hung} because (a) excess nodes may show up in $A$ as well as in $B$,
@@ -984,77 +991,77 @@ and (c) the potential of excess nodes may be non-uniform.
 We therefore need a more complex data structure.
 
 We call a node $v$ of $N$ \EMPH{dead} if $\fsupply_f(v) = 0$ and no arc of
-$\supp(f)$ is incident to it; otherwise $v$ is \EMPH{alive}.
-We note that $s$ and $t$ are always alive.
-Let $\alive{A}$ (resp.\ $\alive{B}$, $\alive{X}$) denote the set of
-alive nodes of $A$ (resp.\ $B$, $X$).
+$\supp(f)$ is incident to $v$; otherwise $v$ is \EMPH{alive}.
+Note that $s$ and $t$ are always alive.
+Let \EMPH{$\alive{A}$} denote the set of alive nodes in $A$; define \EMPH{$\alive{B}$} similarly.
 There are only $O(k)$ alive nodes, as each can be charged to its
 adjoining $\supp(f)$ arcs or its excess/deficit.
 We treat alive and dead nodes separately to implement the Hungarian search
 efficiently.
-By definition, dead vertices only adjoin forward arcs in $N_f$.
+By definition, dead nodes only adjoin forward arcs in $N_f$.
 Thus, the in-degree (resp.\ out-degree) of a node in $\dead{A}$ (resp.\ $\dead{B}$)
-is 1, and any path passing through an dead vertex has a subpath of the form
+is 1, and any path passing through an dead node has a subpath of the form
 $s \arcto v \arcto b$ for some $b \in B$ or $a \arcto v \arcto t$ for some $a \in A$.
 Consequently, a path in $N_f$ may have at most two consecutive dead nodes,
 and in the case of two consecutive dead nodes there is a subpath of the
 form $s \arcto v \arcto w \arcto t$ where $v \in \dead{A}$ and $w \in \dead{B}$.
 We will call such paths, from an alive node to an alive node
-with only dead interior nodes, \EMPH{alive-alive paths}.
-We extend the notions of reduced cost and admissibility to alive-alive paths,
-where the reduced cost of the path is the sum of its edges.
-Since reduced costs telescope, the reduced cost of an alive-alive path
-depends only on the potentials at its (alive) endpoints.
+with only dead interior nodes, \EMPH{alive paths}.
+We extend the notions of reduced cost and admissibility to alive paths,
+where the reduced cost of a path is the sum of reduced costs of its edges.
+Since reduced costs telescope, the reduced cost of an alive path
+depends only on the potential at its (alive) endpoints.
 
 Using this observation, we implement the Hungarian search to ``skip over''
 dead nodes, while logically exploring the same alive nodes in the same order.
-Alive-alive paths may have length 1 (no dead interior nodes), 2, or 3.
-At each step, we find a minimum reduced cost alive-alive path $\Pi$ from an
-alive node of $X$ to an alive node of $V \setminus X$, and add the nodes of
-this path into $X$ in a single step.
-We update potentials in $X$ according to the reduced cost of the path.
+Alive paths may have length 1 (no dead interior nodes), 2, or 3.
+At each step, we find a minimum-reduced-cost alive path $\Pi$ from an
+alive node of $X$ to an alive node of $V \setminus X$, and add the nodes
+of $\Pi$ into $X$ in a single step.
+We update potential in $X$ according to the reduced cost of the path.
 There are $O(k)$ alive nodes, so the number of minimization queries per
 Hungarian search is $O(k)$.
 
-We find the minimum reduced cost alive-alive path of length $1$, $2$, and $3$,
+We find the minimum-reduced-cost alive path of length $1$, $2$, and $3$,
 and then choose the cheapest among them.
 We now describe a data structure for each path length.
 For each data structure, our ``time budget'' per Hungarian search is $O(k\polylog n)$.
 
 \paragraph{Finding length-1 paths.}
-This data structure finds a minimum reduced cost arc from an alive node of
+This data structure finds a min-reduced-cost arc from an alive node of
 $X$ to an alive node of $V \setminus X$.
 There are $O(k)$ backward arcs, so the minimum among backward arcs can be
-maintained explicitly in a priority queue on $c_\pi$ and retrieved in $O(1)$ time.
+maintained explicitly in a priority queue and retrieved in $O(1)$ time.
 
 There are three types of forward arcs: $\arc sa$ for some $a \in \alive{A}$,
 $\arc bt$ for some $b \in \alive{B}$, and bipartite arc $\arc ab$ with two
 alive endpoints.
-Edges of the first (resp.\ second) type can be found by maintaining
-$\alive{A} \setminus X$ (resp.\ $\alive{B} \cap X$) in a priority queues
-on $\pi$, but should only be queried if $s \in X$ (resp.\ $t \not\in X$).
+Arcs of the first (resp.\ second) type can be found by maintaining
+$\alive{A} \setminus X$ (resp.\ $\alive{B} \cap X$) in a priority queue,
+but should only be queried if $s \in X$ (resp.\ $t \not\in X$).
 %
-The cheapest arc of the third type is an (additively weighted) bichromatic
-closest pair (BCP) between $\alive{A} \cap X$ and $\alive{B} \setminus X$,
-with reduced cost as the pair distance \note{potentials?}.
+The cheapest arc of the third type can be maintained using a dynamic
+(additively weighted) bichromatic closest pair (BCP) data structure between
+$\alive{A} \cap X$ and $\alive{B} \setminus X$,
+with reduced cost as the weighted pair distance.
 %Indeed, since each arc has unit capacity, it can be shown that there is no
 %backward arc in $N_f$ from $\alive{B} \setminus X$ to $\alive{A} \cap X$.
-We thus maintain $\alive{A} \cap X$, $\alive{B} \setminus X$ in a dynamic
-BCP data structure \cite{KMRSS17} on which insertions/deletions can be performed
-in $O(\polylog k)$ time.
+Such BCP data structure can be implemented so that insertions/deletions can be performed
+in $O(\polylog k)$ time \cite{KMRSS17}.
 
 \paragraph{Finding length-2 paths.}
-We describe how to find the cheapeast path of the form $s \arcto v \arcto b$ where
+We describe how to find the cheapest path of the form $s \arcto v \arcto b$ where
 $v$ is dead and $b \in \alive{B}$.
 A cheapest path of the form $a \arcto v \arcto t$ can be found similarly.
-As for length-1 paths, we only query paths originating from $s$ if $s \in X$,
-and only query paths ending at $t$ if $t \not\in X$.
+Similar to length-1 paths, we only query paths originating from $s$ if $s \in X$
+and paths ending at $t$ if $t \not\in X$.
 
 Note that $c_\pi(s \arcto v \arcto b) = c(v, b) + \pi(b) - \pi(s)$.
-Since $\pi(s)$ is common in all such paths, it suffices to find the pair minimizing
-\[
-\min_{v \in \dead{A}, w \in \alive{B} \setminus X} c(v, w) + \pi(w)
-\]
+Since $\pi(s)$ is common in all such paths, it suffices to find a pair $(v,w)$ between
+$\dead{A}$ and $\alive{B} \setminus X$ minimizing $c(v, w) + \pi(w)$.
+% \[
+% \min_{v \in \dead{A}, w \in \alive{B} \setminus X} c(v, w) + \pi(w)
+% \]
 This is done by maintaining a dynamic BCP data structure between
 $\dead{A}$ and $\alive{B} \setminus X$ with
 the cost of a pair $(v, w)$ being $c(v, w) + \pi(w)$.
@@ -1063,74 +1070,75 @@ Hungarian search, of which there are $O(k)$, so the time spent during a search
 is $O(k\polylog n)$.
 
 Since the size of $\dead{A}$ is at least $r-k$, we cannot
-construct this BCP from scratch at the beginning of each iteration of Hungarian search.
+construct this BCP from scratch at the beginning of each iteration.
 To resolve this, we use the idea of rewinding from Section~\ref{section:hung},
 with a slight twist.
 There are now \emph{two} ways that the initial BCP may change across
-consecutive Hungarian searches: (1) the initial set $X$ may change as vertices
-lose excess through augmentation, and (2) the set of dead $A$ vertices may
-change; that is, when flow is augmented across a vertex of $\dead{A}$.
+consecutive Hungarian searches: (1) the initial set $X$ may change as nodes
+lose excess through augmentation, and (2) the set of alive/dead nodes in $A$ may
+change.
+%which happens when flow is augmented across a node in $\dead{A}$.
 The first is identical to the situation in Section~\ref{section:hung};
 the number of excess depletions is $O(k)$ over the course of \textsc{Refine}.
 For the second, the alive/dead status of a node can change only if the
-blocking flow found in the augmentation process passes through it.
-By Lemma~\ref{lemma:cost_scale_count}(\ref{item:blocking_incidences}) below, there are $O(k)$ such changes.
+blocking flow found passes through the node.
+By Lemma~\ref{lemma:cost_scale_count} below, there are $O(k)$ such changes.
 Thus, updating $\dead{A}$ for the BCP (after augmentation)
-can be done in $O(k\polylog n)$ time for each Hungarian search.
+can be done in $O(k\polylog n)$ time per Hungarian search.
 
 \paragraph{Finding length-3 paths.}
 We now describe how to find the cheapest path of the form $s \arcto v \arcto w \arcto t$
 where $v \in \dead{A}$ and $w \in \dead{B}$.
 Note that $c_\pi(s \arcto v \arcto w \arcto t) = c(\arc vw) - \pi(s) + \pi(t)$.
-Hence, we need to find a BCP between $\dead{A}$ and $\dead{B}$,
-where the cost of a pair $(v, w)$ is simply $c(v, w)$.
-This can be done by maintaining a dynamic BCP data structure similar to the
+A pair $(v, w)$ between $\dead{A}$ and $\dead{B}$ minimizing $c(v, w)$
+can be found by maintaining a dynamic BCP data structure similar to the
 case of length-2 paths.
 
-The BCP sets have no dependence on $X$ --- the only updates required come from
-membership changes to $\alive{A}$ or $\alive{B}$, after an augmentation.
-Applying Lemma~\ref{lemma:cost_scale_count}(\ref{item:blocking_incidences}) again,
+The BCP data structure have no dependency on $X$---the only update required comes from
+membership changes to $\alive{A}$ or $\alive{B}$ after an augmentation.
+Applying Lemma~\ref{lemma:cost_scale_count} again,
 there are $O(k)$ alive/dead updates caused by an augmentation, so the time for
 these updates per Hungarian search is $O(k\polylog n)$.
 
-\paragraph{Updating potentials.}
-The Hungarian search periodically raises the potentials for all nodes in $X$,
-and we need to implement this efficiently for the data structures above.
-Note that the data structures above do not utilize potentials of dead nodes.
-Potentials for alive nodes can be updated in a batched fashion using the
+\paragraph{Updating potential.}
+The Hungarian search periodically raises the potential for all nodes in $X$,
+and we need to an efficient implementation for the data structures above.
+Potential for alive nodes can be updated in a batched fashion using the
 method in Section~\ref{section:hung}.
 
-For dead nodes, we ignore their potentials entirely and instead recover
-``valid'' potentials for them once they switch from dead to alive
-(and additionally, at the end of a round).
+For dead nodes, notice that our data structures do not utilize their potential.
+We therefore ignore them entirely and instead recover
+``valid'' potential for them once they switch from dead to alive
+(and additionally, at the end of each round).
 Specifically, for a newly alive $a \in A$ we set $c_\pi(a) \gets c_\pi(s)$
-and for newly-alive $b \in B$ we set $c_\pi(b) \gets c_\pi(t)$.
-Formally, we will say an alive-alive path is \EMPH{strongly admissible}
-under $\pi$ if all of its arcs are admissible under $\pi$.
-For correctness, we need to show that our choice of recovered potentials
-(1) preserves $\theta$-optimality and (2) makes any admissible alive-alive
-path from before augmentation strongly admissible.
+and for newly alive $b \in B$ we set $c_\pi(b) \gets c_\pi(t)$.
+% Formally, we say an alive path is \EMPH{strongly admissible}
+% under $\pi$ if all of its arcs are admissible under $\pi$.
+For correctness, we need to show that our choice of recovered potential
+(1) preserves $\theta$-optimality and (2) makes any admissible alive
+path from before augmentation admissible. \note{unparsible}
 It is a straightforward calculation to verify that both properties hold.
 
 The following lemmas are crucial to analyzing the running time of the Hungarian search.
 
 \begin{lemma}
 \label{lemma:cost_scale_count}
-\begin{enumerate}
-\item \label{item:cost_scale_relaxations}
-	Both the Hungarian search and augmentation step explore $O(k)$ nodes.
-\item \label{item:blocking_incidences}
-	The blocking flow found by augmentation is incident to $O(k)$ vertices.
-\end{enumerate}
+Both Hungarian search and Augmentation explore $O(k)$ nodes, and the blocking flow found by Augmentation is incident to $O(k)$ nodes.
+% \begin{enumerate}[(i)]
+% \item \label{item:cost_scale_relaxations}
+% 	Both the Hungarian search and the Augmentation steps explore $O(k)$ nodes.
+% \item \label{item:blocking_incidences}
+% 	The blocking flow found by augmentation is incident to $O(k)$ nodes.
+% \end{enumerate}
 \end{lemma}
 
 Augmentation can also be implemented in $O(k\polylog n)$ time, after
-$O(n\polylog n)$ preprocessing, using similar data structures.
+$O(n\polylog n)$ time preprocessing, using similar data structures.
 We thus obtain the following:
 
 \begin{lemma}
 \label{lemma:refine_iter_time}
-After $O(n\polylog n)$ preprocessing, each iteration of \textsc{Refine} can be
+After $O(n\polylog n)$ time preprocessing, each iteration of \textsc{Refine} can be
 implemented in $O(k\polylog n)$ time.
 \end{lemma}
 
@@ -1157,7 +1165,7 @@ implementation to achieve the desired running time.
 
 Orlin's algorithm follows an excess-scaling paradigm and the primal-dual framework.
 It maintains a \EMPH{scale parameter} $\Delta$, a flow function $f$, and
-potentials $\pi$ on the nodes.
+potential $\pi$ on the nodes.
 Initially $\Delta = \fsupply(A)$, $f = 0$, and $\pi = 0$.
 We fix a constant parameter $\alpha \in (0.5, 1)$.
 A node $v$ is called \EMPH{active} if $\abs{\fsupply_f(v)} \geq \alpha\Delta$.
