@@ -394,8 +394,7 @@ so na\"ively we can no longer spend time proportional to the size of
 support of the transportation map.
 However, with careful implementation we ensure that the support is acyclic,
 and one can find an augmenting path in $O(r\sqrt{n} \polylog n)$ time with
-proper data structures, assuming $r \leq \sqrt{n}$.
-%\note{Do we need this condition for data structures?}
+proper data structures, assuming $r \leq \sqrt{n}$. \note{Do we need this condition for data structures?}
 
 
 % ----------------------------------------------------------------------------
@@ -510,13 +509,13 @@ Note that the ``state'' of this BCP is parameterized by $X$ and $\pi$.
 %\note{Under the assumption ... on the metric,}
 The dynamic BCP data structure by Kaplan \etal~\cite{KMRSS17} supports point insertions and deletions in
 $O(\polylog n)$ time and answers queries in $O(\log^2 n)$ time for our setting.
-Each relaxation in the Hungarian search requires
-one query, one deletion, and at most one insertion (aside from the potential updates).
+Outside of potential updates, each relaxation in the Hungarian search requires
+one query, one deletion, and at most one insertion.
 As $\abs{M} \leq k$ throughout, there are at most $2k$ relaxations in each
 Hungarian search, and the BCP can be used to implement each Hungarian search
 in $O(k\polylog n)$ time.
-%Explained shortly, there is an existing technique to handle potential updates
-%without performing BCP updates for each one \note{?}.
+Explained shortly, there is an existing technique to handle potential updates
+without performing BCP updates for each one \note{?}.
 
 \paragraph{Rewinding mechanism.}
 % In the beginning of each iteration,
@@ -567,8 +566,7 @@ When $b \in B$ is added to $X$, we update its stored value to $\pi(b) - \delta$
 When a node is removed from $X$ (e.g.\ by augmentation or rewinding), we update
 the stored potential $\gamma(v) \gets \pi(v) + \delta$, again for the current
 value of $\delta$.
-Unlike Vaidya~\cite{Vaidya89}, we do not reset $\delta$ across Hungarian searches
-for the sake of rewinding.
+Unlike Vaidya~\cite{Vaidya89}, we do not reset $\delta$ across Hungarian searches.
 
 There are $O(k)$ relaxations and thus $O(k)$ updates to $\delta$ per Hungarian search.
 $O(k)$ stored values are updated per rewinding, so the time spent on potential
@@ -790,7 +788,7 @@ Then, $\cost(f) \leq \cost(f^*) + 6k\theta$.
 
 \paragraph{Estimating the value of \textbf{$\boldmath \cost(f^*)$}.}
 We now describe a procedure for estimating $\cost(f^*)$ within a polynomial factor,
-which is used to initialize the cost-scaling algorithm.
+which will be useful in setting the scaling parameters of the cost-scaling algorithm.
 
 Let \EMPH{$T$} be a minimum spanning tree of $A \cup B$ under the cost function $c$.
 Let $e_1, e_2, \ldots, e_{n-1}$ be the edges of $T$ sorted in nondecreasing order
@@ -821,7 +819,7 @@ Then
 	$\fsupply(t) = -k$, and $\fsupply(v) = 0$ for all $v \in A \cup B$.
 \end{enumerate}
 \end{lemma}
-
+%
 As a consequence of Lemmas~\ref{lemma:starting_scale}(\ref{item:starting_scale2})
 and \ref{lemma:goldberg_cost_add}, we have:
 %
@@ -832,8 +830,10 @@ most $(1+\eps) \cost(f^*)$,
 where $\EMPH{$\underline{\theta}$} \coloneqq \frac{\eps}{6k} \cdot c(e_{i^*})$.
 \end{corollary}
 
+We are now ready to describe our algorithm.
+
 \paragraph{Overview of the algorithm.}
-We are now ready to describe our algorithm, which closely follows Goldberg \etal~\cite{GHKT17}.
+We closely follow the algorithm of Goldberg \etal~\cite{GHKT17}.
 The algorithm works in rounds.
 In the beginning of each round, we fix a \EMPH{cost scaling parameter}
 \EMPH{$\theta$} and maintain potential $\pi$ with the following property:
@@ -868,18 +868,19 @@ matching of size $k$ in $G$.
 The algorithm terminates in
 $\log_2(\overline{\theta}/\underline{\theta}) = O(\log(n/\eps))$ rounds.
 
-%Next, we describe the two stages in detail.
+Next, we describe the two stages in detail.
 
 \paragraph{Scale initialization.}
 In the first round, we compute a $\overline{\theta}$-optimal pseudoflow by
 simply setting $f(\arc vw) \gets 0$ for all arcs in $\vec{E}$.
-For subsequent rounds, we begin with a $2\theta$-optimal circulation $f$ in $N$.
-First, we raise the potential of all nodes in $A$ by $\theta$, all nodes in $B$ by $2\theta$,
-and $t$ by $3\theta$.
-The potential of $s$ is unchanged.
+For subsequent rounds, we adjust the potential and flow in $N$ as follows:
+we raise the potential of all nodes in $A$ by $\theta$, those in $B$ by $2\theta$,
+and of $t$ by $3\theta$.
+The potential of $s$ remains unchanged.
 %
-Such potential change increases the reduced cost of all forward arcs to at least
-$-\theta$.
+Since the reduced cost of every forward arc in $N_f$ after the previous round
+is at least $-2\theta$, the above step increases the reduced cost of all
+forward arcs to at least $-\theta$.
 %by $\theta$, and the reduced cost of all forward arcs is at least $-\theta$.
 
 Next, for each backward arc $\arc wv$ in $N_f$ with $c_\pi(\arc wv) < -\theta$,
@@ -892,7 +893,7 @@ The desaturation of each backward arc creates one unit of excess.
 Since there are at most $3k$ backward arcs, the total excess in the resulting
 pseudoflow is at most $3k$.
 There are $O(n)$ potential updates and $O(k)$ arcs on which flow might change,
-therefore the time required for \textsc{Scale-Init} is $O(n)$.
+therefore the time needed for \textsc{Scale-Init} is $O(n)$.
 
 \paragraph{Refinement.}
 The procedure \textsc{Refine} converts a $\theta$-optimal pseudoflow with
@@ -944,9 +945,9 @@ since we use blocking flows.
 Thus, the first phase lasts at most $\sqrt{k}$ iterations.
 
 At the start of the second phase, consider the set of arcs
-$\EMPH{$E^+$} \coloneqq \{\arc vw \in \vec{E} \mid f(\arc vw) < f_0(\arc vw)\}$.
+$\EMPH{$E^+$} \coloneqq \{\arc vw \in \vec{E} \mid f(\arc vw) < f_0(\arc vw)\}$ \note{notation?}.
 One can argue that the remaining excess with respect to $f$ is bounded above by
-the size of any cut separating the excess and deficit nodes \cite[Lemma~4]{GHKT17}.
+the size of any cut separating the excess and deficit nodes. \note{Citation}
 The proof examines cuts $\EMPH{$Y_i$} \coloneqq \{v \mid d(v) > i\}$ for $0 \leq i \leq \sqrt{k}$.
 By $\theta$-optimality of $f$ and $2\theta$-optimality of $f_0$, one can show
 that each arc in $E^+$ crosses at most 3 cuts.
@@ -964,14 +965,14 @@ By Lemma~\ref{lemma:refine_iters} and the fact the algorithm terminates in
 $O(\log(n/\eps))$ rounds, the overall running time of the algorithm is
 $O((n + k^{3/2})\polylog n \log(1/\eps))$, as claimed in Theorem~\ref{theorem:gmcm}.
 
-\subsection{Fast implementation of refinement stage}
+\subsection{Fast implementation of refinement}
 \label{SS:fast_refine}
 
-We now describe a fast implementation of \textsc{Refine}.
+We now describe a fast implementation of the refinement stage.
 The Hungarian search and augmentation steps are similar:
 each traversing through the residual network using admissible arcs starting
 from the excess nodes.
-Due to lack of space, we only describe the former.
+Due to lack of space, we only describe the Hungarian search process.
 
 At a high level, let \EMPH{$X$} be the subset of nodes visited by the Hungarian search
 so far.
@@ -989,7 +990,6 @@ Section~\ref{section:hung} because (a) excess nodes may show up in $A$ as well a
 and (c) the potential of excess nodes may be non-uniform.
 We therefore need a more complex data structure.
 
-%TODO i think this might be able to be compressed
 We call a node $v$ of $N$ \EMPH{dead} if $\fsupply_f(v) = 0$ and no arc of
 $\supp(f)$ is incident to $v$; otherwise $v$ is \EMPH{alive}.
 Note that $s$ and $t$ are always alive.
@@ -1000,12 +1000,12 @@ We treat alive and dead nodes separately to implement the Hungarian search
 efficiently.
 By definition, dead nodes only adjoin forward arcs in $N_f$.
 Thus, the in-degree (resp.\ out-degree) of a node in $\dead{A}$ (resp.\ $\dead{B}$)
-is 1, and any path passing through a dead node has a subpath of the form
+is 1, and any path passing through an dead node has a subpath of the form
 $s \arcto v \arcto b$ for some $b \in B$ or $a \arcto v \arcto t$ for some $a \in A$.
 Consequently, a path in $N_f$ may have at most two consecutive dead nodes,
 and in the case of two consecutive dead nodes there is a subpath of the
 form $s \arcto v \arcto w \arcto t$ where $v \in \dead{A}$ and $w \in \dead{B}$.
-We call such paths, from an alive node to an alive node
+We will call such paths, from an alive node to an alive node
 with only dead interior nodes, \EMPH{alive paths}.
 We extend the notions of reduced cost and admissibility to alive paths,
 where the reduced cost of a path is the sum of reduced costs of its edges.
@@ -1083,9 +1083,8 @@ the number of excess depletions is $O(k)$ over the course of \textsc{Refine}.
 For the second, the alive/dead status of a node can change only if the
 blocking flow found passes through the node.
 By Lemma~\ref{lemma:cost_scale_count} below, there are $O(k)$ such changes.
-%Thus, updating $\dead{A}$ for the BCP (after augmentation)
-%can be done in $O(k\polylog n)$ time per Hungarian search.
-\note{time for updating $\dead{A}$?}
+Thus, updating $\dead{A}$ for the BCP (after augmentation)
+can be done in $O(k\polylog n)$ time per Hungarian search.
 
 \paragraph{Finding length-3 paths.}
 We now describe how to find the cheapest path of the form $s \arcto v \arcto w \arcto t$
@@ -1095,7 +1094,7 @@ A pair $(v, w)$ between $\dead{A}$ and $\dead{B}$ minimizing $c(v, w)$
 can be found by maintaining a dynamic BCP data structure similar to the
 case of length-2 paths.
 
-This BCP data structure has no dependency on $X$---the only update required comes from
+The BCP data structure have no dependency on $X$---the only update required comes from
 membership changes to $\alive{A}$ or $\alive{B}$ after an augmentation.
 Applying Lemma~\ref{lemma:cost_scale_count} again,
 there are $O(k)$ alive/dead updates caused by an augmentation, so the time for
@@ -1116,11 +1115,11 @@ and for newly alive $b \in B$ we set $c_\pi(b) \gets c_\pi(t)$.
 % Formally, we say an alive path is \EMPH{strongly admissible}
 % under $\pi$ if all of its arcs are admissible under $\pi$.
 For correctness, we need to show that our choice of recovered potential
-(1) preserves $\theta$-optimality and (2) makes any alive path used by the most
-recent blocking flow admissible (in the sense that all arcs in the path is admissible). \note{better phrasing}
-Straightforward calculation verifies both properties.
+(1) preserves $\theta$-optimality and (2) makes any admissible alive
+path from before augmentation admissible. \note{unparsible}
+It is a straightforward calculation to verify that both properties hold.
 
-The following lemma is crucial to the analysis of running time for the Hungarian search.
+The following lemmas are crucial to analyzing the running time of the Hungarian search.
 
 \begin{lemma}
 \label{lemma:cost_scale_count}
@@ -1179,11 +1178,11 @@ The sequence of augmentations with a fixed value of $\Delta$ is called an
 \EMPH{excess scale}.
 
 The algorithm also performs two preprocessing steps at the beginning of each excess scale.
-First, if $f(\arc vw) \geq 3n\Delta$, $\arc vw$ is contracted to a single node $z$ with
+If $f(\arc vw) \geq 3n\Delta$, $\arc vw$ is contracted to a single node $z$ with
 $\fsupply(z) = \fsupply(v) + \fsupply(w)$.%
 \footnote{Intuitively, $f(\arc vw)$ is so high that future scales cannot deplete
 the flow on $\arc vw$.}
-Second, if there are no active excess nodes and $f(\arc vw) = 0$ for all arcs, $\Delta$
+Additionally, if there are no active excess nodes and $f(\arc vw) = 0$ for all arcs, $\Delta$
 is lowered to $\max_v \fsupply(v)$.
 
 When the algorithm terminates, an optimal circulation in the
@@ -1215,13 +1214,13 @@ Still, we manage to implement Hungarian search in time $O(r\sqrt{n}\polylog n)$,
 by exploiting a few properties of $\supp(f)$ as described below.
 
 We note that each arc of $\supp(f)$ is admissible with reduced cost $0$,
-so we prioritize the relaxation of support arcs as soon as they arrive in
-$X \times (V \setminus X)$, over the non-support arcs.
+so we add an arc of $\supp(f)$ as soon as possible when it arrives in
+$X \times (V \setminus X)$.
 This strategy ensures the following crucial property.
 
 \begin{lemma}
 \label{lemma:supp_acyclic}
-If the support arcs $\supp(f)$ are relaxed as soon as possible, $\supp(f)$ is acyclic.
+If the arcs of $\supp(f)$ are added as soon as possible, $\supp(f)$ is acyclic.
 \end{lemma}
 
 Next, similar to Section~\ref{section:goldberg}, we call node $u$
@@ -1239,7 +1238,11 @@ alive nodes, and update the set of alive nodes at the beginning of a scale.
 
 Let $\EMPH{$B^\star$} \subseteq \alive{B}$ be the set of nodes that are either (a) active
 excess/deficit nodes or (b) incident to \emph{exactly one} arc of $\supp(f)$.
-Lemma~\ref{lemma:supp_acyclic} implies that $\alive{B} \setminus B^\star$ has size $O(r)$.
+Lemma~\ref{lemma:supp_acyclic} implies the following:
+
+\begin{lemma}
+$\alive{B} \setminus B^\star$ has size $O(r)$.
+\end{lemma}
 
 We can therefore find the min-reduced-cost arc between $X \cap \alive{A}$ and $\alive{B} \setminus (B^\star \cup X)$
 using a BCP data structure as in Section~\ref{section:hung}, along with lazy
@@ -1260,9 +1263,9 @@ We refer to $B_a^\star$ as the \EMPH{star} of $a$.
 
 The crucial observation is that $a$ is the only node in $N_f$ reachable from
 each $b \in B_a^\star$, so once the Hungarian search reaches a node of $B_a^\star$ and thus
-$a$ (recall we prioritize relaxing support arcs), the Hungarian search need
+$a$ (recall we prioritize adding $\supp(f)$ arcs), the Hungarian search need
 not visit any other nodes of $B_a^\star$, as they will only lead to $a$.
-Hence, as soon as one node of $B_a^\star$ is reached, all other nodes of $B_a^\star$ can be
+Hence, as soon as one node of $B_a^\star$ is reached, all other nodes of $B_a^\star$ are
 discarded from further consideration.
 Using this observation, we handle $B^\star$ as follows.
 
@@ -1325,7 +1328,7 @@ Each Hungarian search can be performed in $O(r\sqrt{n}\polylog n)$ time.
 \end{lemma}
 
 Since there are $O(n\log n)$ augmentations and the flow in the original network
-can be recovered from that in the contracted network in $O(n\polylog n)$
+can be recovered from that in the contracted network in $O(n\log n)$
 time~\cite{AFPVX17}, the total running time of the algorithm is
 $O(rn^{3/2}\polylog n)$, as claimed in Theorem~\ref{theorem:orlin}.
 
