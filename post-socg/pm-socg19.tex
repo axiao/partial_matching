@@ -1148,53 +1148,53 @@ implemented in $O(k\polylog n)$ time.
 \label{section:orlin}
 
 Given two point sets $A$ and $B$ in $\reals^2$ of sizes $r$ and $n$ respectively
-(with $r \leq \sqrt{n}$) and a supply-demand function $\tsupply: A \cup B \to \ints$
+and a supply-demand function $\tsupply: A \cup B \to \ints$
 as defined in the introduction, we present an $O(rn^{3/2}\polylog n)$ time
 algorithm for computing an optimal transport map between $A$ and $B$.
-By applying this algorithm in the case of $r \leq \sqrt{n}$ and the one in
-\cite{AFPVX17} when $r > \sqrt{n}$, we prove Theorem~\ref{theorem:orlin}.
-We use a standard reduction to the uncapacitated min-csot flow problem
-(see e.g. \cite{O93}) and use Orlin's algorithm~\cite{O93} as well as some of
-the ideas from \cite{AFPVX17}
-\note{The full version of the transportation paper is still not available anywhere.} %TODO
-for implementing it faster in geometric settings.
+By applying this algorithm in the case of $r \leq \sqrt{n}$ and the one by
+Agarwal \etal~\cite{AFPVX17} when $r > \sqrt{n}$, we prove Theorem~\ref{theorem:orlin}.
+We use a standard reduction to the uncapacitated min-cost flow problem and use
+Orlin's algorithm~\cite{O93} as well as some of
+the ideas from Agarwal \etal~\cite{AFPVX17}
+\note{Cite full version} %TODO
+for efficient implementation under the geometric settings.
 We first present an overview of the algorithm and then describe its fast
-implementation to achieve the desired running time.
+implementation that achieves the desired running time.
 
 \subsection{Overview of the algorithm}
 
 Orlin's algorithm follows an excess-scaling paradigm and the primal-dual framework.
 It maintains a \EMPH{scale parameter} $\Delta$, a flow function $f$, and
 potential $\pi$ on the nodes.
-Initially $\Delta = \fsupply(A)$, $f = 0$, and $\pi = 0$.
+Initially $\Delta = \fsupply(A)$ \note{undef?}, $f = 0$, and $\pi = 0$.
 We fix a constant parameter $\alpha \in (0.5, 1)$.
-A node $v$ is called \EMPH{active} if $\abs{\fsupply_f(v)} \geq \alpha\Delta$.
+A node $v$ is called \EMPH{active} if $\abs{\fsupply_f(v)} \geq \alpha\Delta$. \note{undef}
 At each step, using the Hungarian search, the algorithm finds an admissible
-active-excess-to-acitve-deficit path in the residual network and pushes a flow
-of $\Delta$ along this path.
+excess-to-deficit path between active nodes in the residual network and pushes a flow
+of amount $\Delta$ along this path.%
 \footnote{Note that this augmentation may convert an excess node into a deficit node.}
-It repeats this step as long as there are both active excess and active deficit nodes.
-When one of these sets becomes empty, $\Delta$ is halved.
+Repeat the process until either active excess or deficit nodes are gone; when this happens, $\Delta$ is halved.
 The sequence of augmentations with a fixed value of $\Delta$ is called an
 \EMPH{excess scale}.
 
 The algorithm also performs two preprocessing steps at the beginning of each excess scale.
 If $f(\arc vw) \geq 3n\Delta$, $\arc vw$ is contracted to a single node $z$ with
-$\fsupply(z) = \fsupply(v) + \fsupply(w)$.
+$\fsupply(z) = \fsupply(v) + \fsupply(w)$.%
 \footnote{Intuitively, $f(\arc vw)$ is so high that future scales cannot deplete
 the flow on $\arc vw$.}
-If there are no active excess nodes and $f(\arc vw) = 0$ for all arcs, $\Delta$
+Additionally, if there are no active excess nodes and $f(\arc vw) = 0$ for all arcs, $\Delta$
 is lowered to $\max_v \fsupply(v)$.
 
-When the algorithm terminates, it has found an optimal circulation in the
-contracted network.
-We use the algorithm described in \cite{AFPVX17} to recover an optimal
+When the algorithm terminates, an optimal circulation in the
+contracted network is found.
+We use the algorithm described in Agarwal~\etal~\cite{AFPVX17} to recover an optimal
 circulation in the original network.
 Orlin showed that the algorithm terminates within $O(n\log n)$ scales and
 performs a total of $O(n\log n)$ augmentations.
-In the next subsection, we describe an algorithm that after $O(n\polylog n)$
-preprocessing can perform a Hungarian search
-(i.e.\ find an excess-deficit admissible path)
+In the next subsection, we describe an algorithm that, after $O(n\polylog n)$ time
+preprocessing,
+%performs a Hungarian search
+finds an admissible excess-to-deficit path
 in $O(r\sqrt{n} \polylog n)$ amortized time.
 Summing this cost over all augmentations, we obtain the desired running time.
 
@@ -1207,13 +1207,13 @@ length of an augmenting path is also $O(r)$.
 Therefore one might hope to find an augmenting path in $O(r\polylog n)$ time,
 by adapting the algorithms described in Sections~\ref{section:hung} and
 \ref{section:goldberg}.
-The challenge to this approach is that $\supp(f)$ may have $\Omega(n)$ size,
-therefore an algorithm which runs in $O(\abs{\supp(f)})$ time is no longer
+The challenge is that $\supp(f)$ may have $\Omega(n)$ size,
+therefore an algorithm which runs in time proportional to the support size is no longer
 sufficient.
-Still, we manage to implement a Hungarian search in time roughly $r\sqrt{n}$,
+Still, we manage to implement Hungarian search in time $O(r\sqrt{n}\polylog n)$,
 by exploiting a few properties of $\supp(f)$ as described below.
 
-We note that each arc of $\supp(f)$ is admissible, i.e., its reduced cost is 0,
+We note that each arc of $\supp(f)$ is admissible with reduced cost $0$,
 so we add an arc of $\supp(f)$ as soon as possible when it arrives in
 $X \times (V \setminus X)$.
 This strategy ensures the following crucial property.
@@ -1223,84 +1223,84 @@ This strategy ensures the following crucial property.
 If the arcs of $\supp(f)$ are added as soon as possible, $\supp(f)$ is acyclic.
 \end{lemma}
 
-Next, similar to Section~\ref{section:goldberg}, we call a node $u \in V$
-\EMPH{alive} if $u$ is an active excess/deficit node or if $u$ is incident on
-an arc of $\supp(f)$.
-Otherwise, $u$ is called \EMPH{dead}.
-Unlike Section~\ref{section:goldberg}, once a node becomes alive it cannot
-become dead.
+Next, similar to Section~\ref{section:goldberg}, we call node $u$
+\EMPH{alive} if (a) $u$ is an active excess/deficit node or (b) if $u$ is incident to
+an arc of $\supp(f)$; $u$ is \EMPH{dead} otherwise.
+Unlike in Section~\ref{section:goldberg}, once a node becomes alive it cannot
+be dead again.
 Furthermore, a dead node may become alive only in the beginning of a scale
 (after we have reduced the value of $\Delta$).
-Unlike Section~\ref{section:goldberg}, an augmenting path cannot pass
-through a dead node.
+Also, an augmenting path cannot pass through a dead node.
 Therefore, we can ignore all dead nodes during Hungarian search, work with only
-alive nodes, and update the set of alive nodes in the beginning of a scale.
-For a subset $S \subseteq V$ of nodes, we use $\alive{S}$ to denote
-the set of alive nodes in $S$.
+alive nodes, and update the set of alive nodes at the beginning of a scale.
+%For a subset of nodes $S$, we use $\alive{S}$ to denote
+%the set of alive nodes in $S$. \note{move to front and remove the one here}
 
-Let $B^\star \subseteq \alive{B}$ be the set of nodes that are either active
-excess/deficit nodes or that are incident on at least two arcs of $\supp(f)$.
+Let $\EMPH{$B^\star$} \subseteq \alive{B}$ be the set of nodes that are either (a) active
+excess/deficit nodes or (b) incident to \emph{exactly one} arc of $\supp(f)$.
 Lemma~\ref{lemma:supp_acyclic} implies the following:
 
 \begin{lemma}
-$\abs{B^\star} = O(r)$.
+$\alive{B} \setminus B^\star$ has size $O(r)$.
 \end{lemma}
 
-We can therefore find the min reduced-cost arc $(X \cap \alive{A}) \times (B^\star \setminus X)$
+We can therefore find the min-reduced-cost arc between $X \cap \alive{A}$ and $\alive{B} \setminus (B^\star \cup X)$
 using a BCP data structure as in Section~\ref{section:hung}, along with lazy
 potential updates and the rewinding mechanism.
-The total time spent by Hungarian search on the nodes of $B^\star$ will be $O(r\polylog n)$.
-We subsequently focus on handling $\alive{B} \setminus B^\star$.
+The total time spent by Hungarian search on the nodes of $\alive{B} \setminus B^\star$ will be $O(r\polylog n)$.
+We subsequently focus on handling $B^\star$.
 
-\paragraph{Handling $\alive{B} \setminus B^\star$.}
-We now describe how we query a min reduced-cost arc between $(X \cap \alive{A})$
-and $\alive{B} \setminus (B^\star \cup X)$.
-Each node $b \in \alive{B} \setminus B^\star$ is incident on exactly one arc of
-$\supp(f)$ (i.e., there is only one outgoing arc from $b$).
-We partition these nodes into clusters depending on their neighbor in $N_f$.
+\paragraph{Handling $B^\star$.}
+We now describe how we query a min-reduced-cost arc between $X \cap \alive{A}$
+and $B^\star \setminus X$.
+Each node $b \in B^\star$ is incident to exactly one arc in
+$\supp(f)$.
+%(i.e., there is only one outgoing arc from $b$).
+We partition these nodes into clusters depending on their unique neighbor in $N_f$.
 That is, for a node $a \in \alive{A}$,
-let $B_a = \{b \in \alive{B} \setminus B^\star \mid {\arc ab} \in \supp(f)\}$.
-We refer to $B_a$ as the \EMPH{star} of $a$.
+let $\EMPH{$B_a^\star$} \coloneqq \{b \in B^\star \mid {\arc ab} \in \supp(f)\}$.
+We refer to $B_a^\star$ as the \EMPH{star} of $a$.
 
 The crucial observation is that $a$ is the only node in $N_f$ reachable from
-each $b \in B_a$, so once the Hungarian search reaches a node of $B_a$ and thus
+each $b \in B_a^\star$, so once the Hungarian search reaches a node of $B_a^\star$ and thus
 $a$ (recall we prioritize adding $\supp(f)$ arcs), the Hungarian search need
-not visit any other nodes of $B_a$, as they will only lead to $a$.
-Hence, as soon as one node of $B_a$ is reached, all other nodes of $B_a$ are
+not visit any other nodes of $B_a^\star$, as they will only lead to $a$.
+Hence, as soon as one node of $B_a^\star$ is reached, all other nodes of $B_a^\star$ are
 discarded from further consideration.
-Using this observation, we handle $\alive{B} \setminus B^\star$ as follows.
+Using this observation, we handle $B^\star$ as follows.
 
-We classify each $a \in \alive{A}$ as \EMPH{light} or \EMPH{heavy}.
-If $a$ is classified as heavy then $\abs{B_a} \geq \sqrt{n}$,
-and if $a$ is classified as light then $\abs{B_a} \leq 2\sqrt{n}$.
-Note that if $\abs{B_a} \in [\sqrt{n}, 2\sqrt{n}]$, then $a$ may be classified
+We classify each $a \in \alive{A}$ as \EMPH{light} or \EMPH{heavy}:
+heavy if $\abs{B_a^\star} \geq \sqrt{n}$,
+and light if $\abs{B_a^\star} \leq 2\sqrt{n}$.
+Note that if $\sqrt{n} \leq \abs{B_a^\star} \leq 2\sqrt{n}$ then $a$ may be classified
 as light or heavy.
-We allow this flexibility to allow re-classification in a lazy manner.
-Namely, a light node is re-classified heavy once $\abs{B_a} > 2\sqrt{n}$,
-and a heavy node is re-classified light once $\abs{B_a} < \sqrt{n}$.
+We allow this flexibility to implement reclassification in a lazy manner.
+Namely, a light node is reclassified as heavy once $\abs{B_a^\star} > 2\sqrt{n}$,
+and a heavy node is reclassified as light once $\abs{B_a^\star} < \sqrt{n}$.
 This scheme ensures that the star of $a$ has gone through at least $\sqrt{n}$
-updates (insertion/deletion of nodes) between two successive re-classifications,
+updates between two successive reclassifications,
 and these updates will pay for the time spent in updating the data structure
-when $a$ is re-classified --- see below.
+when $a$ is re-classified.
+%--- see below.
 
 For each heavy node $a \in \alive{A} \setminus X$, we maintain a BCP data
-structure between $B_a$ and $X \cap \alive{A}$.
-Next, for all light $a \in \alive{A} \setminus X$, we collect their stars into
-a single set $B^< = \bigcup_{\text{$a$ light}} B_a$.
-We maintain a BCP data structure between $B^<$ and $\alive{A} \cap X$.
-Thus, we maintain at most $r$ different BCP data structures for stars.
+structure between $B_a^\star$ and $X \cap \alive{A}$.
+Next, for all light nodes in $\alive{A} \setminus X$, we collect their stars into
+a single set $\EMPH{$B_<^\star$} \coloneqq \bigcup_{\text{$a$ light}} B_a^\star$.
+We maintain one single BCP data structure between $B_<^\star$ and $\alive{A} \cap X$.
+Thus, at most $r$ different BCP data structures are maintained for stars.
 
-Using these data structures, we can compute a min reduced-cost arc between
-$\alive{A} \cap X$ and $\alive{B} \setminus (B^\star \cup X)$.
-Once an arc ${\arc vw} \in (\alive{A} \cap X) \times (\alive{B} \setminus (B^\star \cup X))$
-is added such that $w \in B_a$ for some star $B_a$, then we also add $a$ to $X$.
-If $a$ is light, then we delete $B_a$ from $B^<$ and update the BCP data structure for $B^<$.
-If $a$ is heavy, then we stop querying the BCP data structure on $B_a$ for the
+Using these data structures, we can compute and relax a min-reduced-cost arc $\arc vw$ between
+$\alive{A} \cap X$ and $B^\star \setminus X$.
+%Once some arc ${\arc vw}$ between $\alive{A} \cap X$ and $B^\star \setminus X$
+If $w$ lies in some star $B_a^\star$, then we also add $a$ into $X$.
+If $a$ is light, then we delete $B_a^\star$ from $B_<^\star$ and update the BCP data structure of $B_<^\star$.
+If $a$ is heavy, then we stop querying the BCP data structure of $B_a^\star$ for the
 remainder of the search.
-Finally, since $a$ becomes a part of $X$, $a$ is added to all $O(r)$ BCP data structures.
-
+Finally, since $a$ becomes part of $X$, $a$ is added to all $O(r)$ BCP data structures.
+%
 Recall that $r \leq \sqrt{n}$ by assumption.
-Adding the arc $\arc vw$ thus involves performing $O(\sqrt{n})$
+Adding arc $\arc vw$ thus involves performing $O(\sqrt{n})$
 insertion/deletion operations in various BCP data structures, thereby taking
 $O(\sqrt{n}\polylog n)$ time.
 
@@ -1314,8 +1314,8 @@ terminates within $O(r)$ steps, and takes $O(r\sqrt{n}\polylog n)$ time.
 \end{lemma}
 
 Once an augmenting path is found and the augmentation is performed, the set of
-excess/deficit nodes and $\supp(f)$ arcs change.
-We thus need to update the set $B^\star$, $B_a$, and $B^<$.
+excess/deficit nodes and the support arcs change.
+We thus need to update the sets $B^\star$, $B_a^\star$s, and $B_<^\star$.
 This can be accomplished in $O(r\polylog n)$ amortized time.
 When we begin a new Hungarian search, we use the rewinding mechanism
 to set various BCP data structures in the right initial state.
