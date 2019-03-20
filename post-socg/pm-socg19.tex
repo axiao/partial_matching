@@ -995,7 +995,7 @@ $\supp(f)$ is incident to $v$; otherwise $v$ is \EMPH{alive}.
 Note that $s$ and $t$ are always alive.
 Let \EMPH{$\alive{A}$} denote the set of alive nodes in $A$; define \EMPH{$\alive{B}$} similarly.
 There are only $O(k)$ alive nodes, as each can be charged to its
-adjoining $\supp(f)$ arcs or its excess/deficit.
+adjoining $\supp(f)$ arcs or its imbalance.
 We treat alive and dead nodes separately to implement the Hungarian search
 efficiently.
 By definition, dead nodes only adjoin forward arcs in $N_f$.
@@ -1167,9 +1167,10 @@ implementation that achieves the desired running time.
 Orlin's algorithm follows an excess-scaling paradigm and the primal-dual framework.
 It maintains a \EMPH{scale parameter} $\Delta$, a flow function $f$, and
 potential $\pi$ on the nodes.
-Initially $\Delta = \fsupply(A)$ \note{undef?}, $f = 0$, and $\pi = 0$.
+Initially $\Delta$ is equal to the total supply, $f = 0$, and $\pi = 0$.
 We fix a constant parameter $\alpha \in (0.5, 1)$.
-A node $v$ is called \EMPH{active} if $\abs{\fsupply_f(v)} \geq \alpha\Delta$. \note{undef}
+A node $v$ is called \EMPH{active} if the magnitude of imbalance of $v$ is at least $\alpha\Delta$.
+%$\fsupply_f(v) \geq \alpha\Delta$. \note{defined long time ago}
 At each step, using the Hungarian search, the algorithm finds an admissible
 excess-to-deficit path between active nodes in the residual network and pushes a flow
 of amount $\Delta$ along this path.%
@@ -1183,8 +1184,8 @@ First, if $f(\arc vw) \geq 3n\Delta$, $\arc vw$ is contracted to a single node $
 $\fsupply(z) = \fsupply(v) + \fsupply(w)$.%
 \footnote{Intuitively, $f(\arc vw)$ is so high that future scales cannot deplete
 the flow on $\arc vw$.}
-Second, if there are no active excess nodes and $f(\arc vw) = 0$ for all arcs, $\Delta$
-is lowered to $\max_v \fsupply(v)$.
+Second, if there are no active excess nodes and $f(\arc vw) = 0$ for every arc $\arc vw$, then $\Delta$
+is aggresively lowered to $\max_v \fsupply(v)$.
 
 When the algorithm terminates, an optimal circulation in the
 contracted network is found.
@@ -1203,7 +1204,7 @@ Summing this cost over all augmentations, we obtain the desired running time.
 
 Recall in the previous sections that we could bound the running time of the
 Hungarian search by the size of $\supp(f)$.
-Here, the number of active excess/deficit nodes at any scale is $O(r)$, and the
+Here, the number of active imbalanced nodes at any scale is $O(r)$, and the
 length of an augmenting path is also $O(r)$.
 Therefore one might hope to find an augmenting path in $O(r\polylog n)$ time,
 by adapting the algorithms described in Sections~\ref{section:hung} and
@@ -1225,22 +1226,22 @@ If the support arcs $\supp(f)$ are relaxed as soon as possible, $\supp(f)$ is ac
 \end{lemma}
 
 Next, similar to Section~\ref{section:goldberg}, we call node $u$
-\EMPH{alive} if (a) $u$ is an active excess/deficit node or (b) if $u$ is incident to
+\EMPH{alive} if (a) $u$ is an active imbalanced node or (b) if $u$ is incident to
 an arc of $\supp(f)$; $u$ is \EMPH{dead} otherwise.
 Unlike in Section~\ref{section:goldberg}, once a node becomes alive it cannot
 be dead again.
-Furthermore, a dead node may become alive only in the beginning of a scale
-(after we have reduced the value of $\Delta$).
+Furthermore, a dead node may become alive only at the beginning of a scale
+(after the value of $\Delta$ is reduced).
 Also, an augmenting path cannot pass through a dead node.
-Therefore, we can ignore all dead nodes during Hungarian search, work with only
-alive nodes, and update the set of alive nodes at the beginning of a scale.
+Therefore, we can ignore all dead nodes during Hungarian search,
+and update the set of alive/dead nodes at the beginning of a scale.
 %For a subset of nodes $S$, we use $\alive{S}$ to denote
 %the set of alive nodes in $S$. \note{move to front and remove the one here}
 
 Let $\EMPH{$B^\star$} \subseteq \alive{B}$ be the set of nodes that are either (a) active
-excess/deficit nodes or (b) incident to \emph{exactly one} arc of $\supp(f)$.
+imbalanced nodes or (b) incident to \emph{exactly one} arc of $\supp(f)$.
 Lemma~\ref{lemma:supp_acyclic} implies that $\alive{B} \setminus B^\star$ has size $O(r)$.
-
+%
 We can therefore find the min-reduced-cost arc between $X \cap \alive{A}$ and $\alive{B} \setminus (B^\star \cup X)$
 using a BCP data structure as in Section~\ref{section:hung}, along with lazy
 potential updates and the rewinding mechanism.
@@ -1311,7 +1312,7 @@ terminates within $O(r)$ steps, and takes $O(r\sqrt{n}\polylog n)$ time.
 \end{lemma}
 
 Once an augmenting path is found and the augmentation is performed, the set of
-excess/deficit nodes and the support arcs change.
+imbalanced nodes and the support arcs change.
 We thus need to update the sets $B^\star$, $B_a^\star$s, and $B_<^\star$.
 This can be accomplished in $O(r\polylog n)$ amortized time.
 When we begin a new Hungarian search, we use the rewinding mechanism
