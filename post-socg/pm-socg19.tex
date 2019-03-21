@@ -216,7 +216,7 @@ The geometric partial matching problem asks to find the minimum-cost size-$k$ ma
 
 We present efficient algorithms for geometric partial matching problem that work for any powers of $L_p$-norm matching objective:
 An exact algorithm that runs in $O((n + k^2)\polylog n)$ time, and a $(1 + \eps)$-approximation algorithm that runs in $O((n + k\sqrt{k})\polylog n \cdot \log\eps^{-1})$ time.
-Both algorithms are based on the primal-dual flow augmentation scheme; the main improvements are involve using dynamic data structures to achieve efficient flow augmentations.
+Both algorithms are based on the primal-dual flow augmentation scheme; the main improvements are involved using dynamic data structures to achieve efficient flow augmentations.
 With similar techniques, we give an exact algorithm for the planar transportation problem running in $O(\min\{n^2, rn^{3/2}\}\polylog n)$ time.
 \end{abstract}
 
@@ -885,7 +885,7 @@ After this step, the resulting pseudoflow must be $\theta$-optimal as all arcs
 of $N_f$ have reduced cost at least $-\theta$.
 
 The desaturation of each backward arc creates one unit of excess.
-Since there are at most $3k$ backward arcs, there is at most $3k$ excess after
+Since there are at most $3k$ backward arcs, the pseudoflow has at most $3k$ excess after
 \textsc{Scale-Init}.
 There are $O(n)$ potential updates and $O(k)$ arcs to desautrate,
 so the time required for \textsc{Scale-Init} is $O(n)$.
@@ -1002,19 +1002,20 @@ and in the case of two consecutive dead nodes there is a subpath of the
 form $s \arcto v \arcto w \arcto t$ where $v \in \dead{A}$ and $w \in \dead{B}$.
 We call such paths, from an alive node to an alive node
 with only dead interior nodes, \EMPH{alive paths}.
-Let the reduced cost of an alive path $\Pi$ be the sum of $c_\pi$ of its arcs.
+Let the reduced cost $c_\pi(\Pi)$ of an alive path $\Pi$ be the sum of $c_\pi$ over its arcs.
 We say $\Pi$ is \EMPH{weakly admissible} if $c_\pi(\Pi) \leq 0$.
 
-We find the minimum-reduced-cost alive path of lengths $1$, $2$, and $3$
-leaving $X$, then relax the cheapest among them (raise potential in $X$ by $c(\Pi)$,
-add all nodes of $\Pi$ to $X$).
-Essentially, relaxing alive paths skips over dead nodes.
+We find the min-reduced-cost alive path of lengths $1$, $2$, and $3$
+leaving $X$, then relax the cheapest among them (raise potential of $X$ by $c(\Pi)$ and
+add every node of $\Pi$ into $X$).
+Essentially, relaxing alive paths ``skips over'' dead nodes.
 Since reduced costs telescope on paths, weak admissibility of an alive path
 depends only on the potential of its alive endpoints.
 Thus, we can query the minimum alive path using a partial assignment
-of $\pi$ to only alive nodes, leaving $\pi$ over dead nodes untracked.
-We now describe a data structure for each length.
-%For each data structure, our ``time budget'' per Hungarian search is $O(k\polylog n)$.
+of $\pi$ on only the alive nodes, leaving $\pi$ over the dead nodes untracked.
+%
+We now describe a data structure for each path length.
+Note that our ``time budget'' per Hungarian search is $O(k\polylog n)$.
 
 \paragraph{Finding length-1 paths.}
 This data structure finds a min-reduced-cost arc from an alive node of
@@ -1039,10 +1040,10 @@ Such BCP data structure can be implemented so that insertions/deletions can be p
 in $O(\polylog k)$ time \cite{KMRSS17}.
 
 \paragraph{Finding length-2 paths.}
-We describe how to find the cheapest path of the form $s \arcto v \arcto b$ where
+We describe how to find a cheapest path of the form $s \arcto v \arcto b$ where
 $v$ is dead and $b \in \alive{B}$.
-A cheapest path of the form $a \arcto v \arcto t$ can be found similarly.
-Similar to length-1, we only query paths starting at $s$ if $s \in X$
+A cheapest path $a \arcto v \arcto t$ can be found similarly.
+Similar to length-1 paths, we only query paths starting at $s$ if $s \in X$
 and paths ending at $t$ if $t \not\in X$.
 
 Note that $c_\pi(s \arcto v \arcto b) = c(v, b) + \pi(b) - \pi(s)$.
@@ -1092,23 +1093,22 @@ there are $O(k)$ alive/dead updates caused by an augmentation, so the time for
 these updates per Hungarian search is $O(k\polylog n)$.
 
 \paragraph{Updating potential.}
-Potential updates for alive nodes can be handled using the batch method in Section~\ref{section:hung}.
-The three data structures above have no dependence on dead node potential ---
-as described earlier, we leave dead node potential untracked.
-Intuitively, the Hungarian search is still correct, since alive nodes are visited
+Potential updates for alive nodes can be handled in a batched fashion as in Section~\ref{section:hung}.
+The three data structures above have no dependency on the dead node potential
+since we leave them untracked as described.
+The Hungarian search remains intact since alive nodes are visited
 in the same order as when using arc-by-arc relaxations.
-However, we need $\pi$ for all nodes at the end of a scale (for the
-next \textsc{Scale-Init}) and whenever a node turns from dead to alive
-(after augmentation).
+However, we need values of $\pi$ on all nodes at the end of a scale (for the
+next \textsc{Scale-Init}) and whenever a node becomes alive
+(after each augmentation).
 
-We can construct ``valid'' dead node potential for use in these situations.
+We can reconstruct a ``valid'' potential in these situations.
 To recover potential for $v \in \dead{A}$ we set $\pi(v) \gets \pi(s)$,
 and for $v \in \dead{B}$ we set $\pi(v) \gets \pi(t)$.
-Straightforward calculation shows that (1) this choice preserves $\theta$-optimality,
-and (2) assigning this potential onto the internal (dead) nodes of a weakly admissible
-alive path $\Pi$ makes $\Pi$ (arc-wise) admissible.
+Straightforward calculation shows that such potential (1) preserves $\theta$-optimality,
+and (2)  makes $\Pi$ (arc-wise) admissible for any weakly admissible alive path $\Pi$.\
 Hence, a blocking flow composed of weakly admissible alive paths is admissible
-under these recovered potential.
+under the recovered potential.
 
 The following lemma is crucial to the analysis of running time for the Hungarian search,
 bounding both the number of relaxations and potential update/recovery operations.
