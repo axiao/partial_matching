@@ -1,18 +1,22 @@
-%% socg-lipics-v2018.cls 
+%% socg-lipics-v2019.cls 
 %% Author:     Michael Hoffmann <hoffmann@inf.ethz.ch>
-%% Revision: $Rev: 5935 $ from $Date: 2018-09-04 13:20:57 +0200 (Tue, 04 Sep 2018) $
-%% wrapper around lipics-v2018 to obtain a more consistent line numbering
+%% Revision: $Rev: 5965 $ from $Date: 2019-02-20 20:22:02 +0100 (Wed, 20. Feb 2019) $
+%% wrapper around lipics-v2019 to obtain a more consistent line numbering
 %% we patch/hack some relevant commands and environments and see what happens...
 
 \NeedsTeXFormat{LaTeX2e}[2015/01/01]
-\ProvidesClass{socg-lipics-v2018}[2018/09/04 v0.3 Adapt LIPIcs class so that lineno counts and numbers more relevant lines]
+\ProvidesClass{socg-lipics-v2019}[2019/02/20 v0.4 Adapt LIPIcs class so that lineno counts and numbers more relevant lines]
 
 %% prefix output by classname
-\newcommand{\socgtypeout}[1]{\typeout{socg-lipics-v2018: #1}}%
+\newcommand{\socgtypeout}[1]{\typeout{socg-lipics-v2019: #1}}%
 
 %% process options
 \RequirePackage{ifthen}
 \RequirePackage{letltxmacro}
+
+%% with nolines, run lipics plain
+\newboolean{socgnolines}\setboolean{socgnolines}{false}
+\DeclareOption{nolineno}{\setboolean{socgnolines}{true}}
 
 %% with noalgorithm2e, do not try to fix algorithm2e environments
 \newboolean{socgnoalgorithm2e}\setboolean{socgnoalgorithm2e}{false}
@@ -30,20 +34,31 @@
 \newboolean{socgnotcolorbox}\setboolean{socgnotcolorbox}{false}
 \DeclareOption{notcolorbox}{\setboolean{socgnotcolorbox}{true}}
 %% pass all the rest to LIPIcs
-\DeclareOption*{\PassOptionsToClass{\CurrentOption}{lipics-v2018}}
+\DeclareOption*{\PassOptionsToClass{\CurrentOption}{lipics-v2019}}
 \ProcessOptions\relax
 
 %% set all line numbering options for algorithm2e
-\ifthenelse{\boolean{socgnoalgorithm2e}}{%
+\ifthenelse{\boolean{socgnolines}}{%
 }{%
-  \PassOptionsToPackage{linesnumbered,commentsnumbered,inoutnumbered,titlenumbered}{algorithm2e}
-}%
-%% set longtable -> edtable option to handle tabular
-\ifthenelse{\boolean{socgnotab}}{%
-}{%
-  \PassOptionsToPackage{longtable}{lineno}}%
+  \ifthenelse{\boolean{socgnoalgorithm2e}}{%
+  }{%
+    \PassOptionsToPackage{linesnumbered,commentsnumbered,inoutnumbered,titlenumbered}{algorithm2e}
+  }%
+  %% set longtable -> edtable option to handle tabular
+  \ifthenelse{\boolean{socgnotab}}{%
+  }{%
+    \PassOptionsToPackage{longtable}{lineno}}%
+}% !socgnolines
+
 %% load LIPIcs class
-\LoadClass{lipics-v2018}[2018/04/09]%
+\LoadClass{lipics-v2019}[2018/12/10]%
+
+\ifthenelse{\boolean{socgnolines}}{%
+  \newcounter{socglastlinecounter}%
+  \newcommand{\socgnl}{}%
+  \nolinenumbers%
+  \endinput
+}{}
 
 %% hide LIPIcs DOI
 \def\@DOIPrefix{}
