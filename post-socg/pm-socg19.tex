@@ -1,6 +1,8 @@
 %!TEX encoding = UTF-8 Unicode
 %!TeX spellcheck = en-US
 \documentclass[a4paper,UKenglish]{socg-lipics-v2019}
+%\documentclass[a4paper,UKenglish]{article}
+
 \usepackage[utf8]{inputenc}
 
 \usepackage{graphicx,wrapfig}
@@ -121,7 +123,6 @@
 % \newtheorem{claim}[lemma]{Claim}
 % \newtheorem{definition}[lemma]{Definition}
 \numberwithin{figure}{section}
-\renewcommand{\paragraph}{\subparagraph}
 
 
 % for definitions
@@ -157,7 +158,7 @@
 
 
 %% METAFILE
-% \title{ Geometric Partial Matching and Unbalanced Transportation %
+% \title{Efficient Algorithms for Geometric Partial Matching%
 % \date{\today} % replace with date?
 % \author{
 % Pankaj K.\ Agarwal
@@ -170,9 +171,9 @@
 
 \title{Efficient Algorithms for Geometric Partial Matching}
 \titlerunning{Efficient Algorithms for Geometric Partial Matching}
-\author{Pankaj K.\ Agarwal}{Duke University, Durham, United~States}{pankaj@cs.duke.edu}{}{}
-\author{Hsien-Chih Chang}{Duke University, Durham, United~States}{hsienchih.chang@duke.edu}{}{}
-\author{Allen Xiao}{Duke University, Durham, United~States}{axiao@cs.duke.edu}{}{}
+\author{Pankaj K.\ Agarwal}{Duke University, Durham, USA}{pankaj@cs.duke.edu}{}{}
+\author{Hsien-Chih Chang}{Duke University, Durham, USA}{hsienchih.chang@duke.edu}{}{}
+\author{Allen Xiao}{Duke University, Durham, USA}{axiao@cs.duke.edu}{}{}
 \date{\today}
 
 \authorrunning{P.\ K.\ Agarwal, H.-C.\ Chang, A.\ Xiao}
@@ -190,15 +191,16 @@ Work on this paper was supported by NSF under grants CCF-15-13816,
 CCF-15-46392, and IIS-14-08846, by an ARO grant W911NF-15-1-0408, and by
 BSF Grant 2012/229 from the U.S.-Israel Binational Science Foundation.
 }
+%\relatedversion{A full version of this paper is available at \url{XXX}}
 
 \EventEditors{Gill Barequet and Yusu Wang}
 \EventNoEds{2}
-\EventLongTitle{The 35th International Symposium on Computational Geometry (SoCG 2019)}
+\EventLongTitle{35th International Symposium on Computational Geometry (SoCG 2019)}
 \EventShortTitle{SoCG 2019}
 \EventAcronym{SoCG}
 \EventYear{2019}
 \EventDate{June 18--21, 2019}
-\EventLocation{Portland, United~States}
+\EventLocation{Portland, Oregon, USA}
 \EventLogo{socg-logo}
 \SeriesVolume{129}
 \ArticleNo{6}
@@ -266,7 +268,7 @@ The \EMPH{transportation problem} asks to compute a transportation map of minimu
 %see the books by Villani~\cite{V03,V08}, by Cuturi and Peyr{\'e}~\cite{PC18},
 %and the survey by Solomon~\cite{S18}.
 
-\paragraph{Related work.}
+\subparagraph{Related work.}
 Maximum-size bipartite matching is a classical problem in graph algorithms.
 Upper bounds include the $O(m\sqrt{n})$ time algorithm by
 Hopcroft and Karp~\cite{HK73} and the $O(m \min\{\sqrt{m}, n^{2/3}\})$ time
@@ -329,7 +331,7 @@ Recently, Khesin, Niklov, and Paramonov~\cite{KNP19} obtained a
 $(1+\eps)$-approximation in low-dimensional Euclidean space
 that runs in randomized $O(n \poly\eps^{-1} \polylog(n, U))$ time.
 
-\paragraph{Our results.}
+\subparagraph{Our results.}
 There are three main results in this paper.
 First in Section~\ref{section:hung} we present an efficient algorithm for
 computing an optimal partial matching in the plane.
@@ -402,7 +404,7 @@ proper data structures, assuming $r \leq \sqrt{n}$.
 
 
 % ----------------------------------------------------------------------------
-\section{Minimum-Cost Partial Matchings using Hungarian Algorithm}
+\section{Minimum-cost partial matchings using Hungarian algorithm}
 \label{section:hung}
 
 % The Hungarian algorithm~\cite{Kuhn55} is a primal-dual algorithm for min-cost
@@ -442,7 +444,7 @@ Potential $\pi$ is \EMPH{feasible} on edge $(v,w)$ if $c_\pi(v, w)$ is nonnegati
 Potential $\pi$ is \EMPH{feasible} if $\pi$ are feasible on every edge in $G$.
 We say that an edge $(v, w)$ is \EMPH{admissible} under potential $\pi$ if $c_\pi(v, w) = 0$.
 
-\paragraph{Fast implementation of Hungarian search.}
+\subparagraph{Fast implementation of Hungarian search.}
 
 The Hungarian algorithm is initialized with $M \gets \emptyset$ and $\pi \gets 0$.
 % It maintains the following invariants: (see, for example, \cite{})
@@ -521,7 +523,7 @@ in $O(k\polylog n)$ time.
 %Explained shortly, there is an existing technique to handle potential updates
 %without performing BCP updates for each one \note{?}.
 
-\paragraph{Rewinding mechanism.}
+\subparagraph{Rewinding mechanism.}
 % In the beginning of each iteration,
 % $X$ is initialized to the set of unmatched nodes in $A$,
 % and therefore $Q = B \setminus X$ has size $n$.
@@ -546,7 +548,7 @@ We refer to this procedure as the \EMPH{rewinding mechanism}.
 %in $O(k\polylog n)$ time after a one-time $O(n\polylog n)$ preprocessing.
 %\end{lemma}
 
-\paragraph{Potential updates.}
+\subparagraph{Potential updates.}
 We modify a trick from Vaidya~\cite{Vaidya89} to batch potential updates.
 Potential is tracked with a \EMPH{stored value} $\gamma(v)$, while the
 \EMPH{true value} of $\pi(v)$ may have changed since $\gamma(v)$ was last recorded.
@@ -580,7 +582,7 @@ This proves Theorem~\ref{theorem:hung}.
 
 
 % ----------------------------------------------------------------------------
-\section{Approximating Min-Cost Partial Matching through Cost-Scaling}
+\section{Approximating min-cost partial matching through cost-scaling}
 \label{section:goldberg}
 
 In this section we describe an approximation algorithm for computing a min-cost
@@ -601,7 +603,7 @@ $N = (V, \vec{E})$ in a standard way \cite{RT12}
 so that a min-cost matching in $G$ corresponds to a min-cost integral
 circulation in $N$.
 
-\paragraph{Flow network.}
+\subparagraph{Flow network.}
 Each node in $G$ becomes a node in $N$ and each edge
 $(a, b)$ in $G$ becomes an arc $\arc{a}{b}$ in $N$;
 we refer to these nodes and arcs as \EMPH{bipartite nodes} and \EMPH{bipartite arcs}.
@@ -658,7 +660,7 @@ Let $N$ be the network constructed from the bipartite graph $G$ above.
 
 Before describing the algorithm, we need to introduce a few more concepts.
 
-\paragraph{Residual network and admissibility.}
+\subparagraph{Residual network and admissibility.}
 If $f$ is an integral pseudoflow on $N$
 (that is, $f(\arc{v}{w}) \in \{0, 1\}$ for every arc in $\vec{E}$), then each arc
 $\arc{v}{w}$ in $N$ is either \EMPH{idle} with $f(\arc{v}{w}) = 0$ or
@@ -789,7 +791,7 @@ Then, $\cost(f) \leq \cost(f^*) + 6k\theta$.
 %Rearranging the terms we have that $\cost(f) \leq \cost(f^*) + 6k\theta$.
 %\end{proof}
 
-\paragraph{Estimating the value of \textbf{$\boldmath \cost(f^*)$}.}
+\subparagraph{Estimating the value of \textbf{$\boldmath \cost(f^*)$}.}
 We now describe a procedure for estimating $\cost(f^*)$ within a polynomial factor,
 which is used to initialize the cost-scaling algorithm.
 
@@ -833,7 +835,7 @@ most $(1+\eps) \cost(f^*)$,
 where $\EMPH{$\underline{\theta}$} \coloneqq \frac{\eps}{6k} \cdot c(e_{i^*})$.
 \end{corollary}
 
-\paragraph{Overview of the algorithm.}
+\subparagraph{Overview of the algorithm.}
 We are now ready to describe our algorithm, which closely follows Goldberg \etal~\cite{GHKT17}.
 The algorithm works in scales.
 In the beginning of each scale, we fix a \EMPH{cost scaling parameter}
@@ -866,7 +868,7 @@ $\log_2(\overline{\theta}/\underline{\theta}) = O(\log(n/\eps))$ scales.
 
 %Next, we describe the two stages in detail.
 
-\paragraph{Scale initialization.}
+\subparagraph{Scale initialization.}
 In the first scale, we compute a $\overline{\theta}$-optimal pseudoflow by
 simply setting $f(\arc vw) \gets 0$ for all arcs in $\vec{E}$.
 For subsequent scales, we begin with a $2\theta$-optimal circulation $f$ in $N$.
@@ -890,7 +892,7 @@ Since there are at most $3k$ backward arcs, the pseudoflow has at most $3k$ exce
 There are $O(n)$ potential updates and $O(k)$ arcs to desautrate,
 so the time required for \textsc{Scale-Init} is $O(n)$.
 
-\paragraph{Refinement.}
+\subparagraph{Refinement.}
 The procedure \textsc{Refine} converts a $\theta$-optimal pseudoflow with
 $O(k)$ excess into a $\theta$-optimal circulation, using a primal-dual
 augmentation algorithm.
@@ -931,7 +933,7 @@ Then \textsc{Refine} terminates within $O(\sqrt{k})$ iterations.
 We sketch the proof, which is adapted from Goldberg \etal~\cite{GHKT17}.
 Let $f_0$ be the assumed $2\theta$-optimal integral circulation with respect to $\pi_0$,
 and let $\pi$ be the potential maintained during \textsc{Refine}.
-Let $\EMPH{$d(v)$} = (\pi(v) - \pi_0(v))/\theta$, that is, the increase in potential
+Let $\EMPH{$d(v)$} \coloneqq (\pi(v) - \pi_0(v))/\theta$, that is, the increase in potential
 at $v$ in units of $\theta$.
 We divide the iterations of \textsc{Refine} into two phases: before and after
 every (remaining) excess node has $d(v) \geq \sqrt{k}$.
@@ -1017,7 +1019,7 @@ of $\pi$ on only the alive nodes, leaving $\pi$ over the dead nodes untracked.
 We now describe a data structure for each path length.
 Note that our ``time budget'' per Hungarian search is $O(k\polylog n)$.
 
-\paragraph{Finding length-1 paths.}
+\subparagraph{Finding length-1 paths.}
 This data structure finds a min-reduced-cost arc from an alive node of
 $X$ to an alive node of $V \setminus X$.
 There are $O(k)$ backward arcs, so the minimum among backward arcs can be
@@ -1039,7 +1041,7 @@ with reduced cost as the weighted pair distance.
 Such BCP data structure can be implemented so that insertions/deletions can be performed
 in $O(\polylog k)$ time \cite{KMRSS17}.
 
-\paragraph{Finding length-2 paths.}
+\subparagraph{Finding length-2 paths.}
 We describe how to find a cheapest path of the form $s \arcto v \arcto b$ where
 $v$ is dead and $b \in \alive{B}$.
 A cheapest path $a \arcto v \arcto t$ can be found similarly.
@@ -1078,7 +1080,7 @@ which can be done in $O(k\polylog n)$ time.
 %can be done in $O(k\polylog n)$ time per Hungarian search.
 %\note{time for updating $\dead{A}$?}
 
-\paragraph{Finding length-3 paths.}
+\subparagraph{Finding length-3 paths.}
 We now describe how to find the cheapest path of the form $s \arcto v \arcto w \arcto t$
 where $v \in \dead{A}$ and $w \in \dead{B}$.
 Note that $c_\pi(s \arcto v \arcto w \arcto t) = c(\arc vw) - \pi(s) + \pi(t)$.
@@ -1092,7 +1094,7 @@ Applying Lemma~\ref{lemma:cost_scale_count} again,
 there are $O(k)$ alive/dead updates caused by an augmentation, so the time for
 these updates per Hungarian search is $O(k\polylog n)$.
 
-\paragraph{Updating potential.}
+\subparagraph{Updating potential.}
 Potential updates for alive nodes can be handled in a batched fashion as in Section~\ref{section:hung}.
 The three data structures above have no dependency on the dead node potential;
 we leave them untracked as described before.
@@ -1106,7 +1108,7 @@ We can reconstruct a ``valid'' potential in these situations.
 To recover potential for $v \in \dead{A}$ we set $\pi(v) \gets \pi(s)$,
 and for $v \in \dead{B}$ we set $\pi(v) \gets \pi(t)$.
 Straightforward calculation shows that such potential (1) preserves $\theta$-optimality,
-and (2)  makes $\Pi$ (arc-wise) admissible for any weakly admissible alive path $\Pi$.\
+and (2) makes $\Pi$ (arc-wise) admissible for any weakly admissible alive path $\Pi$.
 Hence, a blocking flow composed of weakly admissible alive paths is admissible
 under the recovered potential.
 
@@ -1131,7 +1133,7 @@ implemented in $O(k\polylog n)$ time.
 
 
 % ----------------------------------------------------------------------------
-\section{Transportation Algorithm}
+\section{Transportation algorithm}
 \label{section:orlin}
 
 Given two point sets $A$ and $B$ in $\reals^2$ of sizes $r$ and $n$ respectively
@@ -1232,7 +1234,7 @@ potential updates and the rewinding mechanism.
 The total time spent by Hungarian search on the nodes of $\alive{B} \setminus B^\star$ will be $O(r\polylog n)$.
 We subsequently focus on handling $B^\star$.
 
-\paragraph{Handling $B^\star$.}
+\subparagraph{Handling $B^\star$.}
 We now describe how we query a min-reduced-cost arc between $X \cap \alive{A}$
 and $B^\star \setminus X$.
 Each node $b \in B^\star$ is incident to exactly one arc in
@@ -1286,7 +1288,7 @@ Adding arc $\arc vw$ thus involves performing $O(\sqrt{n})$
 insertion/deletion operations in various BCP data structures, thereby taking
 $O(\sqrt{n}\polylog n)$ time.
 
-\paragraph{Putting it together.}
+\subparagraph{Putting it together.}
 While proof is omitted, the following lemma bounds the running time of the
 Hungarian search.
 
@@ -1316,13 +1318,12 @@ $O(rn^{3/2}\polylog n)$, as claimed in Theorem~\ref{theorem:orlin}.
 
 
 % Acknowledgment and Bibliography
-% \paragraph*{Acknowledgment.}
+% \subparagraph*{Acknowledgment.}
 % We thank Haim Kaplan for useful discussion and suggesting to use Goldberg~\etal~\cite{GHKT17} for our approximation algorithm.
-
+%
 \bibliographystyle{newuser}
 \bibliography{ref}
 
-\newpage
 \appendix
 
 \end{document}
