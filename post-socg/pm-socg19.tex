@@ -1,6 +1,6 @@
 %!TEX encoding = UTF-8 Unicode
 %!TeX spellcheck = en-US
-\documentclass[a4paper,UKenglish]{socg-lipics-v2018}
+\documentclass[a4paper,UKenglish]{socg-lipics-v2019}
 \usepackage[utf8]{inputenc}
 
 \usepackage{graphicx,wrapfig}
@@ -170,15 +170,15 @@
 
 \title{Efficient Algorithms for Geometric Partial Matching}
 \titlerunning{Efficient Algorithms for Geometric Partial Matching}
-\author{Pankaj K.\ Agarwal}{Duke University, USA}{pankaj@cs.duke.edu}{}{}
-\author{Hsien-Chih Chang}{Duke University, USA}{hsienchih.chang@duke.edu}{}{}
-\author{Allen Xiao}{Duke University, USA}{axiao@cs.duke.edu}{}{}
+\author{Pankaj K.\ Agarwal}{Duke University, Durham, United~States}{pankaj@cs.duke.edu}{}{}
+\author{Hsien-Chih Chang}{Duke University, Durham, United~States}{hsienchih.chang@duke.edu}{}{}
+\author{Allen Xiao}{Duke University, Durham, United~States}{axiao@cs.duke.edu}{}{}
 \date{\today}
 
 \authorrunning{P.\ K.\ Agarwal, H.-C.\ Chang, A.\ Xiao}
 \Copyright{Pankaj K.\ Agarwal, Hsien-Chih Chang, Allen Xiao}
 
-\subjclass{Theory of computation $\rightarrow$ Design and analysis of algorithms}
+\ccsdesc{Theory of computation~Design and analysis of algorithms}
 \keywords{partial matching, transportation, optimal transport, minimum-cost flow, bichromatic closest pair}
 \acknowledgements{
 We thank Haim Kaplan for discussion and suggestion to use
@@ -191,17 +191,17 @@ CCF-15-46392, and IIS-14-08846, by an ARO grant W911NF-15-1-0408, and by
 BSF Grant 2012/229 from the U.S.-Israel Binational Science Foundation.
 }
 
-\EventEditors{}
+\EventEditors{Gill Barequet and Yusu Wang}
 \EventNoEds{2}
 \EventLongTitle{The 35th International Symposium on Computational Geometry (SOCG 2019)}
-\EventShortTitle{SOCG 2019}
+\EventShortTitle{SoCG 2019}
 \EventAcronym{SOCG}
 \EventYear{2019}
 \EventDate{June 18--21, 2019}
-\EventLocation{Portland, USA}
-\EventLogo{eatcs}
-\SeriesVolume{}
-\ArticleNo{1} %Set article-no=1
+\EventLocation{Portland, United~States}
+\EventLogo{socg-logo}
+\SeriesVolume{129}
+\ArticleNo{6}
 
 
 \begin{document}
@@ -216,8 +216,8 @@ The geometric partial matching problem asks to find the minimum-cost size-$k$ ma
 
 We present efficient algorithms for geometric partial matching problem that work for any powers of $L_p$-norm matching objective:
 An exact algorithm that runs in $O((n + k^2)\polylog n)$ time, and a $(1 + \eps)$-approximation algorithm that runs in $O((n + k\sqrt{k})\polylog n \cdot \log\eps^{-1})$ time.
-Both algorithms are based on the primal-dual flow augmentation scheme; the main improvements are obtained by using dynamic data structures to achieve efficient flow augmentations.
-Using similar techniques, we give an exact algorithm for the planar transportation problem that runs in $O(\min\{n^2, rn^{3/2}\}\polylog n)$ time.
+Both algorithms are based on the primal-dual flow augmentation scheme; the main improvements are involve using dynamic data structures to achieve efficient flow augmentations.
+With similar techniques, we give an exact algorithm for the planar transportation problem running in $O(\min\{n^2, rn^{3/2}\}\polylog n)$ time.
 \end{abstract}
 
 
@@ -244,7 +244,7 @@ We also consider the following generalization of bipartite matching.
 Let $\tsupply:A \cup B \to \ints$ be an integral \EMPH{supply-demand function} with
 positive value on points of $A$ and negative value on points of $B$, satisfying
 $\sum_{a \in A} \tsupply(a) = - \sum_{b \in B} \tsupply(b)$.
-%Define $\EMPH{$U$} \coloneqq \max_{p \in A \cup B} \abs{\tsupply(p)}$.
+Let $\EMPH{$U$} \coloneqq \max_{p \in A \cup B} \abs{\tsupply(p)}$.
 A \EMPH{transportation map} is a function $\tau: A \times B \to \reals_{\geq 0}$
 such that $\sum_{b \in B} \tau(a, b) = \tsupply(a)$ for all $a \in A$ and
 $\sum_{a \in A} \tau(a, b) = -\tsupply(b)$ for all $b \in B$.
@@ -317,7 +317,7 @@ Orlin~\cite{O93} solves the transportation problem in
 $O((m + n\log n) n\log n)$ time.
 Lee and Sidford~\cite{LS14} give a weakly polynomial algorithm that runs in
 $O(m\sqrt{n}\polylog(n, U))$ time, where $U$ is the maximum amount of node supply-demand.
-Agarwal~\etal~\cite{AFPVX17} showed that Orlin's algorithm can be
+Agarwal~\etal~\cite{AFPVX17, AFPVX17arxiv} showed that Orlin's algorithm can be
 implemented to solve 2D transportation in time $O(n^2\polylog n)$.
 In case of $O(1)$-dimension Euclidean space,
 by adapting the Lee-Sidford algorithm, they developed a
@@ -386,7 +386,7 @@ $O(\min\{n^2, rn^{3/2}\}\polylog n)$ time.
 \end{theorem}
 
 Our result improves over the $O(n^2\polylog n)$ time algorithm by Agarwal
-\etal~\cite{AFPVX17} for $r = o(\sqrt{n})$.
+\etal~\cite{AFPVX17arxiv} for $r = o(\sqrt{n})$.
 Similar to their algorithm, we also use the strongly polynomial uncapacitated
 minimum-cost flow algorithm by Orlin~\cite{O93}, but additional ideas are
 needed for efficient implementation.
@@ -501,7 +501,7 @@ The search finishes when $b$ is unmatched, and an admissible augmenting path now
 %The most expensive step in augmentation is to find the minimum-reduced-cost frontier edge that needs to be relaxed --- the search must ``look at every edge''.
 %e.g.\ by pushing them into a priority queue even if they are not relaxed.
 In the geometric setting, we find the min-reduced-cost frontier edge using a dynamic
-\EMPH{bichromatic closest pair} (BCP) data structure, similar to \cite{AFPVX17,Vaidya89}.
+\EMPH{bichromatic closest pair} (BCP) data structure, similar to \cite{AFPVX17arxiv,Vaidya89}.
 Given two point sets $P$ and $Q$ in the plane and a weight function
 $\omega: P\cup Q \to \reals$, the BCP is two points $a \in P$ and $b \in Q$
 minimizing the additively weighted distance $c(a, b) - \omega(a) + \omega(b)$.
@@ -545,8 +545,6 @@ We refer to this procedure as the \EMPH{rewinding mechanism}.
 %Each Hungarian search can be implemented
 %in $O(k\polylog n)$ time after a one-time $O(n\polylog n)$ preprocessing.
 %\end{lemma}
-
-%\note{I tried to condense this; please check}%TODO
 
 \paragraph{Potential updates.}
 We modify a trick from Vaidya~\cite{Vaidya89} to batch potential updates.
@@ -620,9 +618,9 @@ Let $\fsupply: V \to \ints$ be an integral supply/demand function on nodes of $N
 The positive values of $\fsupply(v)$ are referred to as \EMPH{supply}, and the
 negative values of $\fsupply(v)$ as \EMPH{demand}.
 A \EMPH{pseudoflow} $f: \vec{E} \to [0, 1]$ is a function on arcs of $N$.
-The \EMPH{support} of $f$ in $N$, denoted as \EMPH{$\supp(f)$}, is the set of arcs with positive flows:
-$\supp(f) \coloneqq \Set{\arc vw \in \vec{E} \mid f(\arc vw) > 0}$.
-Given a pseudoflow $f$, the \EMPH{imbalance} of a node (with respect to $f$) is
+The \EMPH{support} of $f$ in $N$, denoted as \EMPH{$\supp(f)$}, is the set of arcs with positive flow.
+%$\supp(f) \coloneqq \Set{\arc vw \in \vec{E} \mid f(\arc vw) > 0}$.
+Given a pseudoflow $f$, the \EMPH{imbalance} of a node is
 \[
 \EMPH{$\fsupply_f (v)$} \coloneqq \fsupply(v) + \sum_{\arc wv \in \vec{E}}{f(\arc wv)} - \sum_{\arc vw \in \vec{E}}{f(\arc vw)}.
 \]
@@ -635,7 +633,7 @@ The \EMPH{cost} of a pseudoflow is defined to be
 \[
  \EMPH{$\cost(f)$} \coloneqq \sum_{\arc vw \in \supp(f)} c(\arc vw) \cdot f(\arc vw).
 \]
-The \EMPH{minimum-cost flow problem} (MCF) asks to find a circulation of minimum cost inside a given network.
+The \EMPH{minimum-cost flow problem} (MCF) asks to find a circulation of minimum cost.
 
 If we set $\fsupply(s) = k$, $\fsupply(t) = k$, and $\fsupply(v) = 0$ for all
 $v \in A \cup B$, then an integral circulation $f$ corresponds to a partial
@@ -841,11 +839,6 @@ The algorithm works in scales.
 In the beginning of each scale, we fix a \EMPH{cost scaling parameter}
 \EMPH{$\theta$} and maintain potential $\pi$ with the following property:
 
-%\note{would like to use a better/neater/cleaner environment to represent invariant}%TODO
-%\begin{enumerate}[(P1)]
-%\item \label{item:scale_inv}
-%	There exists a $2\theta$-optimal integral circulation in $N$ with respect to $\pi$.
-%\end{enumerate}
 \begin{description}
 \item[(\namedlabel{item:scale_inv}{$\ast$})]
 	There exists a $2\theta$-optimal integral circulation in $N$ with respect to $\pi$.
@@ -892,10 +885,10 @@ After this step, the resulting pseudoflow must be $\theta$-optimal as all arcs
 of $N_f$ have reduced cost at least $-\theta$.
 
 The desaturation of each backward arc creates one unit of excess.
-Since there are at most $3k$ backward arcs, the total excess in the resulting
-pseudoflow is at most $3k$.
-There are $O(n)$ potential updates and $O(k)$ arcs on which flow might change,
-therefore the time required for \textsc{Scale-Init} is $O(n)$.
+Since there are at most $3k$ backward arcs, there is at most $3k$ excess after
+\textsc{Scale-Init}.
+There are $O(n)$ potential updates and $O(k)$ arcs to desautrate,
+so the time required for \textsc{Scale-Init} is $O(n)$.
 
 \paragraph{Refinement.}
 The procedure \textsc{Refine} converts a $\theta$-optimal pseudoflow with
@@ -992,7 +985,6 @@ Section~\ref{section:hung} because (a) excess nodes may show up in $A$ as well a
 and (c) the potential of excess nodes may be non-uniform.
 We therefore need a more complex data structure.
 
-%TODO i think this might be able to be compressed
 We call a node $v$ of $N$ \EMPH{dead} if $\fsupply_f(v) = 0$ and no arc of
 $\supp(f)$ is incident to $v$; otherwise $v$ is \EMPH{alive}.
 Note that $s$ and $t$ are always alive.
@@ -1010,26 +1002,19 @@ and in the case of two consecutive dead nodes there is a subpath of the
 form $s \arcto v \arcto w \arcto t$ where $v \in \dead{A}$ and $w \in \dead{B}$.
 We call such paths, from an alive node to an alive node
 with only dead interior nodes, \EMPH{alive paths}.
-We extend the notions of reduced cost and admissibility to alive paths,
-where the reduced cost of a path is the sum of reduced costs of its edges.
-Since reduced costs telescope, the reduced cost of an alive path
-depends only on the potential at its (alive) endpoints.
+Let the reduced cost of an alive path $\Pi$ be the sum of $c_\pi$ of its arcs.
+We say $\Pi$ is \EMPH{weakly admissible} if $c_\pi(\Pi) \leq 0$.
 
-Using this observation, we implement the Hungarian search to ``skip over''
-dead nodes, while logically exploring the same alive nodes in the same order.
-Alive paths may have length 1 (no dead interior nodes), 2, or 3.
-At each step, we find a minimum-reduced-cost alive path $\Pi$ from an
-alive node of $X$ to an alive node of $V \setminus X$, and add the nodes
-of $\Pi$ into $X$ in a single step.
-We update potential of alive nodes in $X$ according to the reduced cost of the path.
-(We will discuss how to handle potentials of dead nodes later in the section.)
-There are $O(k)$ alive nodes, so the number of minimization queries per
-Hungarian search is $O(k)$.
-
-We find the minimum-reduced-cost alive path of length $1$, $2$, and $3$,
-and then choose the cheapest among them.
-We now describe a data structure for each path length.
-For each data structure, our ``time budget'' per Hungarian search is $O(k\polylog n)$.
+We find the minimum-reduced-cost alive path of lengths $1$, $2$, and $3$
+leaving $X$, then relax the cheapest among them (raise potential in $X$ by $c(\Pi)$,
+add all nodes of $\Pi$ to $X$).
+Essentially, relaxing alive paths skips over dead nodes.
+Since reduced costs telescope on paths, weak admissibility of an alive path
+depends only on the potential of its alive endpoints.
+Thus, we can query the minimum alive path using a partial assignment
+of $\pi$ to only alive nodes, leaving $\pi$ over dead nodes untracked.
+We now describe a data structure for each length.
+%For each data structure, our ``time budget'' per Hungarian search is $O(k\polylog n)$.
 
 \paragraph{Finding length-1 paths.}
 This data structure finds a min-reduced-cost arc from an alive node of
@@ -1057,7 +1042,7 @@ in $O(\polylog k)$ time \cite{KMRSS17}.
 We describe how to find the cheapest path of the form $s \arcto v \arcto b$ where
 $v$ is dead and $b \in \alive{B}$.
 A cheapest path of the form $a \arcto v \arcto t$ can be found similarly.
-Similar to length-1 paths, we only query paths originating from $s$ if $s \in X$
+Similar to length-1, we only query paths starting at $s$ if $s \in X$
 and paths ending at $t$ if $t \not\in X$.
 
 Note that $c_\pi(s \arcto v \arcto b) = c(v, b) + \pi(b) - \pi(s)$.
@@ -1107,35 +1092,31 @@ there are $O(k)$ alive/dead updates caused by an augmentation, so the time for
 these updates per Hungarian search is $O(k\polylog n)$.
 
 \paragraph{Updating potential.}
-The Hungarian search periodically raises the potential for all nodes in $X$,
-and we need to an efficient implementation for the data structures above.
-Potential for alive nodes can be updated in a batched fashion using the
-method in Section~\ref{section:hung}.
+Potential updates for alive nodes can be handled using the batch method in Section~\ref{section:hung}.
+The three data structures above have no dependence on dead node potential ---
+as described earlier, we leave dead node potential untracked.
+Intuitively, the Hungarian search is still correct, since alive nodes are visited
+in the same order as when using arc-by-arc relaxations.
+However, we need $\pi$ for all nodes at the end of a scale (for the
+next \textsc{Scale-Init}) and whenever a node turns from dead to alive
+(after augmentation).
 
-For dead nodes, notice that our data structures do not utilize their potential.
-We therefore ignore them entirely and instead recover
-``valid'' potential for them once they switch from dead to alive
-(and additionally, at the end of each scale).
-Specifically, for a newly alive $a \in A$ we set $\pi(a) \gets \pi(s)$
-and for newly alive $b \in B$ we set $\pi(b) \gets \pi(t)$.
-% Formally, we say an alive path is \EMPH{strongly admissible}
-% under $\pi$ if all of its arcs are admissible under $\pi$.
-For correctness, we need to show that our choice of recovered potential
-(1) preserves $\theta$-optimality and (2) makes any alive path used by the most
-recent blocking flow admissible (in the sense that all arcs in the path is admissible). \note{better phrasing}
-Straightforward calculation verifies both properties.
+We can construct ``valid'' dead node potential for use in these situations.
+To recover potential for $v \in \dead{A}$ we set $\pi(v) \gets \pi(s)$,
+and for $v \in \dead{B}$ we set $\pi(v) \gets \pi(t)$.
+Straightforward calculation shows that (1) this choice preserves $\theta$-optimality,
+and (2) assigning this potential onto the internal (dead) nodes of a weakly admissible
+alive path $\Pi$ makes $\Pi$ (arc-wise) admissible.
+Hence, a blocking flow composed of weakly admissible alive paths is admissible
+under these recovered potential.
 
-The following lemma is crucial to the analysis of running time for the Hungarian search.
+The following lemma is crucial to the analysis of running time for the Hungarian search,
+bounding both the number of relaxations and potential update/recovery operations.
 
 \begin{lemma}
 \label{lemma:cost_scale_count}
-Both Hungarian search and Augmentation explore $O(k)$ nodes, and the blocking flow found by Augmentation is incident to $O(k)$ nodes.
-% \begin{enumerate}[(i)]
-% \item \label{item:cost_scale_relaxations}
-% 	Both the Hungarian search and the Augmentation steps explore $O(k)$ nodes.
-% \item \label{item:blocking_incidences}
-% 	The blocking flow found by augmentation is incident to $O(k)$ nodes.
-% \end{enumerate}
+Both Hungarian search and Augmentation explore $O(k)$ nodes,
+and the blocking flow found by Augmentation is incident to $O(k)$ nodes.
 \end{lemma}
 
 Augmentation can also be implemented in $O(k\polylog n)$ time, after
@@ -1158,12 +1139,10 @@ and a supply-demand function $\tsupply: A \cup B \to \ints$
 as defined in the introduction, we present an $O(rn^{3/2}\polylog n)$ time
 algorithm for computing an optimal transport map between $A$ and $B$.
 By applying this algorithm in the case of $r \leq \sqrt{n}$ and the one by
-Agarwal \etal~\cite{AFPVX17} when $r > \sqrt{n}$, we prove Theorem~\ref{theorem:orlin}.
+Agarwal \etal~\cite{AFPVX17arxiv} when $r > \sqrt{n}$, we prove Theorem~\ref{theorem:orlin}.
 We use a standard reduction to the uncapacitated min-cost flow problem and use
 Orlin's algorithm~\cite{O93} as well as some of
-the ideas from Agarwal \etal~\cite{AFPVX17}
-\note{Cite full version} %TODO
-for efficient implementation under the geometric settings.
+the ideas from Agarwal \etal~\cite{AFPVX17arxiv} for efficient implementation under the geometric settings.
 We first present an overview of the algorithm and then describe its fast
 implementation that achieves the desired running time.
 
@@ -1194,8 +1173,8 @@ is aggresively lowered to $\max_v \fsupply(v)$.
 
 When the algorithm terminates, an optimal circulation in the
 contracted network is found.
-We use the algorithm described in Agarwal~\etal~\cite{AFPVX17} to recover an optimal
-circulation in the original network.
+We use the algorithm described in Agarwal~\etal~\cite{AFPVX17arxiv} to recover
+an optimal circulation for the original network in $O(n\polylog n)$ time.
 Orlin showed that the algorithm terminates within $O(n\log n)$ scales and
 performs a total of $O(n\log n)$ augmentations.
 In the next subsection, we describe an algorithm that, after $O(n\polylog n)$ time
@@ -1332,7 +1311,7 @@ Each Hungarian search can be performed in $O(r\sqrt{n}\polylog n)$ time.
 
 Since there are $O(n\log n)$ augmentations and the flow in the original network
 can be recovered from that in the contracted network in $O(n\polylog n)$
-time~\cite{AFPVX17}, the total running time of the algorithm is
+time~\cite{AFPVX17arxiv}, the total running time of the algorithm is
 $O(rn^{3/2}\polylog n)$, as claimed in Theorem~\ref{theorem:orlin}.
 
 
