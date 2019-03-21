@@ -216,7 +216,7 @@ The geometric partial matching problem asks to find the minimum-cost size-$k$ ma
 
 We present efficient algorithms for geometric partial matching problem that work for any powers of $L_p$-norm matching objective:
 An exact algorithm that runs in $O((n + k^2)\polylog n)$ time, and a $(1 + \eps)$-approximation algorithm that runs in $O((n + k\sqrt{k})\polylog n \cdot \log\eps^{-1})$ time.
-Both algorithms are based on the primal-dual flow augmentation scheme; the main improvements are involved using dynamic data structures to achieve efficient flow augmentations.
+Both algorithms are based on the primal-dual flow augmentation scheme; the main improvements involve using dynamic data structures to achieve efficient flow augmentations.
 With similar techniques, we give an exact algorithm for the planar transportation problem running in $O(\min\{n^2, rn^{3/2}\}\polylog n)$ time.
 \end{abstract}
 
@@ -1094,8 +1094,8 @@ these updates per Hungarian search is $O(k\polylog n)$.
 
 \paragraph{Updating potential.}
 Potential updates for alive nodes can be handled in a batched fashion as in Section~\ref{section:hung}.
-The three data structures above have no dependency on the dead node potential
-since we leave them untracked as described.
+The three data structures above have no dependency on the dead node potential;
+we leave them untracked as described before.
 The Hungarian search remains intact since alive nodes are visited
 in the same order as when using arc-by-arc relaxations.
 However, we need values of $\pi$ on all nodes at the end of a scale (for the
