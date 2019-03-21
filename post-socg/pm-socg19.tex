@@ -1099,8 +1099,8 @@ we leave them untracked as described before.
 The Hungarian search remains intact since alive nodes are visited
 in the same order as when using arc-by-arc relaxations.
 However, we need values of $\pi$ on all nodes at the end of a scale (for the
-next \textsc{Scale-Init}) and whenever a node becomes alive
-(after each augmentation).
+next \textsc{Scale-Init}) and for individual dead nodes whenever they become
+alive (after augmentation).
 
 We can reconstruct a ``valid'' potential in these situations.
 To recover potential for $v \in \dead{A}$ we set $\pi(v) \gets \pi(s)$,
