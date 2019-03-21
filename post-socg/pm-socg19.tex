@@ -310,8 +310,8 @@ For $q > 1$, the best known approximation algorithm to compute a perfect
 matching runs in $O(n^{3/2}\polylog n \log(1/\eps))$ time \cite{SA12};
 it is not obvious how to extend this algorithm to the partial matching setting.
 
-The transportation problem can also be formulated as an instance of the minimum-cost flow
-problem.
+The transportation problem can also be formulated as an instance of the
+minimum-cost flow problem.
 The strongly polynomial uncapacitated min-cost flow algorithm by
 Orlin~\cite{O93} solves the transportation problem in
 $O((m + n\log n) n\log n)$ time.
@@ -319,12 +319,15 @@ Lee and Sidford~\cite{LS14} give a weakly polynomial algorithm that runs in
 $O(m\sqrt{n}\polylog(n, U))$ time, where $U$ is the maximum amount of node supply-demand.
 Agarwal~\etal~\cite{AFPVX17} showed that Orlin's algorithm can be
 implemented to solve 2D transportation in time $O(n^2\polylog n)$.
-By adapting the Lee-Sidford algorithm, they developed a
-$(1+\eps)$-approximation algorithm that runs in $O(n^{3/2}\eps^{-2}\polylog(n, U))$ time.
+In case of $O(1)$-dimension Euclidean space,
+by adapting the Lee-Sidford algorithm, they developed a
+$(1+\eps)$-approximation algorithm that runs in $O(n^{3/2} \poly\eps^{-1} \polylog(n, U))$ time.
 They also gave a Monte-Carlo algorithm that computes an
 $O(\log^2(1/\eps))$-approximate solution in $O(n^{1+\eps})$ time with
 high probability.
-\note{cite the preconditioning paper?} %TODO
+Recently, Khesin, Niklov, and Paramonov~\cite{KNP19} obtained a
+$(1+\eps)$-approximation in low-dimensional Euclidean space
+that runs in randomized $O(n \poly\eps^{-1} \polylog(n, U))$ time.
 
 \paragraph{Our results.}
 There are three main results in this paper.
@@ -834,8 +837,8 @@ where $\EMPH{$\underline{\theta}$} \coloneqq \frac{\eps}{6k} \cdot c(e_{i^*})$.
 
 \paragraph{Overview of the algorithm.}
 We are now ready to describe our algorithm, which closely follows Goldberg \etal~\cite{GHKT17}.
-The algorithm works in rounds.
-In the beginning of each round, we fix a \EMPH{cost scaling parameter}
+The algorithm works in scales.
+In the beginning of each scale, we fix a \EMPH{cost scaling parameter}
 \EMPH{$\theta$} and maintain potential $\pi$ with the following property:
 
 %\note{would like to use a better/neater/cleaner environment to represent invariant}%TODO
@@ -848,32 +851,32 @@ In the beginning of each round, we fix a \EMPH{cost scaling parameter}
 	There exists a $2\theta$-optimal integral circulation in $N$ with respect to $\pi$.
 \end{description}
 
-For the initial round, we set $\theta \gets \overline{\theta}$ and $\pi \gets 0$.
+For the initial scale, we set $\theta \gets \overline{\theta}$ and $\pi \gets 0$.
 By Lemma~\ref{lemma:starting_scale}(\ref{item:starting_scale3}),
 property~(\ref{item:scale_inv}) is satisfied initially.
-Each round of the algorithm consists of two stages.
+Each scale of the algorithm consists of two stages.
 In the \EMPH{scale initialization} stage, \textsc{Scale-Init}
 computes a $\theta$-optimal pseudoflow $f$.
 In the \EMPH{refinement} stage, \textsc{Refine} converts $f$ into
 a $\theta$-optimal (integral) circulation $g$.
 In both stages, $\pi$ is updated as necessary.
 If $\theta \leq \underline{\theta}$, we return $g$.
-Otherwise, we set $\theta \gets \theta/2$ and start the next round.
-Note that property~(\ref{item:scale_inv}) is satisfied in the beginning of each round.
+Otherwise, we set $\theta \gets \theta/2$ and start the next scale.
+Note that property~(\ref{item:scale_inv}) is satisfied in the beginning of each scale.
 
 By Corollary~\ref{corollary:goldberg_approx}, when the algorithm terminates,
 it returns an integral circulation $\tilde{f}$ in $N$ of cost at most
 $(1+\eps) \cost(f^*)$, which corresponds to a $(1+\eps)$-approximate min-cost
 matching of size $k$ in $G$.
 The algorithm terminates in
-$\log_2(\overline{\theta}/\underline{\theta}) = O(\log(n/\eps))$ rounds.
+$\log_2(\overline{\theta}/\underline{\theta}) = O(\log(n/\eps))$ scales.
 
 %Next, we describe the two stages in detail.
 
 \paragraph{Scale initialization.}
-In the first round, we compute a $\overline{\theta}$-optimal pseudoflow by
+In the first scale, we compute a $\overline{\theta}$-optimal pseudoflow by
 simply setting $f(\arc vw) \gets 0$ for all arcs in $\vec{E}$.
-For subsequent rounds, we begin with a $2\theta$-optimal circulation $f$ in $N$.
+For subsequent scales, we begin with a $2\theta$-optimal circulation $f$ in $N$.
 First, we raise the potential of all nodes in $A$ by $\theta$, all nodes in $B$ by $2\theta$,
 and $t$ by $3\theta$.
 The potential of $s$ is unchanged.
@@ -920,12 +923,12 @@ admissible excess-deficit paths remain.
 \end{enumerate}
 The algorithm repeats these steps until the total excess becomes zero.
 The following lemma bounds the number of iterations in the \textsc{Refine}
-procedure at each round.
+procedure at each scale.
 
 \begin{lemma}
 \label{lemma:refine_iters}
 Let $\theta$ be the scaling parameter and $\pi_0$ the potential function at the
-beginning of a round, such that there exists an integral $2\theta$-optimal
+beginning of a scale, such that there exists an integral $2\theta$-optimal
 circulation with respect to $\pi_0$.
 Let $f$ be a $\theta$-optimal pseudoflow with excess $O(k)$.
 Then \textsc{Refine} terminates within $O(\sqrt{k})$ iterations.
@@ -961,7 +964,7 @@ In the next subsection we show that after $O(n\polylog n)$ time preprocessing,
 an iteration of \textsc{Refine} can be performed in $O(k\polylog n)$ time
 (Lemma~\ref{lemma:refine_iter_time}).
 By Lemma~\ref{lemma:refine_iters} and the fact the algorithm terminates in
-$O(\log(n/\eps))$ rounds, the overall running time of the algorithm is
+$O(\log(n/\eps))$ scales, the overall running time of the algorithm is
 $O((n + k^{3/2})\polylog n \log(1/\eps))$, as claimed in Theorem~\ref{theorem:gmcm}.
 
 \subsection{Fast implementation of refinement stage}
@@ -985,7 +988,7 @@ Otherwise, $w$ is added to $X$ and the search continues.
 
 Implementing the Hungarian search efficiently is more difficult than in
 Section~\ref{section:hung} because (a) excess nodes may show up in $A$ as well as in $B$,
-(b) a balanced node may become imbalanced later in the rounds,
+(b) a balanced node may become imbalanced later in the scales,
 and (c) the potential of excess nodes may be non-uniform.
 We therefore need a more complex data structure.
 
@@ -1018,7 +1021,8 @@ Alive paths may have length 1 (no dead interior nodes), 2, or 3.
 At each step, we find a minimum-reduced-cost alive path $\Pi$ from an
 alive node of $X$ to an alive node of $V \setminus X$, and add the nodes
 of $\Pi$ into $X$ in a single step.
-We update potential in $X$ according to the reduced cost of the path.
+We update potential of alive nodes in $X$ according to the reduced cost of the path.
+(We will discuss how to handle potentials of dead nodes later in the section.)
 There are $O(k)$ alive nodes, so the number of minimization queries per
 Hungarian search is $O(k)$.
 
@@ -1082,10 +1086,11 @@ The first is identical to the situation in Section~\ref{section:hung};
 the number of excess depletions is $O(k)$ over the course of \textsc{Refine}.
 For the second, the alive/dead status of a node can change only if the
 blocking flow found passes through the node.
-By Lemma~\ref{lemma:cost_scale_count} below, there are $O(k)$ such changes.
+By Lemma~\ref{lemma:cost_scale_count} below, there are $O(k)$ such changes per Hungarian search,
+which can be done in $O(k\polylog n)$ time.
 %Thus, updating $\dead{A}$ for the BCP (after augmentation)
 %can be done in $O(k\polylog n)$ time per Hungarian search.
-\note{time for updating $\dead{A}$?}
+%\note{time for updating $\dead{A}$?}
 
 \paragraph{Finding length-3 paths.}
 We now describe how to find the cheapest path of the form $s \arcto v \arcto w \arcto t$
@@ -1110,9 +1115,9 @@ method in Section~\ref{section:hung}.
 For dead nodes, notice that our data structures do not utilize their potential.
 We therefore ignore them entirely and instead recover
 ``valid'' potential for them once they switch from dead to alive
-(and additionally, at the end of each round).
-Specifically, for a newly alive $a \in A$ we set $c_\pi(a) \gets c_\pi(s)$
-and for newly alive $b \in B$ we set $c_\pi(b) \gets c_\pi(t)$.
+(and additionally, at the end of each scale).
+Specifically, for a newly alive $a \in A$ we set $\pi(a) \gets \pi(s)$
+and for newly alive $b \in B$ we set $\pi(b) \gets \pi(t)$.
 % Formally, we say an alive path is \EMPH{strongly admissible}
 % under $\pi$ if all of its arcs are admissible under $\pi$.
 For correctness, we need to show that our choice of recovered potential
