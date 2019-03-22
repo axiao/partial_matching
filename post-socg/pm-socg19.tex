@@ -1,6 +1,6 @@
 %!TEX encoding = UTF-8 Unicode
 %!TeX spellcheck = en-US
-\documentclass[a4paper,UKenglish]{socg-lipics-v2019}
+\documentclass[a4paper,UKenglish,nolineno]{socg-lipics-v2019}
 %\documentclass[a4paper,UKenglish]{article}
 
 \usepackage[utf8]{inputenc}
@@ -19,11 +19,6 @@
 \usepackage[nocompress]{cite}
 \usepackage{amsmath,mathtools,stmaryrd}
 %\usepackage[shortlabels]{enumitem}
-
-% \usepackage[title]{appendix}
-\usepackage[bibliography=common]{apxproof}
-%\usepackage[appendix=inline,bibliography=common]{apxproof}
-\renewcommand{\appendixsectionformat}[2]{Missing Details and Proofs from Section~#1}
 
 % \renewcommand\theenumi{\arabic{enumi}}
 % \renewcommand\labelenumi{\theenumi.}
@@ -45,7 +40,7 @@
 \dashlinedash 0.75pt
 \dashlinegap 1.5pt
 
-\usepackage{latexsym,amsmath}
+\usepackage{latexsym}
 \usepackage{amssymb,stmaryrd}
 \usepackage{algorithm,algorithmicx}
 \usepackage[noend]{algpseudocode}
@@ -115,14 +110,14 @@
 \def\star{\text{\ding{84}}}
 
 
-\theoremstyle{plain}
-\newtheoremrep{lemma}{Lemma}[section]
-\newtheoremrep{theorem}[lemma]{Theorem}
-\newtheoremrep{corollary}[lemma]{Corollary}
+%\theoremstyle{plain}
+% \newtheorem{lemma}{Lemma}[section]
+% \newtheorem{theorem}[lemma]{Theorem}
+% \newtheorem{corollary}[lemma]{Corollary}
 % \newtheorem{observation}[lemma]{Observation}
 % \newtheorem{claim}[lemma]{Claim}
 % \newtheorem{definition}[lemma]{Definition}
-\numberwithin{figure}{section}
+%\numberwithin{figure}{section}
 
 
 % for definitions
@@ -756,7 +751,6 @@ Then $f$ augmented by $g$ is also $\theta$-optimal in $N$.
 %Therefore, all arcs with $u_{f+f'}(v, w) > 0$ respect the $\theta$-optimality condition,
 %and thus $f+f'$ is $\theta$-optimal.
 %\end{proof}
-%\end{toappendix}
 
 Using Lemma~\ref{lemma:supp_size}, the following lemma can be proved about
 $\theta$-optimality:
