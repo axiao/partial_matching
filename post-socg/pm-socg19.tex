@@ -1,7 +1,7 @@
 %!TEX encoding = UTF-8 Unicode
 %!TeX spellcheck = en-US
-\documentclass[a4paper,UKenglish,nolineno]{socg-lipics-v2019}
-%\documentclass[a4paper,UKenglish]{article}
+%\documentclass[a4paper,UKenglish,nolineno]{socg-lipics-v2019}
+\documentclass[a4paper,UKenglish]{socg-lipics-v2019}
 
 \usepackage[utf8]{inputenc}
 
@@ -186,7 +186,7 @@ Work on this paper was supported by NSF under grants CCF-15-13816,
 CCF-15-46392, and IIS-14-08846, by an ARO grant W911NF-15-1-0408, and by
 BSF Grant 2012/229 from the U.S.-Israel Binational Science Foundation.
 }
-%\relatedversion{A full version of this paper is available at \url{XXX}}
+\relatedversion{A full version of this paper is available at \url{XXX}}
 
 \EventEditors{Gill Barequet and Yusu Wang}
 \EventNoEds{2}
@@ -565,8 +565,7 @@ When $b \in B$ is added to $X$, we update its stored value to $\pi(b) - \delta$
 When a node is removed from $X$ (e.g.\ by augmentation or rewinding), we update
 the stored potential $\gamma(v) \gets \pi(v) + \delta$, again for the current
 value of $\delta$.
-Unlike Vaidya~\cite{Vaidya89}, we do not reset $\delta$ across Hungarian searches
-for the sake of rewinding.
+Unlike Vaidya~\cite{Vaidya89} and for the sake of rewinding, we do not reset $\delta$ across Hungarian searches.
 
 There are $O(k)$ relaxations and thus $O(k)$ updates to $\delta$ per Hungarian search.
 $O(k)$ stored values are updated per rewinding, so the time spent on potential
@@ -831,8 +830,8 @@ where $\EMPH{$\underline{\theta}$} \coloneqq \frac{\eps}{6k} \cdot c(e_{i^*})$.
 
 \subparagraph{Overview of the algorithm.}
 We are now ready to describe our algorithm, which closely follows Goldberg \etal~\cite{GHKT17}.
-The algorithm works in scales.
-In the beginning of each scale, we fix a \EMPH{cost scaling parameter}
+The algorithm works in rounds called \EMPH{scales}.
+Within each scale, we fix a \EMPH{cost scaling parameter}
 \EMPH{$\theta$} and maintain potential $\pi$ with the following property:
 
 \begin{description}
@@ -865,7 +864,7 @@ $\log_2(\overline{\theta}/\underline{\theta}) = O(\log(n/\eps))$ scales.
 \subparagraph{Scale initialization.}
 In the first scale, we compute a $\overline{\theta}$-optimal pseudoflow by
 simply setting $f(\arc vw) \gets 0$ for all arcs in $\vec{E}$.
-For subsequent scales, we begin with a $2\theta$-optimal circulation $f$ in $N$.
+For subsequent scales, we initialize $f \gets g$, where $g$ is the $2\theta$-optimal circulation of the previous scale.
 First, we raise the potential of all nodes in $A$ by $\theta$, all nodes in $B$ by $2\theta$,
 and $t$ by $3\theta$.
 The potential of $s$ is unchanged.
@@ -1027,13 +1026,12 @@ $\alive{A} \setminus X$ (resp.\ $\alive{B} \cap X$) in a priority queue,
 but should only be queried if $s \in X$ (resp.\ $t \not\in X$).
 %
 The cheapest arc of the third type can be maintained using a dynamic
-(additively weighted) bichromatic closest pair (BCP) data structure between
-$\alive{A} \cap X$ and $\alive{B} \setminus X$,
+BCP data structure between $\alive{A} \cap X$ and $\alive{B} \setminus X$,
 with reduced cost as the weighted pair distance.
 %Indeed, since each arc has unit capacity, it can be shown that there is no
 %backward arc in $N_f$ from $\alive{B} \setminus X$ to $\alive{A} \cap X$.
-Such BCP data structure can be implemented so that insertions/deletions can be performed
-in $O(\polylog k)$ time \cite{KMRSS17}.
+Such a data structure can be implemented so that insertions/deletions can be
+performed in $O(\polylog k)$ time \cite{KMRSS17}.
 
 \subparagraph{Finding length-2 paths.}
 We describe how to find a cheapest path of the form $s \arcto v \arcto b$ where
