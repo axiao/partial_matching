@@ -1,12 +1,125 @@
+@preamble{"\newcommand{\SortNoop}[1]{}"}
+
+@string{and = "and"}
+@string{proc = "Proc. "}
+@string{jan = "January"}
+@string{feb = "February"}
+@string{mar = "March"}
+@string{apr = "April"}
+@string{may = "May"}
+@string{jun = "June"}
+@string{jul = "July"}
+@string{aug = "August"}
+@string{sep = "September"}
+@string{oct = "October"}
+@string{nov = "November"}
+@string{dec = "December"}
+
+@string{first = "1st"}
+@string{second = "2nd"}
+@string{third = "3rd"}
+@string{fourth = "4th"}
+@string{fifth = "5th"}
+@string{sixth = "6th"}
+@string{seventh = "7th"}
+@string{eighth = "8t"}
+@string{ninth = "9th"}
+@string{tenth = "10th"}
+
+@string{acm-press = "ACM Press"}
+@string{acad = "Academic Press"}
+@string{ad-wes = "Addison-Wesley"}
+@string{ak-ver = "Akademie-Verlag"}
+@string{ams = "American Mathematical Society"}
+@string{teubner = "B. G. Teubner"}
+@string{birkh = "Birkh{\"a}user-Verlag"}
+@string{crc = "CRC Press"}
+@string{camb-u-p = "Cambridge University Press"}
+@string{cs = "Computer Science Press"}
+@string{dover = "Dover Publications"}
+@string{elsevier = "Elsevier"}
+@string{ieee-cs = "IEEE Computer Society"}
+@string{ieee = "IEEE Press"}
+@string{jai = "JAI Press"}
+@string{wiley = "John Wiley \& Sons"}
+@string{kluwer = "Kluwer"}
+@string{mit = "MIT Press"}
+@string{math-as-am = "Mathematical Association of America"}
+@string{mcgraw-hill = "McGraw-Hill"}
+@string{morgan-k = "Morgan-Kaufmann"}
+@string{north-h = "North-Holland"}
+@string{oxford = "Oxford University Press"}
+@string{pergamon = "Pergamon Press"}
+@string{prentice = "Prentice Hall"}
+@string{princeton = "Princeton University Press"}
+@string{siam = "SIAM"}
+@string{simon = "Simon \& Schuster"}
+@string{springer = "Springer-Verlag"}
+@string{vieweg = "Verlag Vieweg"}
+@string{freeman = "W. H. Freeman"}
+@string{wiley-inter = "Wiley-Interscience"}
+@string{world = "World Scientific Publishing"}
+
+@string{algorithmica = "Algorithmica"}
+@string{combinatorica = "Combinatorica"}
+@string{cgta = "Comput. Geom."}
+@string{siggraph = "Comput. Graph."}
+@string{dcg = "Discrete Comput. Geom."}
+@string{icalp = "Internat. Colloq. Automata Lang. Program. (ICALP)"}
+@string{ipl = "Inform. Process. Lett."}
+@string{ijcga = "Internat. J. Comput. Geom. Appl."}
+@string{jacm = "J. ACM"}
+@string{jalg = "J. Algorithms"}
+@string{jocg = "J. Comput. Geom."}
+@string{nordic = "Nordic J. Comput."}
+@string{infcomp = "Inform. and Comput."}
+@string{jcss = "J. Comput. System Sci."}
+@string{tcs = "Theoret. Comput. Sci."}
+@string{talg = "ACM Trans. Algorithms"}
+@string{tgraphics = "ACM Trans. Graphics"}
+@string{sicomp = " SIAM J. Comput."}
+@string{sidmath = " SIAM J. Discrete Math."}
+@string{siconopt = " SIAM J. Control and Opt."}
+
+@string{lncs = "Lecture Notes in Computer Science"}
+
+@string{soda = " Annu. ACM-SIAM Sympos. Discrete Algorithms (SODA)"}
+@string{scg = " Annu. Sympos. Comput. Geom. (SoCG)"}
+@string{scg2 = " Int. Sympos. Comput. Geom. (SoCG)"}
+@string{stoc = " Annu. ACM Sympos. Theory Comput. (STOC)"}
+@string{esa = " Annu. European Sympos. Algorithms (ESA)"}
+@string{focs = " Annu. IEEE Sympos. Found. Comput. Sci. (FOCS)"}
+@string{isaac = "Annu. Internat. Sympos. Algorithms Comput. (ISAAC)"}
+@string{cccg = " Canad. Conf. Comput. Geom. (CCCG)"}
+@string{ewcg = " European Workshop Comput. Geom. (EWCG)"}
+@string{stacs = " Sympos. Theoret. Aspects Comput. Sci. (STACS)"}
+@string{sjcc = " AFIPS Spring Joint Computer Conferences"}
+@string{alenex = " Workshop on Algorithm Engineering and Experiments (ALENEX)"}
+@string{wads = " Workshop on Algorithms and Data Structures (WADS)"}
+@string{wads2 = " Algorithms and Data Structures Symposium (WADS)"}
+@string{fsttcs = " FSTTCS"}
+@string{WG = " International Workshop on Graph-Theoretic Concepts 
+in Computer Science (WG)"}
+@string{TOSN = " ACM Transactions on Sensor Networks (TOSN)"}
+@string{swat = " Scandinavian Symposium and Workshops on Algorithm Theory (SWAT)"}
+@string{icml = "Int. Conf. Machine Learning (ICML)"}
+@string{nips = "Adv. in Neural Inform. Process. Systems (NIPS)"}
+@string{iccv = "Int. Conf. Comput. Vision (ICCV)"}
+
+
+%% --------------------------------------------------------------
+%%  bibtex entries
+%% --------------------------------------------------------------
+
 @article{Kuhn55,
   title={The {H}ungarian method for the assignment problem},
-  author={Kuhn, Harold W},
+  author={Kuhn, Harold W.},
   journal={Naval Research Logistics (NRL)},
   volume={2},
   number={1-2},
   pages={83--97},
   year={1955},
-  publisher={Wiley Online Library}
+  publisher=wiley
 }
 
 @article{EK72,
@@ -14,62 +127,114 @@
                Richard M. Karp},
   title     = {Theoretical Improvements in Algorithmic Efficiency for Network Flow
                Problems},
-  journal   = {J. {ACM}},
+  journal   = jacm,
   volume    = {19},
   number    = {2},
   pages     = {248--264},
   year      = {1972},
   url       = {https://doi.org/10.1145/321694.321699},
   doi       = {10.1145/321694.321699},
-  timestamp = {Wed, 14 Nov 2018 10:35:26 +0100},
-  biburl    = {https://dblp.org/rec/bib/journals/jacm/EdmondsK72},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{HK73,
+  author    = {John E. Hopcroft and
+               Richard M. Karp},
+  title     = {An $n^{5/2}$ Algorithm for Maximum Matchings in Bipartite
+               Graphs},
+  journal   = sicomp,
+  volume    = {2},
+  number    = {4},
+  pages     = {225--231},
+  year      = {1973},
+  url       = {https://doi.org/10.1137/0202019},
+  doi       = {10.1137/0202019},
+}
+
+@article{ET75,
+  author    = {Shimon Even and
+               Robert E. Tarjan},
+  title     = {Network Flow and Testing Graph Connectivity},
+  journal   = sicomp,
+  volume    = {4},
+  number    = {4},
+  pages     = {507--518},
+  year      = {1975},
+  url       = {https://doi.org/10.1137/0204043},
+  doi       = {10.1137/0204043},
+}
+
+@article{T85,
+  author    = {{\'{E}}va Tardos},
+  title     = {A strongly polynomial minimum cost circulation algorithm},
+  journal   = combinatorica,
+  volume    = {5},
+  number    = {3},
+  pages     = {247--256},
+  year      = {1985},
+  url       = {https://doi.org/10.1007/BF02579369},
+  doi       = {10.1007/BF02579369},
+}
+
+@article{BE87,
+  author = {Bertsekas, D. and El Baz, D.},
+  title = {Distributed Asynchronous Relaxation Methods for Convex Network Flow Problems},
+  journal = siconopt,
+  volume = {25},
+  number = {1},
+  pages = {74-85},
+  year = {1987},
+  doi = {10.1137/0325006},
+  URL = {https://doi.org/10.1137/0325006},
+  eprint = {https://doi.org/10.1137/0325006}
+}
+
+@article{GT88,
+  author    = {Harold N. Gabow and
+               Robert Endre Tarjan},
+  title     = {Algorithms for Two Bottleneck Optimization Problems},
+  journal   = jalg,
+  volume    = {9},
+  number    = {3},
+  pages     = {411--417},
+  year      = {1988},
+  url       = {https://doi.org/10.1016/0196-6774(88)90031-4},
+  doi       = {10.1016/0196-6774(88)90031-4},
 }
 
 @inproceedings{D89,
   author    = {Paul F. Dietz},
   title     = {Fully Persistent Arrays (Extended Array)},
-  booktitle = {Algorithms and Data Structures, Workshop {WADS} '89, Ottawa, Canada,
-               August 17-19, 1989, Proceedings},
+  booktitle = wads # "1989"
   pages     = {67--74},
   year      = {1989},
   crossref  = {DBLP:conf/wads/1989},
   url       = {https://doi.org/10.1007/3-540-51542-9\_8},
   doi       = {10.1007/3-540-51542-9\_8},
-  timestamp = {Fri, 19 May 2017 13:10:44 +0200},
-  biburl    = {https://dblp.org/rec/bib/conf/wads/Dietz89a},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
 @article{Vaidya89,
   author    = {Pravin M. Vaidya},
   title     = {Geometry Helps in Matching},
-  journal   = {{SIAM} J. Comput.},
+  journal   = sicomp,
   volume    = {18},
   number    = {6},
   pages     = {1201--1225},
   year      = {1989},
   url       = {https://doi.org/10.1137/0218080},
   doi       = {10.1137/0218080},
-  timestamp = {Sat, 27 May 2017 14:22:59 +0200},
-  biburl    = {https://dblp.org/rec/bib/journals/siamcomp/Vaidya89a},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
-@article{DBLP:journals/siamcomp/GabowT89,
+@article{GT89,
   author    = {Harold N. Gabow and
-               Robert Endre Tarjan},
+               Robert E. Tarjan},
   title     = {Faster Scaling Algorithms for Network Problems},
-  journal   = {{SIAM} J. Comput.},
+  journal   = sicomp,
   volume    = {18},
   number    = {5},
   pages     = {1013--1036},
   year      = {1989},
   url       = {https://doi.org/10.1137/0218069},
   doi       = {10.1137/0218069},
-  timestamp = {Sat, 27 May 2017 14:22:58 +0200},
-  biburl    = {https://dblp.org/rec/bib/journals/siamcomp/GabowT89},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
 @article{GT90,
@@ -83,12 +248,9 @@
   year      = {1990},
   url       = {https://doi.org/10.1287/moor.15.3.430},
   doi       = {10.1287/moor.15.3.430},
-  timestamp = {Sun, 28 May 2017 13:24:37 +0200},
-  biburl    = {https://dblp.org/rec/bib/journals/mor/GoldbergT90},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
-@article{DBLP:journals/mp/OrlinA92,
+@article{OA92,
   author    = {James B. Orlin and
                Ravindra K. Ahuja},
   title     = {New scaling algorithms for the assignment and minimum mean cycle problems},
@@ -98,9 +260,6 @@
   year      = {1992},
   url       = {https://doi.org/10.1007/BF01586040},
   doi       = {10.1007/BF01586040},
-  timestamp = {Thu, 08 Jun 2017 09:09:41 +0200},
-  biburl    = {https://dblp.org/rec/bib/journals/mp/OrlinA92},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
 @article{O93,
@@ -113,90 +272,288 @@
   year      = {1993},
   url       = {https://doi.org/10.1287/opre.41.2.338},
   doi       = {10.1287/opre.41.2.338},
-  timestamp = {Sat, 27 May 2017 14:23:34 +0200},
-  biburl    = {https://dblp.org/rec/bib/journals/ior/Orlin93},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
-@article{DBLP:journals/siamdm/GoldbergK97,
+@article{AV95,
+  author    = {David S. Atkinson and
+               Pravin M. Vaidya},
+  title     = {Using Geometry To Solve the Transportation Problem in the Plane},
+  journal   = algorithmica,
+  volume    = {13},
+  number    = {5},
+  pages     = {442--461},
+  year      = {1995},
+  url       = {https://doi.org/10.1007/BF01190848},
+  doi       = {10.1007/BF01190848},
+}
+
+@article{GK97,
   author    = {Andrew V. Goldberg and
                Robert Kennedy},
   title     = {Global Price Updates Help},
-  journal   = {{SIAM} J. Discrete Math.},
+  journal   = sidmath,
   volume    = {10},
   number    = {4},
   pages     = {551--572},
   year      = {1997},
   url       = {https://doi.org/10.1137/S0895480194281185},
   doi       = {10.1137/S0895480194281185},
-  timestamp = {Fri, 26 May 2017 22:54:48 +0200},
-  biburl    = {https://dblp.org/rec/bib/journals/siamdm/GoldbergK97},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
-@article{DBLP:journals/siamcomp/AgarwalES99,
+@inproceedings{RTG98,
+  author    = {Yossi Rubner and
+               Carlo Tomasi and
+               Leonidas J. Guibas},
+  title     = {A Metric for Distributions with Applications to Image Databases},
+  booktitle = "6th" # iccv,
+  pages     = {59--66},
+  year      = {1998},
+  url       = {http://dx.doi.org/10.1109/ICCV.1998.710701},
+  doi       = {10.1109/ICCV.1998.710701},
+}
+
+@inproceedings{V98,
+  author    = {Kasturi R. Varadarajan},
+  title     = {A Divide-and-Conquer Algorithm for Min-Cost Perfect Matching in the
+               Plane},
+  booktitle = proc # "39th" # focs,
+  pages     = {320--331},
+  year      = {1998},
+  crossref  = {DBLP:conf/focs/1998},
+  url       = {https://doi.org/10.1109/SFCS.1998.743466},
+  doi       = {10.1109/SFCS.1998.743466},
+}
+
+@article{AES99,
   author    = {Pankaj K. Agarwal and
                Alon Efrat and
                Micha Sharir},
   title     = {Vertical Decomposition of Shallow Levels in 3-Dimensional Arrangements
                and Its Applications},
-  journal   = {{SIAM} J. Comput.},
+  journal   = sicomp,
   volume    = {29},
   number    = {3},
   pages     = {912--953},
   year      = {1999},
   url       = {https://doi.org/10.1137/S0097539795295936},
   doi       = {10.1137/S0097539795295936},
-  timestamp = {Sat, 27 May 2017 14:22:58 +0200},
-  biburl    = {https://dblp.org/rec/bib/journals/siamcomp/AgarwalES99},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
-@inproceedings{E10,
-  author    = {Jeff Erickson},
-  title     = {Maximum Flows and Parametric Shortest Paths in Planar Graphs},
-  booktitle = {Proceedings of the Twenty-First Annual {ACM-SIAM} Symposium on Discrete
-               Algorithms, {SODA} 2010, Austin, Texas, USA, January 17-19, 2010},
-  pages     = {794--804},
-  year      = {2010},
-  crossref  = {DBLP:conf/soda/2010},
-  url       = {https://doi.org/10.1137/1.9781611973075.65},
-  doi       = {10.1137/1.9781611973075.65},
-  timestamp = {Tue, 21 Nov 2017 17:07:18 +0100},
-  biburl    = {https://dblp.org/rec/bib/conf/soda/Erickson10},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
+@book{V03,
+  title     = {Topics in Optimal Transportation},
+  author    = {Villani, C{\'e}dric},
+  volume    = {58},
+  year      = {2003},
+  publisher = ams
 }
 
-@inproceedings{DBLP:conf/focs/RamshawT12,
+@inproceedings{AV04,
+  author    = {Pankaj K. Agarwal and
+               Kasturi R. Varadarajan},
+  title     = {A near-linear constant-factor approximation for {E}uclidean bipartite
+               matching?},
+  booktitle = proc # "20th" # scg,
+  pages     = {247--252},
+  year      = {2004},
+  crossref  = {DBLP:conf/compgeom/2004},
+  url       = {https://doi.org/10.1145/997817.997856},
+  doi       = {10.1145/997817.997856},
+}
+
+@article{BBR06,
+  title = {On minimum {K}antorovich distance estimators},
+  author = {Federico Bassetti and Antonella Bodini and Eugenio Regazzini},
+  journal = {Stat. \& Prob. Letters},
+  volume = {76},
+  number = {12},
+  pages = {1298--1302},
+  year = {2006},
+  issn = {0167-7152},
+  doi = {https://doi.org/10.1016/j.spl.2006.02.001},
+}
+
+@book{V08,
+  author    = {Villani, C{\'e}dric},
+  title     = {Optimal Transport: Old and New},
+  volume    = {338},
+  year      = {2008},
+  publisher = springer
+}
+
+@article{CGKR08,
+  author    = {Sergio Cabello and
+               Panos Giannopoulos and
+               Christian Knauer and
+               G{\"{u}}nter Rote},
+  title     = {Matching point sets with respect to the {E}arth {M}over's {D}istance},
+  journal   = cgta,
+  volume    = {39},
+  number    = {2},
+  pages     = {118--133},
+  year      = {2008},
+  url       = {https://doi.org/10.1016/j.comgeo.2006.10.001},
+  doi       = {10.1016/j.comgeo.2006.10.001},
+}
+
+@article{R10,
+  author = {Rote, G{\"u}nter},
+  title = {Partial least-squares point matching under translations},
+  journal = proc # "26th" # ewcg,
+  year = {2010},
+  month = {01},
+  pages = {249-251},
+}
+
+@inproceedings{RT12,
   author    = {Lyle Ramshaw and
-               Robert Endre Tarjan},
+               Robert E. Tarjan},
   title     = {A Weight-Scaling Algorithm for Min-Cost Imperfect Matchings in Bipartite
                Graphs},
-  booktitle = {53rd Annual {IEEE} Symposium on Foundations of Computer Science, {FOCS}
-               2012, New Brunswick, NJ, USA, October 20-23, 2012},
+  booktitle = proc # "53rd" # focs,
   pages     = {581--590},
   year      = {2012},
   crossref  = {DBLP:conf/focs/2012},
   url       = {https://doi.org/10.1109/FOCS.2012.9},
   doi       = {10.1109/FOCS.2012.9},
-  timestamp = {Fri, 19 May 2017 01:25:59 +0200},
-  biburl    = {https://dblp.org/rec/bib/conf/focs/RamshawT12},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
 @inproceedings{SA12,
   author    = {R. Sharathkumar and
                Pankaj K. Agarwal},
   title     = {Algorithms for the transportation problem in geometric settings},
-  booktitle = {Proceedings of the Twenty-Third Annual {ACM-SIAM} Symposium on Discrete
-               Algorithms, {SODA} 2012, Kyoto, Japan, January 17-19, 2012},
+  booktitle = proc # "23rd" # soda,
   pages     = {306--317},
   year      = {2012},
   crossref  = {DBLP:conf/soda/2012},
-  url       = {http://portal.acm.org/citation.cfm?id=2095145&CFID=63838676&CFTOKEN=79617016},
-  timestamp = {Wed, 24 May 2017 08:31:21 +0200},
-  biburl    = {https://dblp.org/rec/bib/conf/soda/SharathkumarA12},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
+  url       = {https://dl.acm.org/citation.cfm?id=2095116.2095145},
+}
+
+@inproceedings{SA12m,
+  author    = {R. Sharathkumar and
+               Pankaj K. Agarwal},
+  title     = {A near-linear time {\(\epsilon\)}-approximation algorithm for geometric
+               bipartite matching},
+  booktitle = proc # "44th" # stoc,
+  pages     = {385--394},
+  year      = {2012},
+  crossref  = {DBLP:conf/stoc/2012},
+  url       = {https://doi.org/10.1145/2213977.2214014},
+  doi       = {10.1145/2213977.2214014},
+}
+
+@inproceedings{M13,
+  author    = {Aleksander M{\k a}dry},
+  title     = {Navigating Central Path with Electrical Flows: From Flows to Matchings,
+               and Back},
+  booktitle = "54th" # focs,
+  pages     = {253--262},
+  year      = {2013},
+  crossref  = {DBLP:conf/focs/2013},
+  url       = {https://doi.org/10.1109/FOCS.2013.35},
+  doi       = {10.1109/FOCS.2013.35},
+}
+
+
+@inproceedings{LS14,
+  author    = {Yin Tat Lee and
+               Aaron Sidford},
+  title     = {Path Finding Methods for Linear Programming: Solving Linear Programs
+               in {\~{O}}(vrank) Iterations and Faster Algorithms for Maximum Flow},
+  booktitle = "55th" # focs,
+  pages     = {424--433},
+  year      = {2014},
+  crossref  = {DBLP:conf/focs/2014},
+  url       = {https://doi.org/10.1109/FOCS.2014.52},
+  doi       = {10.1109/FOCS.2014.52},
+}
+
+@inproceedings{C13,
+  author    = {Marco Cuturi},
+  title     = {Sinkhorn Distances: Lightspeed Computation of Optimal Transport},
+  booktitle = nips # "26",
+  pages     = {2292--2300},
+  year      = {2013},
+  crossref  = {DBLP:conf/nips/2013},
+  url       = {http://papers.nips.cc/paper/4927-sinkhorn-distances-lightspeed-computation-of-optimal-transport},
+}
+
+@article{STTP14,
+  author    = {Yuliy Schwartzburg and
+               Romain Testuz and
+               Andrea Tagliasacchi and
+               Mark Pauly},
+  title     = {High-contrast computational caustic design},
+  journal   = tgraphics,
+  volume    = {33},
+  number    = {4},
+  pages     = {74:1--74:11},
+  year      = {2014},
+  url       = {https://doi.org/10.1145/2601097.2601200},
+  doi       = {10.1145/2601097.2601200},
+}
+
+@article{GPC15,
+  author    = {Alexandre Gramfort and
+               Gabriel Peyr{\'{e}} and
+               Marco Cuturi},
+  title     = {Fast Optimal Transport Averaging of Neuroimaging Data},
+  journal   = {CoRR},
+  volume    = {abs/1503.08596},
+  year      = {2015},
+  url       = {http://arxiv.org/abs/1503.08596},
+}
+
+@article{SGPCBNDG15,
+  author    = {Justin Solomon and
+               Fernando de Goes and
+               Gabriel Peyr{\'{e}} and
+               Marco Cuturi and
+               Adrian Butscher and
+               Andy Nguyen and
+               Tao Du and
+               Leonidas J. Guibas},
+  title     = {Convolutional {W}asserstein distances: efficient optimal transportation
+               on geometric domains},
+  journal   = tgraphics,
+  volume    = {34},
+  number    = {4},
+  pages     = {66:1--66:11},
+  year      = {2015},
+  url       = {http://doi.acm.org/10.1145/2766963},
+  doi       = {10.1145/2766963},
+}
+
+@phdthesis{P15,
+  TITLE = {{Optimal Transport for Image Processing}},
+  AUTHOR = {Papadakis, Nicolas},
+  URL = {https://hal.archives-ouvertes.fr/tel-01246096},
+  SCHOOL = {{Universit{\'e} de Bordeaux}},
+  YEAR = {2015},
+  MONTH = Dec,
+  KEYWORDS = {Generalized Wasserstein distance ;  image processing ;  image interpolation ;  color transfer ;  segmentation ;  (non)convex optimization ; Distance de Wasserstein g{\'e}n{\'e}ralis{\'e}e ;  optimisation (non)convexe ;  transfert de couleur ;  interpolation d'images},
+  TYPE = {Habilitation {\`a} diriger des recherches},
+  PDF = {https://hal.archives-ouvertes.fr/tel-01246096/file/hdr_hal2.pdf},
+  HAL_ID = {tel-01246096},
+  HAL_VERSION = {v8},
+}
+
+@book{G16,
+  title={Optimal transport methods in economics},
+  author={Galichon, Alfred},
+  year={2016},
+  publisher=princeton
+}
+
+@inproceedings{ACB17,
+  author    = {Mart{\'{\i}}n Arjovsky and
+               Soumith Chintala and
+               L{\'{e}}on Bottou},
+  title     = {Wasserstein Generative Adversarial Networks},
+  booktitle = proc # "34th" # icml,
+  pages     = {214--223},
+  year      = {2017},
+  crossref  = {DBLP:conf/icml/2017},
+  url       = {http://proceedings.mlr.press/v70/arjovsky17a.html},
 }
 
 @inproceedings{KMRSS17,
@@ -205,19 +562,14 @@
                Liam Roditty and
                Paul Seiferth and
                Micha Sharir},
-  title     = {Dynamic Planar Voronoi Diagrams for General Distance Functions and
+  title     = {Dynamic Planar {V}oronoi Diagrams for General Distance Functions and
                their Algorithmic Applications},
-  booktitle = {Proceedings of the Twenty-Eighth Annual {ACM-SIAM} Symposium on Discrete
-               Algorithms, {SODA} 2017, Barcelona, Spain, Hotel Porta Fira, January
-               16-19},
+  booktitle = proc # "28th" # soda,
   pages     = {2495--2504},
   year      = {2017},
   crossref  = {DBLP:conf/soda/2017},
   url       = {https://doi.org/10.1137/1.9781611974782.165},
   doi       = {10.1137/1.9781611974782.165},
-  timestamp = {Wed, 24 May 2017 08:31:21 +0200},
-  biburl    = {https://dblp.org/rec/bib/conf/soda/KaplanMRSS17},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
 @article{GHKT17,
@@ -226,16 +578,13 @@
                Haim Kaplan and
                Robert E. Tarjan},
   title     = {Minimum-Cost Flows in Unit-Capacity Networks},
-  journal   = {Theory Comput. Syst.},
+  journal   = tcs,
   volume    = {61},
   number    = {4},
   pages     = {987--1010},
   year      = {2017},
   url       = {https://doi.org/10.1007/s00224-017-9776-7},
   doi       = {10.1007/s00224-017-9776-7},
-  timestamp = {Thu, 19 Oct 2017 15:03:30 +0200},
-  biburl    = {https://dblp.org/rec/bib/journals/mst/GoldbergHKT17},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
 @inproceedings{AFPVX17,
@@ -245,14 +594,159 @@
                Kasturi R. Varadarajan and
                Allen Xiao},
   title     = {Faster Algorithms for the Geometric Transportation Problem},
-  booktitle = {33rd International Symposium on Computational Geometry, SoCG 2017,
-               July 4-7, 2017, Brisbane, Australia},
+  booktitle = proc # "33rd" # scg2,
   pages     = {7:1--7:16},
   year      = {2017},
   crossref  = {DBLP:conf/compgeom/2017},
   url       = {https://doi.org/10.4230/LIPIcs.SoCG.2017.7},
   doi       = {10.4230/LIPIcs.SoCG.2017.7},
-  timestamp = {Thu, 23 Aug 2018 15:56:18 +0200},
-  biburl    = {https://dblp.org/rec/bib/conf/compgeom/AgarwalFPVX17},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@misc{AFPVX17arxiv,
+  author    = {Pankaj K. Agarwal and
+               Kyle Fox and
+               Debmalya Panigrahi and
+               Kasturi R. Varadarajan and
+               Allen Xiao},
+  title     = {Faster Algorithms for the Geometric Transportation Problem},
+  howpublished = {Preprint},
+  volume    = {abs/1903.08263},
+  year      = {2019},
+  url       = {http://arxiv.org/abs/1903.08263},
+  archivePrefix = {arXiv},
+  eprint    = {1903.08263}
+}
+
+
+@inproceedings{AWR17,
+  author    = {Jason Altschuler and
+               Jonathan Weed and
+               Philippe Rigollet},
+  title     = {Near-linear time approximation algorithms for optimal transport via
+               {S}inkhorn iteration},
+  booktitle = nips # "30",
+  pages     = {1961--1971},
+  year      = {2017},
+  crossref  = {DBLP:conf/nips/2017},
+  url       = {http://papers.nips.cc/paper/6792-near-linear-time-approximation-algorithms-for-optimal-transport-via-sinkhorn-iteration},
+}
+
+@article{BKMNW17,
+  author    = {Glencora Borradaile and
+               Philip N. Klein and
+               Shay Mozes and
+               Yahav Nussbaum and
+               Christian Wulff{-}Nilsen},
+  title     = {Multiple-Source Multiple-Sink Maximum Flow in Directed Planar Graphs
+               in Near-Linear Time},
+  journal   = sicomp,
+  volume    = {46},
+  number    = {4},
+  pages     = {1280--1303},
+  year      = {2017},
+  url       = {https://doi.org/10.1137/15M1042929},
+  doi       = {10.1137/15M1042929},
+}
+
+@ARTICLE{PC18,
+       author = {{Peyr{\'e}}, Gabriel and {Cuturi}, Marco},
+        title = "{Computational Optimal Transport}",
+      journal = {ArXiv e-prints},
+     keywords = {Statistics - Machine Learning},
+         year = 2018,
+        month = Mar,
+          eid = {arXiv:1803.00567},
+        pages = {arXiv:1803.00567},
+archivePrefix = {arXiv},
+       eprint = {1803.00567},
+ primaryClass = {stat.ML},
+       adsurl = {https://ui.adsabs.harvard.edu/#abs/2018arXiv180300567P},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+@article{S18,
+  author    = {Justin Solomon},
+  title     = {Optimal Transport on Discrete Domains},
+  journal   = {CoRR},
+  volume    = {abs/1801.07745},
+  year      = {2018},
+  url       = {http://arxiv.org/abs/1801.07745},
+  archivePrefix = {arXiv},
+  eprint    = {1801.07745},
+}
+
+@article{AHJKRST18,
+  author    = {Rinat Ben Avraham and
+               Matthias Henze and
+               Rafel Jaume and
+               Bal{\'{a}}zs Keszegh and
+               Orit E. Raz and
+               Micha Sharir and
+               Igor Tubis},
+  title     = {Partial-Matching {RMS} Distance Under Translation: Combinatorics and
+               Algorithms},
+  journal   = algorithmica,
+  volume    = {80},
+  number    = {8},
+  pages     = {2400--2421},
+  year      = {2018},
+  url       = {https://doi.org/10.1007/s00453-017-0326-0},
+  doi       = {10.1007/s00453-017-0326-0},
+}
+
+@inproceedings{DGK18,
+  author    = {Pavel Dvurechensky and
+               Alexander Gasnikov and
+               Alexey Kroshnin},
+  title     = {Computational Optimal Transport: Complexity by Accelerated Gradient
+               Descent Is Better Than by {S}inkhorn's Algorithm},
+  booktitle = proc # "35th" # icml,
+  pages     = {1366--1375},
+  year      = {2018},
+  crossref  = {DBLP:conf/icml/2018},
+  url       = {http://proceedings.mlr.press/v80/dvurechensky18a.html},
+}
+
+@article{DPS18,
+  author    = {Ran Duan and
+               Seth Pettie and
+               Hsin{-}Hao Su},
+  title     = {Scaling Algorithms for Weighted Matching in General Graphs},
+  journal   = talg,
+  volume    = {14},
+  number    = {1},
+  pages     = {8:1--8:35},
+  year      = {2018},
+  url       = {https://doi.org/10.1145/3155301},
+  doi       = {10.1145/3155301},
+}
+
+@inproceedings{AKKMRSX18,
+  author    = {Pankaj K. Agarwal and
+               Haim Kaplan and
+               Geva Kipper and
+               Wolfgang Mulzer and
+               G{\"{u}}nter Rote and
+               Micha Sharir and
+               Allen Xiao},
+  title     = {Approximate Minimum-Weight Matching with Outliers Under Translation},
+  booktitle = "29th" # isaac,
+  pages     = {26:1--26:13},
+  year      = {2018},
+  crossref  = {DBLP:conf/isaac/2018},
+  url       = {https://doi.org/10.4230/LIPIcs.ISAAC.2018.26},
+  doi       = {10.4230/LIPIcs.ISAAC.2018.26},
+}
+
+@misc{KNP19,
+  author    = {Andrey Boris Khesin and
+               Aleksandar Nikolov and
+               Dmitry Paramonov},
+  title     = {Preconditioning for the Geometric Transportation Problem},
+  howpublished = {Preprint},
+  volume    = {abs/1902.08384},
+  year      = {2019},
+  url       = {http://arxiv.org/abs/1902.08384},
+  archivePrefix = {arXiv},
+  eprint    = {1902.08384}
 }
