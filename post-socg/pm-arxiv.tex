@@ -1,3 +1,4 @@
+\pdfoutput=1
 %!TEX encoding = UTF-8 Unicode
 %!TeX spellcheck = en-US
 %\documentclass[a4paper,UKenglish]{socg-lipics-v2019}
@@ -25,14 +26,8 @@
 
 \usepackage[dvipsnames,usenames]{xcolor}
 \usepackage[nocompress]{cite}
-\usepackage{amsmath,mathtools,stmaryrd}
-%\usepackage[shortlabels]{enumitem}
-\usepackage{enumerate,enumitem}
-
-% \usepackage[title]{appendix}
-\usepackage[appendix=strip,bibliography=common]{apxproof}
-%\usepackage[appendix=inline,bibliography=common]{apxproof}
-\renewcommand{\appendixsectionformat}[2]{Missing Details and Proofs from Section~#1}
+\usepackage{amsmath,mathtools,stmaryrd,amsthm}
+\usepackage{enumerate}
 
 % \renewcommand\theenumi{\arabic{enumi}}
 % \renewcommand\labelenumi{\theenumi.}
@@ -125,9 +120,9 @@
 
 
 \theoremstyle{plain}
-\newtheoremrep{lemma}{Lemma}[section]
-\newtheoremrep{theorem}[lemma]{Theorem}
-\newtheoremrep{corollary}[lemma]{Corollary}
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{theorem}[lemma]{Theorem}
+\newtheorem{corollary}[lemma]{Corollary}
 % \newtheorem{observation}[lemma]{Observation}
 % \newtheorem{claim}[lemma]{Claim}
 % \newtheorem{definition}[lemma]{Definition}
@@ -663,7 +658,7 @@ The following lemma will be useful for our algorithm.
 \begin{lemma}
 \label{lemma:supp_size}
 Let $N$ be the network constructed from the bipartite graph $G$ above.
-\begin{enumerate}[(i)]
+\begin{enumerate}[(i)]\itemsep=0pt
 \item For any integral circulation $g$ in $N$, the size of $\supp(g)$ is at most $3k$.
 \item For any integral pseudoflow $f$ in $N$ with $O(k)$ excess, the size of $\supp(f)$ is $O(k)$.
 \end{enumerate}
@@ -752,26 +747,6 @@ pseudoflow in $N_f$.
 Then $f$ augmented by $g$ is also $\theta$-optimal in $N$.
 \end{lemma}
 
-%\begin{proof}
-%Augmentation by $f'$ will not change the potential, so any previously
-%$\theta$-optimal arcs remain $\theta$-optimal.
-%However, it may introduce new arcs $\arc vw$ with $u_{f+f'}(\arc vw) > 0$, that previously had
-%$u_f(\arc vw) = 0$.
-%We will verify that these arcs satisfy the $\theta$-optimality condition.
-%
-%If an arc $\arc vw$ is newly introduced this way, then by definition of residual
-%capacities $f(\arc vw) = u(\arc vw)$.
-%At the same time, $u_{f+f'}(\arc vw) > 0$ implies that $(f+f')(\arc vw) < u(\arc vw)$.
-%This means that $f'$ augmented flow in the reverse direction of $\arc vw$,
-%that is, $f'(\arc wv) > 0$.
-%By assumption, the arcs of $\supp(f')$ are admissible, so $\arc wv$ was an
-%admissible arc ($c_\pi(\arc wv) \leq 0$).
-%By antisymmetry of reduced costs, this implies $c_\pi(\arc vw) \geq 0 \geq -\theta$.
-%Therefore, all arcs with $u_{f+f'}(v, w) > 0$ respect the $\theta$-optimality condition,
-%and thus $f+f'$ is $\theta$-optimal.
-%\end{proof}
-%\end{toappendix}
-
 Using Lemma~\ref{lemma:supp_size}, the following lemma can be proved about
 $\theta$-optimality:
 
@@ -805,7 +780,7 @@ Then, $\cost(f) \leq \cost(f^*) + 6k\theta$.
 %Rearranging the terms we have that $\cost(f) \leq \cost(f^*) + 6k\theta$.
 %\end{proof}
 
-\subparagraph{Estimating the value of \EMPH{$\cost(f^*)$}.}
+\subparagraph{Estimating the value of {$\cost(f^*)$}.}
 We now describe a procedure for estimating $\cost(f^*)$ within a polynomial factor,
 which is used to initialize the cost-scaling algorithm.
 
@@ -827,7 +802,7 @@ Define \EMPH{$i^*$} to be the smallest index $i$ such that there is an
 intra-cluster matching of size $k$ in $T_{i^*}$.
 Set \EMPH{$\overline{\theta}$} $\coloneqq n^q \cdot c(e_{i^*})$.
 Then
-\begin{enumerate}[(i)]
+\begin{enumerate}[(i)]\itemsep=0pt
 \item \label{item:starting_scale1}
 	The value of $i^*$ can be computed in $O(n\log n)$ time.
 \item \label{item:starting_scale2}
@@ -919,6 +894,7 @@ In other words, there is no admissible excess-deficit path in the residual
 network after augmentation by $g$.
 Each iteration of \textsc{Refine} finds an admissible blocking flow to be added
 to the current pseudoflow in two steps:
+%
 \begin{enumerate}
 \item
 \EMPH{Hungarian search}: a Dijkstra-like search that begins at the set of
@@ -1248,7 +1224,7 @@ potential updates and the rewinding mechanism.
 The total time spent by Hungarian search on the nodes of $\alive{B} \setminus B^\star$ will be $O(r\polylog n)$.
 We subsequently focus on handling $B^\star$.
 
-\subparagraph{Handling \EMPH{$B^\star$}.}
+\subparagraph{Handling {$B^\star$}.}
 We now describe how we query a min-reduced-cost arc between $X \cap \alive{A}$
 and $B^\star \setminus X$.
 Each node $b \in B^\star$ is incident to exactly one arc in
@@ -1338,7 +1314,7 @@ We thank Debmalya Panigrahi for helpful discussions.
 
 
 \bibliographystyle{newuser}
-\bibliography{ref}
+\bibliography{pm-arxiv}
 
 \appendix
 
