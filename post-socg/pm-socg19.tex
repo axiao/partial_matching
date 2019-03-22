@@ -864,7 +864,7 @@ $\log_2(\overline{\theta}/\underline{\theta}) = O(\log(n/\eps))$ scales.
 \subparagraph{Scale initialization.}
 In the first scale, we compute a $\overline{\theta}$-optimal pseudoflow by
 simply setting $f(\arc vw) \gets 0$ for all arcs in $\vec{E}$.
-For subsequent scales, we initialize $f \gets g$, where $g$ is the $2\theta$-optimal circulation of the previous scale.
+For subsequent scales, we initialize $f$ to the $2\theta$-optimal circulation of the previous scale.
 First, we raise the potential of all nodes in $A$ by $\theta$, all nodes in $B$ by $2\theta$,
 and $t$ by $3\theta$.
 The potential of $s$ is unchanged.
