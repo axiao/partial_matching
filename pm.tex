@@ -48,9 +48,9 @@
 
 \usepackage{latexsym,amsmath}
 \usepackage{amssymb,stmaryrd}
-\usepackage{algorithm,algorithmicx}
-\usepackage[noend]{algpseudocode}
-\renewcommand{\algorithmicrequire}{\textbf{Requirement:}}
+%\usepackage{algorithm,algorithmicx}
+%\usepackage[noend]{algpseudocode}
+%\renewcommand{\algorithmicrequire}{\textbf{Requirement:}}
 
 \usepackage{mathtools} % for \coloneqq
 
@@ -651,11 +651,22 @@ The following lemma will be useful for our algorithm.
 Let $N$ be the network constructed from the bipartite graph $G$ above.
 \begin{enumerate}[(i)]
 \item For any integral circulation $g$ in $N$, the size of $\supp(g)$ is at most $3k$.
-\item For any integral pseudoflow $f$ in $N$ with $O(k)$ excess, the size of $\supp(f)$ is $O(k)$.
+\item For any integral pseudoflow $f$ in $N$ with $K$ excess,
+	the size of $\supp(f)$ is at most $3(K + k)$.
 \end{enumerate}
 \end{lemma}
 \begin{proof}
-\note{TODO}%TODO
+\begin{enumerate}[(i)]
+\item Because $g$ is a circulation, $\supp(g)$ can be decomposed into $k$  paths from $s$ to $t$.
+	Each $s$-to-$t$ path in $N$ is of length three, so $\abs{\supp(g)} \leq 3k$.
+\item The graph in $N$ is a directed acyclic graph, so $\supp(f)$ does not form a directed cycle.
+	Thus, $\supp(f)$ can be decomposed into a set of inclusion-maximal paths,
+	each of which contributes a single unit of excess to the flow if the path
+	does not terminate at $t$ or if more than $k$ paths terminate at $t$.
+	By assumption, there are $K$ units of excess to which we can associate to the paths,
+	and at most $k$ paths terminating at $t$ that we cannot associate with a unit of excess.
+	Each inclusion-maximal path has length at most 3, so $\abs{\supp(f)} \leq 3(K + k)$.
+\end{enumerate}
 \end{proof}
 
 \subsection{A cost-scaling algorithm}
@@ -770,31 +781,17 @@ and $f^*$ be an optimal integer circulation for $N$.
 Then, $\cost(f) \leq \cost(f^*) + 6k\theta$.
 \end{lemma}
 \begin{proof}
-\note{TODO}%TODO
+Taking the symmetric difference between $f$ and $f^*$ gives a residual pseudoflow $g$ of $N_f$,
+where augmenting $f$ by $g$ produces $f^*$.
+Then, $\cost(f^*) = \cost(f) + \cost(g)$.
+Since both $f$ and $f^*$ are circulations, $g$ is comprised of cycle flows in $N_f$.
+Using Lemma~\ref{lemma:supp_size}, we have $\supp(g) \leq 6k$, as exactly half
+the arcs in $\supp(g)$ are from $\supp(f)$ and half are from $\supp(f^*)$.
+For any residual cycle, its cost is equal to its reduced cost as the potential telescopes.
+Thus, we can lower bound $\cost(g)$ using the reduced cost of its cycles.
+By applying $\theta$-optimality of $f$, $\cost(g) \geq -6k\theta$.
+Rearranging gives the lemma.
 \end{proof}
-
-%\begin{proof}
-%By Lemma~\ref{lemma:support_size}, the total number of backward arcs in the residual network $N_f$ is at most $3k$.
-%
-%Consider the residual flow in $N_f$ defined by the difference between $f^*$ and $f$.
-%Since both $f$ and $f^*$ are both circulations and $N_H$ has unit-capacity,
-%the flow $f - f^*$ is comprised of unit flows on a collection of edge-disjoint residual cycles $\Gamma_1, \ldots, \Gamma_\ell$.
-%Observe that each residual cycle $\Gamma_i$ must have exactly half of its arcs being backward arcs, and thus we have $\sum_i |\Gamma_i| \leq 6k$.
-%
-%Let $\pi$ be some potential certifying that $f$ is $\theta$-optimal.
-%Because $\Gamma_i$ is a residual cycle, we have $c_\pi(\Gamma_i) = c(\Gamma_i)$ since the potential terms telescope.
-%We then see that
-%\[
-%	\cost(f) - \cost(f^*)
-%	= \sum_i c(\Gamma_i)
-%	= \sum_i c_\pi(\Gamma_i)
-%	\geq \sum_i (-\theta) \cdot |\Gamma_i|
-%	\geq -6k\theta,
-%\]
-%where the second-to-last inequality follows from the $\theta$-optimality of $f$
-%with respect to $\pi$.
-%Rearranging the terms we have that $\cost(f) \leq \cost(f^*) + 6k\theta$.
-%\end{proof}
 
 \paragraph*{Estimating the value of \textbf{$\boldmath \cost(f^*)$}.}
 We now describe a procedure for estimating $\cost(f^*)$ within a polynomial factor,
@@ -1166,6 +1163,13 @@ Orlin's algorithm~\cite{O93} as well as some of
 the ideas from Agarwal \etal~\cite{AFPVX17arxiv} for efficient implementation under the geometric settings.
 We first present an overview of the algorithm and then describe its fast
 implementation that achieves the desired running time.
+
+\paragraph*{From transportation to circulation}
+Given a transportation instance between point sets $A$ and $B$, we generate a
+min-cost flow network $N$ as follows: add an arc $\arc ab$ for each $a \in A$ and $b \in B$,
+and copy the transportation supply/demand function to use as the MCF supply/demand function $\fsupply$.
+A circulation $f$ in $N$ directly corresponds to a transportation map $\tau$
+of the same cost, by setting $\tau(v, w) = f(\arc vw)$ for all arcs.
 
 \subsection{Overview of the algorithm}
 
