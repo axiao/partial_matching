@@ -828,6 +828,17 @@ Then
 \end{lemma}
 \begin{proof}
 \note{TODO}%TODO
+\begin{enumerate}[(i)]
+\item \note{TODO how? MST via BCP needs $O(n\polylog n)$ time.} %TODO
+\item Let $M^*$ be the optimal matching.
+	At least one edge in $M^*$ must be between clusters of $T_{i^*}$,
+	thus by definition of $i^*$ at least one edge has cost at least $c(e_{i^*})$.
+	The statement follows as $c(M^*) = c(f^*)$.
+\item The intra-cluster matching in $T_{i^*}$ uses edges of cost at most
+	$\overline{\theta} = n^q \cdot c(e_{i^*})$.
+	This matching corresponds to a circulation supported on arcs of cost at
+	most $\overline{\theta}$.
+\end{enumerate}
 \end{proof}
 
 As a consequence of Lemmas~\ref{lemma:starting_scale}\ref{item:starting_scale2}
