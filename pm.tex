@@ -817,7 +817,7 @@ Set \EMPH{$\overline{\theta}$} $\coloneqq n^q \cdot c(e_{i^*})$.
 Then
 \begin{enumerate}[(i)]
 \item \label{item:starting_scale1}
-	The value of $i^*$ can be computed in $O(n\log n)$ time.
+	The value of $c(e_{i^*})$ can be computed in $O(n\log n)$ time.
 \item \label{item:starting_scale2}
 	$c(e_{i^*}) \leq \cost(f^*) \leq \overline{\theta}$.
 \item \label{item:starting_scale3}
@@ -827,17 +827,49 @@ Then
 \end{enumerate}
 \end{lemma}
 \begin{proof}
-\note{TODO}%TODO
 \begin{enumerate}[(i)]
-\item \note{TODO how? MST via BCP needs $O(n\polylog n)$ time.} %TODO
+\item Observe that the MST under $c(\cdot) = \norm{\cdot}_p^q$ is identical
+	(in terms of edges used) to the MST under $\norm{\cdot}_p$, the latter
+	of which can be computed in $O(n\log n)$ time~\cite{CD85}.
+	After computing the MST, we can sort its edges by cost in $O(n\log n)$ time.
+
+	Suppose we have the sorted sequence $e_1, \ldots e_{n-1}$.
+	For a cluster $K \in T_i$, let $A_K = A \cap K$ and $B_K = B \cap K$ respectively.
+	For any $i$, largest intra-cluster partial matching of $T_i$ has size
+	\[
+	\#(T_i) = \sum_{K \in T_i} \min\set{\abs{A_K}, \abs{B_K}},
+	\]
+	i.e., matches either $A_K$ or $B_K$ entirely for each cluster $K$.
+	By definition, $i^*$ is the smallest index for which $\#(T_{i^*}) \geq k$.
+
+	To compute $\#(T_i)$ efficiently, we maintain the $\abs{A_K}$ and
+	$\abs{B_K}$ for each $K \in T_i$.
+	Suppose that we have this per-cluster information for $T_{i-1}$ and
+	have computed $\#(T_{i-1})$ previously.
+	$T_i$ is constructed from $T_{i-1}$ by merging two clusters
+	$K_1, K_2 \in T_{i-1}$ to form a cluster $K_3 \in T_i$.
+	Thus, we have $\abs{A_{K_3}} = \abs{A_{K_1}} + \abs{A_{K_2}}$ and
+	similarly for $\abs{B_{K_3}}$.
+	Furthermore,
+	\[
+	\#(T_i) = \#(T_{i-1}) - \min\set{\abs{A_{K_1}}, \abs{B_{K_1}}} - \min\set{\abs{A_{K_2}}, \abs{B_{K_2}}} + \min\set{\abs{A_{K_3}}, \abs{B_{K_3}}}.
+	\]
+	This way, we can compute $\#(T_i)$ from the $T_{i-1}$ information in $O(1)$ time.
+	It takes $O(n)$ time to compute the per-cluster information of $T_0$, the all-singletons clustering.
+	The time to compute $\#(T_i)$ for all $i$ is therefore $O(n)$,
+	and the total time to find $c(e_{i^*})$ is $O(n\log n)$.
 \item Let $M^*$ be the optimal matching.
 	At least one edge in $M^*$ must be between clusters of $T_{i^*}$,
 	thus by definition of $i^*$ at least one edge has cost at least $c(e_{i^*})$.
 	The statement follows as $c(M^*) = c(f^*)$.
-\item The intra-cluster matching in $T_{i^*}$ uses edges of cost at most
+\item The intra-cluster size-$k$ matching in $T_{i^*}$ uses edges of cost at most
 	$\overline{\theta} = n^q \cdot c(e_{i^*})$.
-	This matching corresponds to a circulation supported on arcs of cost at
-	most $\overline{\theta}$.
+	This matching corresponds to a circulation $f_\text{intra}$ supported
+	on arcs of cost at most $\overline{\theta}$.
+	In the resulting residual network, backward arcs have reduced cost
+	$c_\pi(\arc wv) = -c(\arc vw) - 0 + 0 \geq -\overline{\theta}$.
+	Reduced cost of residual forward arcs is clearly positive, so overall
+	$f_\text{intra}$ is $\overline{\theta}$-optimal with respect to $\pi = 0$.
 \end{enumerate}
 \end{proof}
 
