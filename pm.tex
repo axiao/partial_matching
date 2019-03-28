@@ -837,7 +837,7 @@ Then
 	For a cluster $K \in T_i$, let $A_K = A \cap K$ and $B_K = B \cap K$ respectively.
 	For any $i$, largest intra-cluster partial matching of $T_i$ has size
 	\[
-	\#(T_i) = \sum_{K \in T_i} \min\set{\abs{A_K}, \abs{B_K}},
+	\#(T_i) \coloneqq \sum_{K \in T_i} \min\set{\abs{A_K}, \abs{B_K}},
 	\]
 	i.e., matches either $A_K$ or $B_K$ entirely for each cluster $K$.
 	By definition, $i^*$ is the smallest index for which $\#(T_{i^*}) \geq k$.
