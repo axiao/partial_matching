@@ -11,6 +11,7 @@
 %\usepackage[charter]{mathdesign}
 %\usepackage{berasans,beramono}
 \usepackage{microtype}
+\usepackage{lmodern}
 
 \usepackage{hyperref}
 \hypersetup{colorlinks=true, urlcolor=Blue, citecolor=Green, linkcolor=BrickRed, breaklinks, unicode}
@@ -19,12 +20,6 @@
 \usepackage[nocompress]{cite}
 \usepackage{amsmath,mathtools,stmaryrd}
 \usepackage[shortlabels]{enumitem}
-\usepackage{bm}
-
-% \usepackage[title]{appendix}
-%\usepackage[bibliography=common]{apxproof}
-\usepackage[appendix=inline,bibliography=common]{apxproof}
-%\renewcommand{\appendixsectionformat}[2]{Missing Details and Proofs from Section~#1}
 
 % \renewcommand\theenumi{\arabic{enumi}}
 % \renewcommand\labelenumi{\theenumi.}
@@ -46,11 +41,8 @@
 \dashlinedash 0.75pt
 \dashlinegap 1.5pt
 
-\usepackage{latexsym,amsmath}
+\usepackage{latexsym,amsmath,amsthm}
 \usepackage{amssymb,stmaryrd}
-%\usepackage{algorithm,algorithmicx}
-%\usepackage[noend]{algpseudocode}
-%\renewcommand{\algorithmicrequire}{\textbf{Requirement:}}
 
 \usepackage{mathtools} % for \coloneqq
 
@@ -116,10 +108,10 @@
 \def\star{\text{\ding{84}}}
 
 
-\theoremstyle{plain}
-\newtheoremrep{lemma}{Lemma}[section]
-\newtheoremrep{theorem}[lemma]{Theorem}
-\newtheoremrep{corollary}[lemma]{Corollary}
+%\theoremstyle{plain}
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{theorem}[lemma]{Theorem}
+\newtheorem{corollary}[lemma]{Corollary}
 %\newtheorem{observation}[lemma]{Observation}
 %\newtheorem{claim}[lemma]{Claim}
 %\newtheorem{definition}[lemma]{Definition}
