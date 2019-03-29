@@ -868,7 +868,7 @@ Then
 	on arcs of cost at most $\overline{\theta}$.
 	In the resulting residual network, backward arcs have reduced cost
 	$c_\pi(\arc wv) = -c(\arc vw) - 0 + 0 \geq -\overline{\theta}$.
-	Reduced cost of residual forward arcs is clearly positive, so overall
+	Reduced cost of residual forward arcs is positive, so overall
 	$f_\text{intra}$ is $\overline{\theta}$-optimal with respect to $\pi = 0$.
 \end{enumerate}
 \end{proof}
@@ -1069,7 +1069,6 @@ c_\pi(\Pi = v_1 \arcto \cdots \arcto v_\ell)
 \]
 Thus, we can query the minimum alive path using a partial assignment
 of $\pi$ on only the alive nodes, leaving $\pi$ over the dead nodes untracked.
-%
 We now describe a data structure for each path length.
 Note that our ``time budget'' per Hungarian search is $O(k\polylog n)$.
 
@@ -1147,67 +1146,148 @@ Applying Lemma~\ref{lemma:cost_scale_count} again,
 there are $O(k)$ alive/dead updates caused by an augmentation, so the time for
 these updates per Hungarian search is $O(k\polylog n)$.
 
-\paragraph*{Updating potential.}
-Potential updates for alive nodes can be handled in a batched fashion as in Section~\ref{section:hung}.
-The three data structures above have no dependency on the dead node potential;
-we leave them untracked as described before.
-\note{TODO do we need to move this into a correctness lemma? weird place to put it (shortcut network)} %TODO
-The Hungarian search remains intact since alive nodes are visited
-in the same order as when using arc-by-arc relaxations.
-However, we need values of $\pi$ on all nodes at the end of a scale (for the
-next \textsc{Scale-Init}) and for individual dead nodes whenever they become
-alive (after augmentation).
+%TODO figure shortcut graph, dead nodes
 
-We can reconstruct a ``valid'' potential in these situations.
-To recover potential for $v \in \dead{A}$ we set $\pi(v) \gets \pi(s)$,
-and for $v \in \dead{B}$ we set $\pi(v) \gets \pi(t)$.
-The correctness of this choice is summarized in the following lemma.
+\paragraph*{Correctness --- the shortcut network.}
+\note{TODO figure, check the writing of this part} %TODO
+Before continuing to describe potential updates, we prove that relaxing
+alive paths keeps the Hungarian search intact.
+Specifically, our process of relaxing alive paths in $N$ corresponds to
+arc-by-arc relaxations in an equivalent (analysis-only) network we call the
+\EMPH{shortcut network} $\tilde{N}$, ultimately creating a suitable potential.
+
+The shortcut network is constructed from $N$ and $f$ as follows:
+the nodes of $\tilde{N}$ are the alive nodes of $N$, and for each length-2, -3,
+and forward length-1 alive path $\Pi = v \arcto \cdots \arcto w$ in $N$,
+we add an arc $\arc vw$ in $\tilde{N}$ with $c(\arc vw) \gets c(\Pi)$.
+This arc is the \EMPH{shortcut} of alive path $\Pi$, and denoted as \EMPH{$\short(\Pi)$}.
+All arcs of $\supp(f)$ (in $N$) are themselves length-1 alive paths, so $f$
+defines an identical pseudoflow on the shortcuts in $\tilde{N}$.
+We abuse notation by using $f$ to refer to both the pseudoflow in $N$ as well as $\tilde{N}$.
+With this, any excess-deficit path in $N_f$ can be mapped one-to-one to an
+excess-deficit path in $\tilde{N}_f$ of the same cost, by mapping each alive
+path in $N$ to its shortcut in $\tilde{N}$.
+In fact, if we define potentials on the alive nodes, both paths will have
+the same reduced cost (excess/deficit nodes are always alive).
+
+As a result, a Hungarian search performing arc-by-arc relaxations on $\tilde{N}$
+is equivalent to our process of relaxing alive paths in $N$.
+For this to be helpful, the potential constructed on $\tilde{N}$ must produce
+a useful potential for $N$.
+The next lemma gives one such construction.
 
 \begin{lemma}
-\note{TODO is $f$ $\theta$-optimal originally? wrt what?} %TODO
-Let $f$ be the current pseudoflow and $g$ be a blocking flow
-composed of weakly admissible alive paths under the alive-only potential $\pi$.
-If we extend $\pi$ to dead nodes by setting $\pi(v) \gets \pi(s)$ for
-$v \in \dead{A}$ and $\pi(v) \gets \pi(t)$ for $v \in \dead{B}$, then
-$f$ is $\theta$-optimal with respect to $\pi$, and $g$ is admissible under $\pi$.
+\label{lemma:shortcut_correct}
+For any $\theta$-optimal potential $\tilde{\pi}$ defined on $\tilde{N}$,
+let $\pi$ be potential for $N$ constructed by extending $\tilde{\pi}$ to
+dead nodes as follows:
+\[
+\pi(v) \gets \begin{cases}
+	\tilde{\pi}(v) & v \in \alive{A} \cup \alive{B} \\
+	\tilde{\pi}(s) & v \in \dead{A} \\
+	\tilde{\pi}(t) & v \in \dead{B}
+\end{cases}
+\]
+Then, $\pi$ is $\theta$-optimal for $N$ and any admissible shortcut
+$\short(\Pi)$ corresponds to an admissible alive path $\Pi$.
 \end{lemma}
 \begin{proof}
-%Straightforward calculation shows that such potential (1) preserves $\theta$-optimality,
-%and (2) makes $\Pi$ (arc-wise) admissible for any weakly admissible alive path $\Pi$.
+We emphasize that the final statement is about arc-wise admissibility of $\Pi$,
+and not its weak admissibility.
+Indeed, even without extending $\tilde{\pi}$ to dead nodes, an admissible
+$\short(\Pi)$ implies weak admissibility of $\Pi$ under $\tilde{\pi}$.
+
+To prove the $\theta$-optimality of $\pi$, we need to check reduced costs of
+length-2 and -3 alive paths, since it is immediate for length-1.
+The analysis is nearly identical for both types of length-2 paths and length-3,
+so we demonstrate it for alive paths of the form $s \arcto v \arcto b$ only.
+For a length-2 alive path of the form $\Pi = s \arcto v \arcto b$,
+for $b \in \alive{B}$, we have $c_\pi(\arc sv) = 0$ so we turn our eye to
+the bipartite arc $\arc vb$.
+Observe that the reduced cost of $\arc vb$, under $\pi$, is equal to the
+reduced cost of $\short(\Pi)$ under $\tilde{\pi}$.
+\begin{equation}
+\label{eqn:shortcut_equiv}
+\begin{aligned}
+c_\pi(\arc vb) &= c(\arc vb) - \pi(v) + \pi(b) \\
+	&= c(\Pi) - \pi(s) + \pi(b) \\
+	&= c(\short(\Pi)) - \tilde{\pi}(s) + \tilde{\pi}(b) \\
+	&= c_{\tilde{\pi}}(\short(\Pi))
+\end{aligned}
+\end{equation}
+It follows that $\arc vb$ is $\theta$-optimal under $\pi$, by
+$\theta$-optimality of $\short(\Pi)$ under $\tilde{\pi}$.
+\[
+c_\pi(\arc vb) = c_{\tilde{\pi}}(\short(\Pi)) \geq -\theta
+\]
+
+For the second statement, suppose a shortcut $\short(\Pi)$ is admissible.
+Once again, the proof for each length is nearly identical, so we demonstrate
+the proof only for $\Pi = s \arcto v \arcto b$.
+The non-bipartite arc of $\Pi$ ($\arc sv$ with dead $v$) has reduced cost 0
+under $\pi$; it is admissible.
+By (\ref{eqn:shortcut_equiv}), admissibility of $\arc vb$ under $\pi$ follows
+from admissibility of $\short(\Pi)$ under $\tilde{\pi}$.
+\[
+c_\pi(\arc vb) = c_{\tilde{\pi}}(\short(\Pi)) \leq 0
+\]
+Thus, all arcs of $\Pi$ are admissible, and $\Pi$ is admissible.
 \end{proof}
 
-Hence, a blocking flow composed of weakly admissible alive paths is admissible
-under the recovered potential.
+\paragraph*{Updating potential.}
+The query data structures for min-reduced-cost alive path have no dependency on
+dead node potential; we leave them untracked as described before.
+By Lemma~\ref{lemma:shortcut_correct}, a blocking flow supported on
+weakly-admissible alive paths is one that is arc-wise admissible ---
+with the right extension of potential to dead nodes.
+Indeed, we require values of $\pi$ on all nodes at the end of a scale
+(for the next \textsc{Scale-Init}) and for individual dead nodes whenever they
+become alive (after augmentation).
+We use the construction in Lemma~\ref{lemma:shortcut_correct} to reconstruct a
+potential for dead nodes in these situations.
+Potential updates for alive nodes can be handled in a batched fashion as in
+Section~\ref{section:hung}.
 
 \paragraph*{Implementing the augmentation stage.}
-\note{TODO re-read this; do we even need such a thorough dfs description? regardless, some errors (how to treat $s$ and $t$?)} %TODO
+\note{TODO what a mess; this block should be waaay simpler} %TODO
 Augmentation can also be implemented in $O(k\polylog n)$ time, after
 $O(n\polylog n)$ time preprocessing, using similar data structures.
 Recall that the augmentation step finds an admissible blocking flow as a
-set of disjoint admissible augmenting paths.
+sequence of disjoint admissible augmenting paths.
 Each admissible augmenting path is found through depth-first search from the
 set of excess nodes.
 For the fast implementation, we find an excess-deficit path composed of
 weakly-admissible alive paths (as opposed admissible residual arcs).
-%TODO i think what we should do instead: maintain X as nodes for which we've explored the subtree; in X => DFS dead end
-In each step of the depth-first search, let $X$ set of explored nodes
-initialized to the set of excess nodes.
-Let $x \in X$ be the \EMPH{current frontier node} of the DFS, initially any excess node.
-We query the minimum-reduced-cost alive path $\Pi = x \arcto \cdots \arcto y$
-from $x$ into $V \setminus X$.
-If $\Pi$ is weakly admissible, we proceed across it.
-If $y$ is a deficit node, an excess-deficit path of weakly-admissible alive
-paths can be extracted using the predecessor information, removing them from $X$.
-If $y$ is not a deficit node, we continue the search by adding the nodes of
-$\Pi$ into $X$ and updating the \EMPH{predecessor} of $y$ to be $x$ by way of $\Pi$,
-which can be stored in $O(1)$ space as $\Pi$ has at most 4 nodes.
-Afterwards, we set $x \gets y$.
-On the other hand, if $\Pi$ is not weakly admissible or no $\Pi$ exists, we
-retract the search from $x$ by replacing $x \gets \operatorname{predecessor}(x)$,
-or if $x$ has no predecessor (excess node $x$) we replace $x$ with one of the
-remaining excess nodes instead.
-If no excess nodes remain, the search terminates.
-Note that potential is never changed during augmentation.
+
+The depth-first search maintains a \EMPH{current frontier node} $x$ from
+which it looks for untraversed admissible arcs to cross, initially any of the
+excess nodes.
+Let a node $v$ be \EMPH{fully explored} if the search has visited $v$ and
+fully explored all the neighbors of $w$ of $v$ where $c_\pi(\arc vw)$ is admissible.
+The depth-first search maintains the set of fully explored nodes as a set $X$.
+Additionally, some nodes store a \EMPH{predecessor} (as the alive path from a
+another node) which describes the current trajectory of the depth-first search,
+and each unbalanced node stores a variable $\operatorname{change}(v)$ tracking
+its change in imbalance with respect to the augmenting paths found so far,
+initially 0.
+In each step of the depth-first search, we query the minimum-reduced-cost alive
+path $\Pi = x \arcto \cdots \arcto y$ from $x$ into $V \setminus X$.
+\note{incomplete} %TODO
+\begin{itemize}
+\item If $\Pi$ is not weakly admissible or no $\Pi$ exists, $x$ is fully explored
+	and we add $X \gets \set{x}$.
+	We replace $x \gets \operatorname{predecessor}(x)$.
+	If $x$ has no predecessor ($x$ is an excess node), then we replace $x$
+	with one of the remaining excess nodes of $V \setminus X$.
+	If no not-fully-explored excess nodes remain, the search terminates.
+\item On the other hand, if $\Pi$ is weakly admissible, we set the predecessor
+	of $y$ to be $x$ by way of $\Pi$.
+	If $y$ is a deficit, we have found an admissible augmenting path,
+	which we can extract using predecessor information starting at $y$.
+	Let the extracted path be $v_1 \arcto \cdots \arcto v_\ell = y$.
+	We decrement $\operatorname{change}(v_1)$ and increment $\operatorname{change}(v_\ell)$.
+\end{itemize}
+%TODO
 
 In implementation, we use data structures for dynamic \EMPH{nearest neighbor}
 (NN) in addition to BCP.
