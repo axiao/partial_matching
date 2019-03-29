@@ -1151,7 +1151,7 @@ these updates per Hungarian search is $O(k\polylog n)$.
 Potential updates for alive nodes can be handled in a batched fashion as in Section~\ref{section:hung}.
 The three data structures above have no dependency on the dead node potential;
 we leave them untracked as described before.
-\note{TODO move this into a correctness lemma? weird place to put it (shortcut network)} %TODO
+\note{TODO do we need to move this into a correctness lemma? weird place to put it (shortcut network)} %TODO
 The Hungarian search remains intact since alive nodes are visited
 in the same order as when using arc-by-arc relaxations.
 However, we need values of $\pi$ on all nodes at the end of a scale (for the
