@@ -1019,7 +1019,6 @@ The Hungarian search and augmentation steps are similar:
 each traversing through the residual network using admissible arcs starting
 from the excess nodes.
 We describe the Hungarian search first.
-\note{TODO add in dfs description, as a subsection} %TODO
 
 At a high level, let \EMPH{$X$} be the subset of nodes visited by the Hungarian search
 so far.
@@ -1168,8 +1167,55 @@ and (2) makes $\Pi$ (arc-wise) admissible for any weakly admissible alive path $
 Hence, a blocking flow composed of weakly admissible alive paths is admissible
 under the recovered potential.
 
-The following lemma is crucial to the analysis of running time for the Hungarian search,
-bounding both the number of relaxations and potential update/recovery operations.
+\paragraph*{Implementing the augmentation stage.}
+\note{TODO re-read this; do we even need such a thorough dfs description? regardless, some errors (how to treat $s$ and $t$?)} %TODO
+Augmentation can also be implemented in $O(k\polylog n)$ time, after
+$O(n\polylog n)$ time preprocessing, using similar data structures.
+Recall that the augmentation step finds an admissible blocking flow as a
+set of disjoint admissible augmenting paths.
+Each admissible augmenting path is found through depth-first search from the
+set of excess nodes.
+For the fast implementation, we find an excess-deficit path composed of
+weakly-admissible alive paths (as opposed admissible residual arcs).
+In each step of the depth-first search, let $X$ set of explored nodes
+initialized to the set of excess nodes.
+Let $x \in X$ be the \EMPH{current frontier node} of the DFS, initially any excess node.
+We query the minimum-reduced-cost alive path $\Pi = x \arcto \cdots \arcto y$
+from $x$ into $V \setminus X$.
+If $\Pi$ is weakly admissible, we proceed across it.
+If $y$ is a deficit node, an excess-deficit path of weakly-admissible alive
+paths can be extracted using the predecessor information, removing them from $X$.
+If $y$ is not a deficit node, we continue the search by adding the nodes of
+$\Pi$ into $X$ and updating the \EMPH{predecessor} of $y$ to be $x$ by way of $\Pi$,
+which can be stored in $O(1)$ space as $\Pi$ has at most 4 nodes.
+Afterwards, we set $x \gets y$.
+On the other hand, if $\Pi$ is not weakly admissible or no $\Pi$ exists, we
+retract the search from $x$ by replacing $x \gets \operatorname{predecessor}(x)$,
+or if $x$ has no predecessor (excess node $x$) we replace $x$ with one of the
+remaining excess nodes instead.
+If no excess nodes remain, the search terminates.
+Note that potential is never changed during augmentation.
+
+In implementation, we use data structures for dynamic \EMPH{nearest neighbor}
+(NN) in addition to BCP.
+The nearest neighbor problem is as follows:
+preprocess a point set $P$ to answer, given a query point $a$, the point
+$b \in P$ minimizing $c(a, b) - \omega(a) + \omega(b)$.
+In addition to their BCP solution, Kaplan~\etal~\cite{KMRSS17} solve the
+2D dynamic NN problem with $O(\polylog n)$ update and $O(\log^2 n)$ query time.
+Similar to the Hungarian search implementation, we search across the
+length-1, -2, and -3 alive paths that start at $x$.
+Alive paths of the form $s \arcto v \arcto b$ and $s \arcto v \arcto w \arcto t$ are
+still queried using BCPs, while those of the form $a \arcto b$ and
+$a \arcto v \arcto t$ use an NN query with query point $x = a$ instead.
+The total number of min-heaps and NN data structures is $O(1)$, and therefore
+rewinding for the augmentation data structures can be done in $O(k\polylog n)$
+time given Lemma~\ref{lemma:cost_scale_count}.
+
+\paragraph*{Bounding relaxations and blocking flow support size.}
+The following lemma is crucial to the analysis of running time for the
+Hungarian search and augmentation, bounding both the number of relaxations and
+potential update/recovery operations.
 
 \begin{lemma}
 \label{lemma:cost_scale_count}
@@ -1177,11 +1223,17 @@ Both Hungarian search and augmentation stages explore $O(k)$ nodes,
 and the blocking flow found in augmentation stage is incident to $O(k)$ nodes.
 \end{lemma}
 \begin{proof}
-\note{TODO} %TODO
+Both processes explore by adding $O(1)$ nodes to $X$ in each step,
+including at least one alive node.
+Since the number of alive nodes is $O(k)$, the number of explored nodes is $O(k)$.
+
+For the second statement, recall that our blocking flow is a union of of path
+flows along admissible augmenting paths.
+Each path flow is composed of alive paths explored by the depth-first search
+in the augmentation stage, of which there are $O(k)$.
+Since each such alive path has $O(1)$ length, the number of incident nodes is $O(k)$.
 \end{proof}
 
-Augmentation can also be implemented in $O(k\polylog n)$ time, after
-$O(n\polylog n)$ time preprocessing, using similar data structures.
 We thus obtain the following:
 
 \begin{lemma}
