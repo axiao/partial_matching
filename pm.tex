@@ -1151,7 +1151,7 @@ these updates per Hungarian search is $O(k\polylog n)$.
 Potential updates for alive nodes can be handled in a batched fashion as in Section~\ref{section:hung}.
 The three data structures above have no dependency on the dead node potential;
 we leave them untracked as described before.
-\note{TODO move this into a correctness lemma?} %TODO
+\note{TODO move this into a correctness lemma? weird place to put it (shortcut network)} %TODO
 The Hungarian search remains intact since alive nodes are visited
 in the same order as when using arc-by-arc relaxations.
 However, we need values of $\pi$ on all nodes at the end of a scale (for the
@@ -1161,9 +1161,21 @@ alive (after augmentation).
 We can reconstruct a ``valid'' potential in these situations.
 To recover potential for $v \in \dead{A}$ we set $\pi(v) \gets \pi(s)$,
 and for $v \in \dead{B}$ we set $\pi(v) \gets \pi(t)$.
-Straightforward calculation shows that such potential (1) preserves $\theta$-optimality,
-and (2) makes $\Pi$ (arc-wise) admissible for any weakly admissible alive path $\Pi$.
-\note{TODO move this into a correctness lemma?} %TODO
+The correctness of this choice is summarized in the following lemma.
+
+\begin{lemma}
+\note{TODO is $f$ $\theta$-optimal originally? wrt what?} %TODO
+Let $f$ be the current pseudoflow and $g$ be a blocking flow
+composed of weakly admissible alive paths under the alive-only potential $\pi$.
+If we extend $\pi$ to dead nodes by setting $\pi(v) \gets \pi(s)$ for
+$v \in \dead{A}$ and $\pi(v) \gets \pi(t)$ for $v \in \dead{B}$, then
+$f$ is $\theta$-optimal with respect to $\pi$, and $g$ is admissible under $\pi$.
+\end{lemma}
+\begin{proof}
+%Straightforward calculation shows that such potential (1) preserves $\theta$-optimality,
+%and (2) makes $\Pi$ (arc-wise) admissible for any weakly admissible alive path $\Pi$.
+\end{proof}
+
 Hence, a blocking flow composed of weakly admissible alive paths is admissible
 under the recovered potential.
 
@@ -1177,6 +1189,7 @@ Each admissible augmenting path is found through depth-first search from the
 set of excess nodes.
 For the fast implementation, we find an excess-deficit path composed of
 weakly-admissible alive paths (as opposed admissible residual arcs).
+%TODO i think what we should do instead: maintain X as nodes for which we've explored the subtree; in X => DFS dead end
 In each step of the depth-first search, let $X$ set of explored nodes
 initialized to the set of excess nodes.
 Let $x \in X$ be the \EMPH{current frontier node} of the DFS, initially any excess node.
