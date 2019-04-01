@@ -1230,7 +1230,7 @@ Thus, all arcs of $\Pi$ are admissible, and $\Pi$ is admissible.
 The query data structures for min-reduced-cost alive path have no dependency on
 dead node potential; we leave them untracked as described before.
 By Lemma~\ref{lemma:shortcut_correct}, a blocking flow supported on
-weakly-admissible alive paths is one that is arc-wise admissible ---
+weakly admissible alive paths is one that is arc-wise admissible ---
 with the right extension of potential to dead nodes.
 Indeed, we require values of $\pi$ on all nodes at the end of a scale
 (for the next \textsc{Scale-Init}) and for individual dead nodes whenever they
@@ -1262,7 +1262,7 @@ Like the Hungarian search, the DFS is reduced to a problem of querying the
 min-reduced-cost arc.
 
 Applying Lemma~\ref{lemma:shortcut_correct}, we can DFS through
-weakly-admissible alive paths instead of individual admissible arcs.
+weakly admissible alive paths instead of individual admissible arcs.
 In implementation, we use data structures for dynamic \EMPH{nearest neighbor}
 (NN) in addition to BCP.
 The nearest neighbor problem is as follows:
