@@ -970,8 +970,7 @@ Then \textsc{Refine} terminates within $O(\sqrt{k})$ iterations.
 \end{lemma}
 
 \begin{proof}
-\note{TODO flesh out} %TODO
-We sketch the proof, which is adapted from Goldberg \etal~\cite{GHKT17}.
+The proof of this lemma is adapted from Goldberg~\etal~\cite{GHKT17}.
 Let $f_0$ be the assumed $2\theta$-optimal integral circulation with respect to $\pi_0$,
 and let $\pi$ be the potential maintained during \textsc{Refine}.
 Let $\EMPH{$d(v)$} \coloneqq (\pi(v) - \pi_0(v))/\theta$, that is, the increase in potential
@@ -986,11 +985,17 @@ At the start of the second phase, consider the set of arcs
 $\EMPH{$E^+$} \coloneqq \{\arc vw \in \vec{E} \mid f(\arc vw) < f_0(\arc vw)\}$.
 One can argue that the remaining excess with respect to $f$ is bounded above by
 the size of any cut separating the excess and deficit nodes \cite[Lemma~4]{GHKT17}.
-The proof examines cuts $\EMPH{$Y_i$} \coloneqq \{v \mid d(v) > i\}$ for $0 \leq i \leq \sqrt{k}$.
-By $\theta$-optimality of $f$ and $2\theta$-optimality of $f_0$, one can show
-that each arc in $E^+$ crosses at most 3 cuts.
+Next, consider cuts $\EMPH{$Y_i$} \coloneqq \{v \mid d(v) > i\}$ for $0 \leq i \leq \sqrt{k}$.
+By $\theta$-optimality of $f$ and $2\theta$-optimality of $f_0$,
+any $\arc vw \in E^+$ satisfies
+\[
+d(w) - d(v) = \frac{1}{\theta}\Paren{(\pi(w) - \pi_0(w)) - (\pi(v) - \pi_0(v)}
+	= \frac{1}{\theta}\Paren{c_{\pi_0}(\arc wv) + c_\pi(\arc vw)}
+	\geq -3.
+\]
+Rearranging, $d(w) \geq d(v) - 3$, and each arc of $E^+$ crosses at most 3 cuts $Y_i$.
 Furthermore, the size of $E^+$ is $O(k)$, bounded by the support size of $f$ and $f_0$.
-Averaging, there is a cut among $Y_i$s of size at most $3k/\sqrt{k}$,
+Averaging, there is a cut among $Y_i$s containing at most $3k/\sqrt{k}$ arcs of $E^+$,
 so the total excess remaining is $O(\sqrt{k})$.
 Each iteration of $\textsc{Refine}$ eliminates at least one unit of excess,
 so the number of second phase iterations is also at most $O(\sqrt{k})$.
@@ -1334,18 +1339,18 @@ as defined in the introduction, we present an $O(rn^{3/2}\polylog n)$ time
 algorithm for computing an optimal transport map between $A$ and $B$.
 By applying this algorithm in the case of $r \leq \sqrt{n}$ and the one by
 Agarwal \etal~\cite{AFPVX17arxiv} when $r > \sqrt{n}$, we prove Theorem~\ref{theorem:orlin}.
-We use a standard reduction to the uncapacitated min-cost flow problem and use
-Orlin's algorithm~\cite{O93} as well as some of
-the ideas from Agarwal \etal~\cite{AFPVX17arxiv} for efficient implementation under the geometric settings.
-We first present an overview of the algorithm and then describe its fast
-implementation that achieves the desired running time.
 
-\paragraph*{From transportation to circulation}
+We use a standard reduction to the uncapacitated min-cost flow problem.
 Given a transportation instance between point sets $A$ and $B$, we generate a
 min-cost flow network $N$ as follows: add an arc $\arc ab$ for each $a \in A$ and $b \in B$,
 and copy the transportation supply/demand function to use as the MCF supply/demand function $\fsupply$.
 A circulation $f$ in $N$ directly corresponds to a transportation map $\tau$
 of the same cost, by setting $\tau(v, w) = f(\arc vw)$ for all arcs.
+
+In this section, we use Orlin's algorithm~\cite{O93} as well as some of
+the ideas from Agarwal \etal~\cite{AFPVX17arxiv} for efficient implementation under the geometric settings.
+We first present an overview of the algorithm and then describe its fast
+implementation that achieves the desired running time.
 
 \subsection{Overview of the algorithm}
 
@@ -1371,19 +1376,24 @@ $\fsupply(z) = \fsupply(v) + \fsupply(w)$.%
 the flow on $\arc vw$.}
 Second, if there are no active excess nodes and $f(\arc vw) = 0$ for every arc $\arc vw$, then $\Delta$
 is aggresively lowered to $\max_v \fsupply(v)$.
+When the algorithm terminates, an optimal circulation in the contracted network is found.
+In Orlin's original algorithm~\cite{O93}, the optimal circulation is then
+recovered by solving a max flow problem on the set of admissible arcs under the
+optimal potential.
 
-When the algorithm terminates, an optimal circulation in the
-contracted network is found.
-\note{TODO include a description of the contraction details}
-We use the algorithm described in Agarwal~\etal~\cite{AFPVX17arxiv} to recover
-an optimal circulation for the original network in $O(n\polylog n)$ time.
-Orlin showed that the algorithm terminates within $O(n\log n)$ scales and
-performs a total of $O(n\log n)$ augmentations.
+The algorithm in Agarwal~\etal~\cite{AFPVX17arxiv} implements Orlin's algorithm
+geometrically such that each augmentation can be done in $O(n\polylog n)$ time.
+This includes using BCP to query minimum-reduced cost arcs, and implementing
+contractions in a way that preserves individual point identities for use in the BCP.
+Finally, they also provide an $O(n\polylog n)$ time post-processing step for
+recovering the optimal circulation from optimal potential.
+
 In the next subsection, we describe an algorithm that, after $O(n\polylog n)$ time
-preprocessing,
-%performs a Hungarian search
-finds an admissible excess-to-deficit path
-in $O(r\sqrt{n} \polylog n)$ amortized time.
+preprocessing, finds an admissible excess-to-deficit path in
+$O(r\sqrt{n} \polylog n)$ amortized time.
+Our algorithm diverges slightly from Agarwal~\etal~\cite{AFPVX17arxiv} here,
+as we use a Hungarian search to find the augmenting path rather than computing
+an entire shortest path tree.
 Summing this cost over all augmentations, we obtain the desired running time.
 
 \subsection{An efficient implementation}
@@ -1406,8 +1416,8 @@ so we prioritize the relaxation of support arcs as soon as they arrive in
 $X \times (V \setminus X)$, over the non-support arcs.
 This strategy ensures the following crucial property.
 
-\note{TODO reference the lemma/proof from arxiv instead} %TODO
-\begin{lemma}
+\note{TODO reference the correct lemma/proof} %TODO
+\begin{lemma}[\cite{AFPVX17arxiv}]
 \label{lemma:supp_acyclic}
 If the support arcs $\supp(f)$ are relaxed as soon as possible, $\supp(f)$ is acyclic.
 \end{lemma}
@@ -1490,15 +1500,13 @@ insertion/deletion operations in various BCP data structures, thereby taking
 $O(\sqrt{n}\polylog n)$ time.
 
 \paragraph*{Putting it together.}
-The following lemma bounds the running time of the Hungarian search.
+The following lemma, coming from the discussion above, bounds the running time
+of the Hungarian search.
 
 \begin{lemma}
 Assuming all BCP data structures are initialized correctly, the Hungarian search
 terminates within $O(r)$ steps, and takes $O(r\sqrt{n}\polylog n)$ time.
 \end{lemma}
-\begin{proof}
-\note{TODO} %TODO
-\end{proof}
 
 Once an augmenting path is found and the augmentation is performed, the set of
 imbalanced nodes and the support arcs change.
@@ -1508,8 +1516,6 @@ When we begin a new Hungarian search, we use the rewinding mechanism
 to set various BCP data structures in the right initial state.
 Finally, when we move from one scale to another, we also update the sets
 $\alive{A}$ and $\alive{B}$.
-\note{TODO details?} %TODO
-Omitting all the details, we conclude the following.
 
 \begin{lemma}
 Each Hungarian search can be performed in $O(r\sqrt{n}\polylog n)$ time.
