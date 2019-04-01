@@ -1241,53 +1241,35 @@ Potential updates for alive nodes can be handled in a batched fashion as in
 Section~\ref{section:hung}.
 
 \paragraph*{Implementing the augmentation stage.}
-\note{TODO what a mess; this block should be waaay simpler} %TODO
+\note{TODO check the writing of this part} %TODO
 Augmentation can also be implemented in $O(k\polylog n)$ time, after
 $O(n\polylog n)$ time preprocessing, using similar data structures.
-Recall that the augmentation step finds an admissible blocking flow as a
-sequence of disjoint admissible augmenting paths.
-Each admissible augmenting path is found through depth-first search from the
-set of excess nodes.
-For the fast implementation, we find an excess-deficit path composed of
-weakly-admissible alive paths (as opposed admissible residual arcs).
+The augmentation step finds an admissible blocking flow as a sequence of
+disjoint admissible augmenting paths, using a depth-first search (DFS) through
+the admissible residual arcs.
+The DFS is initialized at each excess node and continues until it reaches a
+deficit node with remaining deficit (an augmenting path is found),
+or returns to the excess node (no path was found).
+We attempt DFS from a new excess node once no path is found, or we have
+found enough augmenting paths to balance the current excess.
+In each step of the DFS, we discover admissible residual arcs by querying
+the min-reduced-cost arc leaving the current node $x \in X$ into $V \setminus X$,
+where $X$ is the set of excess nodes plus nodes already visited by the DFS.
+If this minimum arc is admissible, we can search across it.
+If it is not admissible, then there are no more unexplored admissible arcs
+leaving $x$.
+Like the Hungarian search, the DFS is reduced to a problem of querying the
+min-reduced-cost arc.
 
-The depth-first search maintains a \EMPH{current frontier node} $x$ from
-which it looks for untraversed admissible arcs to cross, initially any of the
-excess nodes.
-Let a node $v$ be \EMPH{fully explored} if the search has visited $v$ and
-fully explored all the neighbors of $w$ of $v$ where $c_\pi(\arc vw)$ is admissible.
-The depth-first search maintains the set of fully explored nodes as a set $X$.
-Additionally, some nodes store a \EMPH{predecessor} (as the alive path from a
-another node) which describes the current trajectory of the depth-first search,
-and each unbalanced node stores a variable $\operatorname{change}(v)$ tracking
-its change in imbalance with respect to the augmenting paths found so far,
-initially 0.
-In each step of the depth-first search, we query the minimum-reduced-cost alive
-path $\Pi = x \arcto \cdots \arcto y$ from $x$ into $V \setminus X$.
-\note{incomplete} %TODO
-\begin{itemize}
-\item If $\Pi$ is not weakly admissible or no $\Pi$ exists, $x$ is fully explored
-	and we add $X \gets \set{x}$.
-	We replace $x \gets \operatorname{predecessor}(x)$.
-	If $x$ has no predecessor ($x$ is an excess node), then we replace $x$
-	with one of the remaining excess nodes of $V \setminus X$.
-	If no not-fully-explored excess nodes remain, the search terminates.
-\item On the other hand, if $\Pi$ is weakly admissible, we set the predecessor
-	of $y$ to be $x$ by way of $\Pi$.
-	If $y$ is a deficit, we have found an admissible augmenting path,
-	which we can extract using predecessor information starting at $y$.
-	Let the extracted path be $v_1 \arcto \cdots \arcto v_\ell = y$.
-	We decrement $\operatorname{change}(v_1)$ and increment $\operatorname{change}(v_\ell)$.
-\end{itemize}
-%TODO
-
+Applying Lemma~\ref{lemma:shortcut_correct}, we can DFS through
+weakly-admissible alive paths instead of individual admissible arcs.
 In implementation, we use data structures for dynamic \EMPH{nearest neighbor}
 (NN) in addition to BCP.
 The nearest neighbor problem is as follows:
 preprocess a point set $P$ to answer, given a query point $a$, the point
 $b \in P$ minimizing $c(a, b) - \omega(a) + \omega(b)$.
-In addition to their BCP solution, Kaplan~\etal~\cite{KMRSS17} solve the
-2D dynamic NN problem with $O(\polylog n)$ update and $O(\log^2 n)$ query time.
+Kaplan~\etal~\cite{KMRSS17} solve the 2D dynamic NN problem with
+$O(\polylog n)$ update and $O(\log^2 n)$ query time.
 Similar to the Hungarian search implementation, we search across the
 length-1, -2, and -3 alive paths that start at $x$.
 Alive paths of the form $s \arcto v \arcto b$ and $s \arcto v \arcto w \arcto t$ are
