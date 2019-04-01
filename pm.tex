@@ -7,6 +7,7 @@
 
 \usepackage{graphicx,wrapfig}
 \DeclareGraphicsExtensions{.pdf,.png,.jpg}
+\graphicspath{{fig/}}
 
 %\usepackage[charter]{mathdesign}
 %\usepackage{berasans,beramono}
@@ -619,8 +620,7 @@ Given a pseudoflow $f$, the \EMPH{imbalance} of a node is
 \EMPH{$\fsupply_f (v)$} \coloneqq \fsupply(v) + \sum_{\arc wv \in \vec{E}}{f(\arc wv)} - \sum_{\arc vw \in \vec{E}}{f(\arc vw)}.
 \]
 We call positive imbalance \EMPH{excess} and negative imbalance \EMPH{deficit}.
-%and nodes with positive (resp.\ negative) imbalance \EMPH{excess nodes} (resp.\ \EMPH{deficit nodes}).
-% we actually use excess nodes later, but we have not defined residual network yet.
+We refer to the sum of positive imbalance in a pseudoflow as the \EMPH{excess of the pseudoflow}.
 A node is \EMPH{balanced} if it has zero imbalance.
 If all nodes are balanced, the pseudoflow is a \EMPH{circulation}.
 The \EMPH{cost} of a pseudoflow is defined to be
@@ -1139,6 +1139,20 @@ there are $O(k)$ alive/dead updates caused by an augmentation, so the time for
 these updates per Hungarian search is $O(k\polylog n)$.
 
 %TODO figure shortcut graph, dead nodes
+\begin{figure}
+\centering
+\includegraphics[width=0.3\textwidth,page=1]{shortcut.pdf}
+\includegraphics[width=0.3\textwidth,page=2]{shortcut.pdf}
+\includegraphics[width=0.3\textwidth,page=3]{shortcut.pdf}
+\caption{
+\label{fig:shortcut_network}
+Shortcut network construction, with most arcs omitted for clarity.
+Alive nodes are solid, dead nodes are hollow.
+From left to right: support arcs of the current pseudoflow in bold,
+the alive paths passing through dead node $v$,
+and the shortcuts of these alive paths.
+}
+\end{figure}
 
 \paragraph*{Correctness --- the shortcut network.}
 \note{TODO figure, check the writing of this part} %TODO
